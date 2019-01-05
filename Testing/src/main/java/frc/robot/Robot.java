@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.enums.startingPosition;
 import frc.robot.subsystems.drivetrain;
 
 /**
@@ -21,10 +22,8 @@ import frc.robot.subsystems.drivetrain;
  * project.
  */
 public class Robot extends TimedRobot {
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  private startingPosition m_autoSelected;
+  private final SendableChooser<startingPosition> m_chooser = new SendableChooser<>();
   drivetrain drive;
   XboxController xbC;
 
@@ -34,9 +33,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto choices", m_chooser);
+    m_chooser.setDefaultOption("Center", startingPosition.center);
+    m_chooser.addOption("Left", startingPosition.left);
+    m_chooser.addOption("Right", startingPosition.right);
+    SmartDashboard.putData("Position", m_chooser);
     drive= drivetrain.start();
     xbC= new XboxController(0);
   }
@@ -77,11 +77,16 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     switch (m_autoSelected) {
-      case kCustomAuto:
+      case center:
         // Put custom auto code here
         break;
-      case kDefaultAuto:
+      case left:
+        break;
+      case right:
+        break;
       default:
+        System.out.println("You actually found out a way to pick nothing.");
+        drive.stop();
         // Put default auto code here
         break;
     }

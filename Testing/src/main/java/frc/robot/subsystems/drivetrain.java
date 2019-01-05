@@ -1,26 +1,32 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.PWMTalonSRX;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.constants;
 
 public class drivetrain {
     private static drivetrain starter = new drivetrain();
-    private PWMTalonSRX rightMain, rightSlave, leftMain, leftSlave;
-
+    private TalonSRX rightMain, rightSlave, leftMain, leftSlave;
 
     public static drivetrain start(){
        return starter;
     }
     
     private drivetrain(){
-        rightMain= new PWMTalonSRX(constants.rightMainMC);
-        leftMain= new PWMTalonSRX(constants.leftMainMC);
-        rightSlave= new PWMTalonSRX(constants.rightSlaveMC);
-        //rightSlave.follow(rightMain);
-        leftSlave= new PWMTalonSRX(constants.leftSlaveMC);
-        //leftSlave.follow(leftMain);
+        rightMain= new TalonSRX(constants.rightMainMC);
+        rightMain.setNeutralMode(NeutralMode.Brake);
+        leftMain= new TalonSRX(constants.leftMainMC);
+        leftMain.setNeutralMode(NeutralMode.Brake);
+        rightSlave= new TalonSRX(constants.rightSlaveMC);
+        rightSlave.follow(rightMain);
+        rightSlave.setNeutralMode(NeutralMode.Brake);
+        leftSlave= new TalonSRX(constants.leftSlaveMC);
+        leftSlave.follow(leftMain);
+        leftSlave.setNeutralMode(NeutralMode.Brake);
     }
     public void teleOpDrive(XboxController controller){
         // Version of arcadeDrive from edu.wpi.first.wpilibj.RobotDrive, lines 401-417
@@ -49,21 +55,18 @@ public class drivetrain {
               rightMotors = -Math.max(-y, -x);
             }
           }
-        rightMain.set(rightMotors);
-        leftMain.set(leftMotors);
-        // \/ These will only be here until we have the real Talon Libs, then we can use .follow \/
-        rightSlave.set(rightMotors);
-        leftSlave.set(leftMotors);
+        rightMain.set(ControlMode.PercentOutput, rightMotors);
+        leftMain.set(ControlMode.PercentOutput, leftMotors);
+        
+        
         
     }
     public void autoDrive(){
         // Have plenty of ideas, need event details
     }
     public void stop(){
-        rightMain.set(0);
-        leftMain.set(0);
-        rightSlave.set(0);
-        leftSlave.set(0);
+        rightMain.set(ControlMode.PercentOutput, 0);
+        leftMain.set(ControlMode.PercentOutput, 0);
     }
     
 
