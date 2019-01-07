@@ -1,5 +1,5 @@
 # TestingTemplates
-Testing the Best Way to Lay Out Our Code This Year, Inspired by team I talk to from competition. https://github.com/SachemAftershock/2018-robot-code
+
 
 EVERY FILE NEEDED FOR CODE, WILL ADD AS WE GO INTO VISION, ETC.
 Driver Station
