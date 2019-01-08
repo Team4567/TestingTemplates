@@ -13,35 +13,58 @@ contours.add(b);
 contours.add(c);
 }
 void runCheck(){
-
-for(int i=0; i < contours.size();i++){
-    if(i-1<0){
-         if(contours.get(i).distanceToCenter()>contours.get(contours.size()-1).distanceToCenter()){
-        contours.get(contours.size()-1).setClosest(true);
-        contours.get(i).setClosest(false);
-         ClosestC=contours.get(contours.size()-1);
+    if(ClosestC==null){
+        for(int i=0; i < contours.size();i++){
+            if(i-1<0){
+                if(contours.get(i).distanceToCenter()>contours.get(contours.size()-1).distanceToCenter()){
+                    contours.get(contours.size()-1).setClosest(true);
+                    contours.get(i).setClosest(false);
+                    ClosestC=contours.get(contours.size()-1);
          
-      } else{
-        contours.get(i).setClosest(true);
-        contours.get(contours.size()-1).setClosest(false);
-        ClosestC=contours.get(i);
+                } else{
+                    contours.get(i).setClosest(true);
+                    contours.get(contours.size()-1).setClosest(false);
+                    ClosestC=contours.get(i);
         
-      } 
-      } else {
-        if(contours.get(i).distanceToCenter()>contours.get(i-1).distanceToCenter()){
-        contours.get(i-1).setClosest(true);
-        contours.get(i).setClosest(false);
-        ClosestC=contours.get(i-1);
+                } 
+            } else {
+                if(contours.get(i).distanceToCenter()>contours.get(i-1).distanceToCenter()){
+                    contours.get(i-1).setClosest(true);
+                    contours.get(i).setClosest(false);
+                    ClosestC=contours.get(i-1);
         
-      } else{
-        contours.get(i).setClosest(true);
-        contours.get(i-1).setClosest(false);
-        ClosestC=contours.get(i);
+                } else{
+                    contours.get(i).setClosest(true);
+                    contours.get(i-1).setClosest(false);
+                    ClosestC=contours.get(i);
         
-      } 
+                } 
+    
+            }
+         }
+    } else{
+        for(int i=0; i < contours.size();i++){
+            if(contours.get(i).distanceToCenter()>ClosestC.distanceToCenter()){
+                contours.get(ClosestC).setClosest(tClosestCrue);
+                contours.get(i).setClosest(false);
+                ClosestC=contours.get(ClosestC);
+         
+            } else{
+                contours.get(i).setClosest(true);
+                contours.get(ClosestC).setClosest(false);
+                ClosestC=contours.get(i);
+        
+            } 
+     
     
     }
+  
+  
+  
   }
+  
+  
+  
   
 
 }
