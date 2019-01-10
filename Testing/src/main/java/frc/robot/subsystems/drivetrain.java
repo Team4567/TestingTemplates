@@ -11,7 +11,6 @@ import frc.robot.constants;
 public class drivetrain {
     private static drivetrain starter = new drivetrain();
     private TalonSRX rightMain, rightSlave, leftMain, leftSlave;
-
     public static drivetrain start(){
        return starter;
     }
