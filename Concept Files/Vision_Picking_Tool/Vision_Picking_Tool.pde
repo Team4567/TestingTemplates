@@ -1,85 +1,57 @@
-//Nonworking, experimental code to determine which vision target(contour) is closest to the center of the camera screen to select it as the target.
+//WORKING.
+//Once CenterC is found, all commands to align robot will base off of that.
 public ArrayList<Contour> contours= new ArrayList<Contour>();
+// The reason these are definted outside of setup is because otherwise contours.size() gave nullpointerexception
 public Contour a= new Contour((int)random(0,256),(int)random(0,144));
 public Contour b= new Contour((int)random(0,256),(int)random(0,144));
 public Contour c= new Contour((int)random(0,256),(int)random(0,144));
 public Contour ClosestC;
-public boolean isFinished=false;
+public double min;
+public int minIndex;
+public boolean isDone;
 void setup(){
 size(256,144);
 background(255);
+// Having contours be automatically made into classes and added to the array will have to be tested in a real environment
 contours.add(a);
 contours.add(b);
 contours.add(c);
-}
-void runCheck(){
-    if(ClosestC==null){
-        for(int i=0; i < contours.size();i++){
-            if(i-1<0){
-                if(contours.get(i).distanceToCenter()>contours.get(contours.size()-1).distanceToCenter()){
-                    contours.get(contours.size()-1).setClosest(true);
-                    contours.get(i).setClosest(false);
-                    ClosestC=contours.get(contours.size()-1);
-         
-                } else{
-                    contours.get(i).setClosest(true);
-                    contours.get(contours.size()-1).setClosest(false);
-                    ClosestC=contours.get(i);
-        
-                } 
-            } else {
-                if(contours.get(i).distanceToCenter()>contours.get(i-1).distanceToCenter()){
-                    contours.get(i-1).setClosest(true);
-                    contours.get(i).setClosest(false);
-                    ClosestC=contours.get(i-1);
-        
-                } else{
-                    contours.get(i).setClosest(true);
-                    contours.get(i-1).setClosest(false);
-                    ClosestC=contours.get(i);
-        
-                } 
-    
-            }
-         }
-    } else{
-        for(int i=0; i < contours.size();i++){
-            if(contours.get(i).distanceToCenter()>ClosestC.distanceToCenter()){
-                contours.get(ClosestC).setClosest(tClosestCrue);
-                contours.get(i).setClosest(false);
-                ClosestC=contours.get(ClosestC);
-         
-            } else{
-                contours.get(i).setClosest(true);
-                contours.get(ClosestC).setClosest(false);
-                ClosestC=contours.get(i);
-        
-            } 
-     
-    
-    }
-  
-  
-  
-  }
-  
-  
-  
-  
+min = 999999999; //The largest # I could fit in a double
+minIndex = -1;
+isDone=true;
 
 }
+void runCheck(){
+  //isDone makes it happen forever
+  if(isDone){
+    isDone=false;
+    for (int i=0; i<contours.size(); i++){
+     if (contours.get(i).distanceToCenter() < min){
+        min = contours.get(i).distanceToCenter();
+        minIndex = i;
+     }
+     isDone=true;
+    }
+  }
+}
 void draw(){
-  fill(0);
-  ellipse(width/2,height/2,10,10);
+  runCheck();
+  for(int i=0; i<contours.size();i++){
+    if(i==minIndex){
+      ClosestC=contours.get(i);
+      contours.get(i).setClosest(true);
+    } else{
+      contours.get(i).setClosest(false);
+    }
+  }
   a.draw();
   b.draw();
   c.draw();
-  runCheck();
+  fill(0);
+  ellipse(width/2,height/2,10,10);
+  
+  
 }
 void mousePressed(){
-
-
-  println(a.isClosest+" "+a.distanceToCenter());
-  println(b.isClosest+" "+b.distanceToCenter());
-  println(c.isClosest+" "+c.distanceToCenter());
+  
 }
