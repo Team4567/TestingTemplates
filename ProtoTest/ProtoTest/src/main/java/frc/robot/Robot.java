@@ -7,6 +7,9 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.VictorSP;
@@ -24,8 +27,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends TimedRobot {
   XboxController xbC;
+  //TalonSRX t;
   Spark spark;
   VictorSP vsp;
+  
 
   /**
    * This function is run when the robot is first started up and should be
@@ -33,8 +38,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-   spark= new Spark(0);
-   vsp= new VictorSP(1);
+   //t= new TalonSRX(2);
+   //t.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+   spark= new Spark(1);
+   vsp= new VictorSP(0);
    xbC= new XboxController(0);
   }
 
@@ -48,6 +55,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    //System.out.println(t.getSelectedSensorPosition());
   }
 
   /**
