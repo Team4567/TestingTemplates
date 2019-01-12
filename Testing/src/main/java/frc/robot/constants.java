@@ -5,5 +5,8 @@ public class constants{
     public final static int leftMainMC = 1;
     public final static int rightSlaveMC = 2;
     public final static int leftSlaveMC = 3;
+    public final static int rangeFinder = 0;
 
+    public final static double wheelDiameter=6;
+    public final static double wheelCirc=wheelDiameter*Math.PI;
 }

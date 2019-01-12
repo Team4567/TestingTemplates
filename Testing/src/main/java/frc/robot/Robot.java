@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.enums.startingPosition;
+import frc.robot.enums.*;
 import frc.robot.subsystems.drivetrain;
 
 /**
@@ -23,7 +23,7 @@ import frc.robot.subsystems.drivetrain;
  */
 public class Robot extends TimedRobot {
   private startingPosition m_autoSelected;
-  private final SendableChooser<startingPosition> m_chooser = new SendableChooser<>();
+  private final SendableChooser<startingPosition> posChooser = new SendableChooser<>();
   drivetrain drive;
   XboxController xbC;
 
@@ -33,10 +33,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    m_chooser.setDefaultOption("Center", startingPosition.center);
-    m_chooser.addOption("Left", startingPosition.left);
-    m_chooser.addOption("Right", startingPosition.right);
-    SmartDashboard.putData("Position", m_chooser);
+    posChooser.setDefaultOption("Center", startingPosition.center);
+    posChooser.addOption("Left", startingPosition.left);
+    posChooser.addOption("Right", startingPosition.right);
+    SmartDashboard.putData("Position", posChooser);
     drive= drivetrain.start();
     xbC= new XboxController(0);
   }
@@ -66,7 +66,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    m_autoSelected = m_chooser.getSelected();
+    m_autoSelected = posChooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
   }
@@ -106,5 +106,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void testPeriodic() {
+    System.out.println(drive.rangeFinderDistance(distanceUnit.inches));
+    System.out.println("Left Encoder: " + drive.encoderDistanceInInches(drive.left()) + " inches.");
+    System.out.println("Right Encoder: " + drive.encoderDistanceInInches(drive.right()) + " inches.");
   }
 }

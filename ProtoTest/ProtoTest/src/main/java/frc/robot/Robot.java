@@ -10,6 +10,10 @@ package frc.robot;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+
+import frc.robot.distanceUnit;
+
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.VictorSP;
@@ -30,6 +34,8 @@ public class Robot extends TimedRobot {
   //TalonSRX t;
   Spark spark;
   VictorSP vsp;
+  AnalogInput range= new AnalogInput(0);
+  double scale;
   
 
   /**
@@ -55,7 +61,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    //System.out.println(t.getSelectedSensorPosition());
+    
   }
 
   /**
@@ -119,8 +125,26 @@ public class Robot extends TimedRobot {
   /**
    * This function is called periodically during test mode.
    */
+  private double rangeFinderDistance(distanceUnit unit){
+    final float Vi=5/1024;
+    //Vi= Volts per 5 mm
+    switch(unit){
+      case centimeters:
+        scale = (Vi/5)*100;
+      break;
+      case inches:
+        scale = ((Vi/5)*100)/2.54;
+      break;
+      default:
+        scale = ((Vi/5)*100)/2.54;
+      break;
+    }
+    return (range.getVoltage()*scale);
+  }
+  
   @Override
   public void testPeriodic() {
-
+    System.out.println(rangeFinderDistance(distanceUnit.inches));
+    //System.out.println(t.getSelectedSensorPosition()/4096 + " revolutions.");
   }
 }
