@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -11,11 +12,13 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import frc.robot.constants;
 import frc.robot.enums.*;
 
+import frc.robot.PID;
 public class drivetrain {
     private static drivetrain starter = new drivetrain();
     private TalonSRX rightMain, rightSlave, leftMain, leftSlave;
     private AnalogInput range;
     private double scaleR;
+    private PigeonIMU gyro;
     public static drivetrain start(){
        return starter;
     }
@@ -34,6 +37,7 @@ public class drivetrain {
         leftSlave.follow(leftMain);
         leftSlave.setNeutralMode(NeutralMode.Brake);
         range = new AnalogInput(0);
+        gyro= new PigeonIMU(5);
     }
     public void teleOpDrive(XboxController controller){
         // Version of arcadeDrive from edu.wpi.first.wpilibj.RobotDrive, lines 401-417
@@ -101,7 +105,37 @@ public class drivetrain {
     public TalonSRX left(){
       return leftMain;
     }
+    public void drive(double y,double x){
+      double leftMotors,rightMotors;
+      if (y > 0.0) {
+        if (x > 0.0) {
+          leftMotors = y - x;
+          rightMotors = Math.max(y, x);
+        } else {
+          leftMotors = Math.max(y, -x);
+          rightMotors = y + x;
+        }
+      } else {
+        if (x > 0.0) {
+          leftMotors = -Math.max(-y, x);
+          rightMotors = y + x;
+        } else {
+          leftMotors = y - x;
+          rightMotors = -Math.max(-y, -x);
+        }
+        rightMain.set(ControlMode.PercentOutput,rightMotors);
+        leftMain.set(ControlMode.PercentOutput,leftMotors);
+      }
+    }
+    public void driveDistanceInches(double inches){
+      PID pidSpeed= new PID(0,0,0,leftMain,rightMain);
+      PID pidAngle= new PID(0,0,0,gyro);
+      pidSpeed.setSetpoint((inches/constants.wheelDiameter)*4096);
+      pidAngle.setSetpoint(0);
+      drive(pidSpeed.distanceSpeed(),pidAngle.angle());
 
+
+    }
 
 
 

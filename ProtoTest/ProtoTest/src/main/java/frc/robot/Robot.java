@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.CameraServer;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -36,7 +37,8 @@ public class Robot extends TimedRobot {
   VictorSP vsp;
   AnalogInput range= new AnalogInput(0);
   double scale;
-  
+  TestPipeline pipe;
+
 
   /**
    * This function is run when the robot is first started up and should be
@@ -49,6 +51,7 @@ public class Robot extends TimedRobot {
    spark= new Spark(1);
    vsp= new VictorSP(0);
    xbC= new XboxController(0);
+   pipe= new TestPipeline();
   }
 
   /**

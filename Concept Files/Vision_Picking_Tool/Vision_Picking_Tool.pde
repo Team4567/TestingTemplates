@@ -10,15 +10,15 @@ public double min;
 public int minIndex;
 public boolean isDone;
 void setup(){
-size(256,144);
-background(255);
+  size(256,144);
+  background(255);
 // Having contours be automatically made into classes and added to the array will have to be tested in a real environment
-contours.add(a);
-contours.add(b);
-contours.add(c);
-min = 999999999; //The largest # I could fit in a double
-minIndex = -1;
-isDone=true;
+  contours.add(a);
+  contours.add(b);
+  contours.add(c);
+  min = 999999999; //The largest # I could fit in a double
+  minIndex = -1;
+  isDone=true;
 
 }
 void runCheck(){
@@ -53,5 +53,7 @@ void draw(){
   
 }
 void mousePressed(){
-  
+  println(a.isClosest);
+  println(b.isClosest);
+  println(c.isClosest);
 }
