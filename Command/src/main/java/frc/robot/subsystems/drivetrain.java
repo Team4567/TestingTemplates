@@ -1,5 +1,13 @@
+/*----------------------------------------------------------------------------*/
+/* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
+/* Open Source Software - may be modified and shared by FRC teams. The code   */
+/* must be accompanied by the FIRST BSD license file in the root directory of */
+/* the project.                                                               */
+/*----------------------------------------------------------------------------*/
+
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.command.Subsystem;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -12,11 +20,16 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.AnalogInput;
 import frc.robot.constants;
 import frc.robot.enums.*;
-
 import frc.robot.PID;
-public class drivetrain {
-    private static drivetrain starter = new drivetrain();
-    private TalonSRX rightMain, rightSlave, leftMain, leftSlave;
+/**
+ * An example subsystem.  You can replace me with your own Subsystem.
+ */
+public class drivetrain extends Subsystem {
+  // Put methods for controlling this subsystem
+  // here. Call these from Commands.
+  private static drivetrain starter = new drivetrain();
+    public TalonSRX rightMain,leftMain;
+    private TalonSRX rightSlave, leftSlave;
     private AnalogInput range;
     private double scaleR;
     public PigeonIMU gyro;
@@ -26,7 +39,7 @@ public class drivetrain {
        return starter;
     }
     
-    private drivetrain(){
+    public drivetrain(){
         rightMain= new TalonSRX(constants.rightMainMC);
         rightMain.setNeutralMode(NeutralMode.Brake);
         rightMain.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
@@ -51,7 +64,7 @@ public class drivetrain {
       gyro.getYawPitchRoll(yaw);
       return yaw[0];
     }
-    public void teleOpDrive(XboxController controller){
+    /*public void teleOpDrive(XboxController controller){
         // Version of arcadeDrive from edu.wpi.first.wpilibj.RobotDrive, lines 401-417
         // Joe Lange (Driver) is used to this naturally from years past, maybe we can change it.
         double y= controller.getY(Hand.kLeft);
@@ -85,14 +98,14 @@ public class drivetrain {
         if(controller.getStartButton()){
           resetGyro();
         }
-    }
+    }*/
     public void autoDrive(){
         // Have plenty of ideas, need event details
     }
-    public void stop(){
+    /*public void stop(){
         rightMain.set(ControlMode.PercentOutput, 0);
         leftMain.set(ControlMode.PercentOutput, 0);
-    }
+    }*/
     public double rangeFinderDistance(distanceUnit unit){
       final float Vi=5/1024;
       
@@ -112,12 +125,6 @@ public class drivetrain {
     }
     public double encoderDistanceInCentimenters(TalonSRX t){
       return t.getSelectedSensorPosition()*((1/4096)*(constants.wheelCirc)*2.54);
-    }
-    public TalonSRX right(){
-      return rightMain;
-    }
-    public TalonSRX left(){
-      return leftMain;
     }
     public void drive(double y,double x){
       double leftMotors,rightMotors;
@@ -186,8 +193,9 @@ public class drivetrain {
       }
     }
 
+  @Override
+  public void initDefaultCommand() {
+    // Set the default command for a subsystem here.
+    // setDefaultCommand(new MySpecialCommand());
+  }
 }
-
-
-
-

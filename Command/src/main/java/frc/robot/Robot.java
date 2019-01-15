@@ -9,10 +9,11 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.command.Command;
+import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.enums.*;
+import frc.robot.commands.*;
 import frc.robot.subsystems.drivetrain;
 
 /**
@@ -23,25 +24,23 @@ import frc.robot.subsystems.drivetrain;
  * project.
  */
 public class Robot extends TimedRobot {
-  private startingPosition m_autoSelected;
-  private final SendableChooser<startingPosition> posChooser = new SendableChooser<>();
-  drivetrain drive;
-  XboxController xbC;
-  DriverStation ds;
+  public static drivetrain drive = drivetrain.start();
+  public static OI m_oi;
+  public static DriverStation ds = DriverStation.getInstance();
+
+  Command m_autonomousCommand;
+  SendableChooser<Command> m_chooser = new SendableChooser<>();
+
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
    */
   @Override
   public void robotInit() {
-    posChooser.setDefaultOption("Center", startingPosition.center);
-    posChooser.addOption("Left", startingPosition.left);
-    posChooser.addOption("Right", startingPosition.right);
-    SmartDashboard.putData("Position", posChooser);
-    drive= drivetrain.start();
-    xbC= new XboxController(0);
-    ds= DriverStation.getInstance();
-    drive.resetGyro();
+    m_oi = new OI();
+    //m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
+    // chooser.addOption("My Auto", new MyAutoCommand());
+    SmartDashboard.putData("Auto mode", m_chooser);
   }
 
   /**
@@ -57,21 +56,45 @@ public class Robot extends TimedRobot {
   }
 
   /**
+   * This function is called once each time the robot enters Disabled mode.
+   * You can use it to reset any subsystem information you want to clear when
+   * the robot is disabled.
+   */
+  @Override
+  public void disabledInit() {
+  }
+
+  @Override
+  public void disabledPeriodic() {
+    Scheduler.getInstance().run();
+  }
+
+  /**
    * This autonomous (along with the chooser code above) shows how to select
    * between different autonomous modes using the dashboard. The sendable
    * chooser code works with the Java SmartDashboard. If you prefer the
    * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-   * getString line to get the auto name from the text box below the Gyro
+   * getString code to get the auto name from the text box below the Gyro
    *
-   * <p>You can add additional auto modes by adding additional comparisons to
-   * the switch structure below with additional strings. If using the
-   * SendableChooser make sure to add them to the chooser code above as well.
+   * <p>You can add additional auto modes by adding additional commands to the
+   * chooser code above (like the commented example) or additional comparisons
+   * to the switch structure below with additional strings & commands.
    */
   @Override
   public void autonomousInit() {
-    m_autoSelected = posChooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    System.out.println("Auto selected: " + m_autoSelected);
+    m_autonomousCommand = m_chooser.getSelected();
+
+    /*
+     * String autoSelected = SmartDashboard.getString("Auto Selector",
+     * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
+     * = new MyAutoCommand(); break; case "Default Auto": default:
+     * autonomousCommand = new ExampleCommand(); break; }
+     */
+
+    // schedule the autonomous command (example)
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.start();
+    }
   }
 
   /**
@@ -79,19 +102,17 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case center:
-        // Put custom auto code here
-        break;
-      case left:
-        break;
-      case right:
-        break;
-      default:
-        System.out.println("You actually found out a way to pick nothing.");
-        drive.stop();
-        // Put default auto code here
-        break;
+    Scheduler.getInstance().run();
+  }
+
+  @Override
+  public void teleopInit() {
+    // This makes sure that the autonomous stops running when
+    // teleop starts running. If you want the autonomous to
+    // continue until interrupted by another command, remove
+    // this line or comment it out.
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.cancel();
     }
   }
 
@@ -100,17 +121,13 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    System.out.println("TeleOp Activated!");
-    drive.teleOpDrive(xbC);
+    Scheduler.getInstance().run();
   }
 
   /**
-   * This function is called periodically during test mode. 
+   * This function is called periodically during test mode.
    */
   @Override
   public void testPeriodic() {
-    System.out.println(drive.rangeFinderDistance(distanceUnit.inches));
-    System.out.println("Left Encoder: " + drive.encoderDistanceInInches(drive.left()) + " inches.");
-    System.out.println("Right Encoder: " + drive.encoderDistanceInInches(drive.right()) + " inches.");
   }
 }
