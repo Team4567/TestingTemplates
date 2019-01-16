@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------------*/
-/* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
+/* Copyright (c) 2018 FIRST. All Rights Reserved.                             */
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
@@ -11,23 +11,18 @@ import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 import frc.robot.PID;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.constants;
-/**
- * An example command.  You can replace me with your own command.
- */
-public class driveDistance extends Command {
-  int inches;
-  PID dist,ang;
+
+public class turnAngle extends Command {
+  int angle;
+  PID ang;
   Timer time;
   boolean isDone;
-  public driveDistance(int i) {
-    
+  public turnAngle(int a) {
     // Use requires() here to declare subsystem dependencies
+    // eg. requires(chassis);
     requires(Robot.drive);
-    inches=i;
-    dist=new PID(Robot.drive.leftMain,Robot.drive.rightMain);
+    angle=a;
     ang= new PID(Robot.drive.gyro);
-    time= new Timer();
   }
 
   // Called just before this Command runs the first time
@@ -41,22 +36,21 @@ public class driveDistance extends Command {
   protected void execute() {
     Robot.drive.resetGyro();
     
-      dist.setSetpoint((int)((inches/constants.wheelDiameter)*4096));
-      ang.setSetpoint(0);
-      if(dist.distanceSpeed()>0.2){
-        Robot.drive.drive(dist.distanceSpeed(),ang.angle());
+      ang.setSetpoint(angle);
+      if(ang.angle()>0.2){
+        Robot.drive.drive(0,ang.angle());
       }else {
-        if(dist.avgEncoder>dist.setpoint-60 && dist.avgEncoder<dist.setpoint+60){
+        if(Robot.drive.getYaw()>ang.setpoint-3 && Robot.drive.getYaw()<ang.setpoint+3){
             time.reset();
             time.start();
             
             if(time.get()<=2){
-              Robot.drive.drive(0.25 * dist.distanceSpeed(),ang.angle());
+              Robot.drive.drive(0,.25*ang.angle());
             }else{
               isDone=true;
             }
         }else{
-          Robot.drive.drive(dist.distanceSpeed(),ang.angle());
+          Robot.drive.drive(0,ang.angle());
         }
       }
   }
@@ -68,7 +62,7 @@ public class driveDistance extends Command {
       return true;
     }else{
     return false;
-  }
+    }
   }
 
   // Called once after isFinished returns true
@@ -81,6 +75,5 @@ public class driveDistance extends Command {
   // subsystems is scheduled to run
   @Override
   protected void interrupted() {
-
   }
 }
