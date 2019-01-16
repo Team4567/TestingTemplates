@@ -38,14 +38,16 @@ public class PID{
     }
     public double distanceSpeed(){
         double error=setpoint-avgEncoder;
-        this.integral+= (error*.02);
-        this.derivative= (error-this.previous_error)/.02;
-        return P*error+I*this.integral+D*derivative;
+        integral+= (error*.02);
+        derivative= (error-this.previous_error)/.02;
+        previous_error=error;
+        return Math.min(Math.max((P*error+I*integral+D*derivative),-1.0D), 1.0D);
     }
     public double angle(){
         double error=setpoint-ypr[0];
-        this.integral+= (error*.02);
-        this.derivative= (error-this.previous_error)/.02;
-        return P*error+I*this.integral+D*derivative;
+        integral+= (error*.02);
+        derivative= (error-this.previous_error)/.02;
+        previous_error=error;
+        return Math.min(Math.max((P*error+I*integral+D*derivative),-1.0D), 1.0D);
     }
 }

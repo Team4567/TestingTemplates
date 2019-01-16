@@ -17,6 +17,10 @@ import frc.robot.constants;
  */
 public class driveDistance extends Command {
   int inches;
+  PID dist= new PID(Robot.drive.leftMain,Robot.drive.rightMain);
+  PID ang= new PID(Robot.drive.gyro);
+  Timer time= new Timer();
+  boolean isDone;
   public driveDistance(int i) {
     inches=i;
     // Use requires() here to declare subsystem dependencies
@@ -26,33 +30,30 @@ public class driveDistance extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    PID dist= new PID(Robot.drive.leftMain,Robot.drive.rightMain);
-    PID ang= new PID(Robot.drive.gyro);
-    Timer time= new Timer();
+    isDone=false;
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
     Robot.drive.resetGyro();
-      PID pidSpeed= new PID(Robot.drive.leftMain,Robot.drive.rightMain);
-      PID pidAngle= new PID(Robot.drive.gyro);
-      pidSpeed.setSetpoint((int)((inches/constants.wheelDiameter)*4096));
-      pidAngle.setSetpoint(0);
-      if(pidSpeed.distanceSpeed()>0.2){
-        drive(pidSpeed.distanceSpeed(),pidAngle.angle());
+    
+      dist.setSetpoint((int)((inches/constants.wheelDiameter)*4096));
+      ang.setSetpoint(0);
+      if(dist.distanceSpeed()>0.2){
+        Robot.drive.drive(dist.distanceSpeed(),ang.angle());
       }else {
-        if(pidSpeed.avgEncoder>pidSpeed.setpoint-60 && pidSpeed.avgEncoder<pidSpeed.setpoint+60){
+        if(dist.avgEncoder>dist.setpoint-60 && dist.avgEncoder<dist.setpoint+60){
             time.reset();
             time.start();
-            hasLeft=false;
+            
             if(time.get()<=2){
-              drive(0.2,pidAngle.angle());
+              Robot.drive.drive(0.25 * dist.distanceSpeed(),ang.angle());
             }else{
-              drive(0,0);
+              isDone=true;
             }
         }else{
-          drive(pidSpeed.distanceSpeed(),pidAngle.angle());
+          Robot.drive.drive(dist.distanceSpeed(),dist.angle());
         }
       }
   }
@@ -60,12 +61,17 @@ public class driveDistance extends Command {
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
+    if(isDone){
+      return true;
+    }else{
     return false;
+  }
   }
 
   // Called once after isFinished returns true
   @Override
   protected void end() {
+    Robot.drive.drive(0,0);
   }
 
   // Called when another command which requires one or more of the same

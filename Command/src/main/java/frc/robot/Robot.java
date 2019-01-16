@@ -9,6 +9,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -27,8 +28,9 @@ public class Robot extends TimedRobot {
   public static drivetrain drive = drivetrain.start();
   public static OI m_oi;
   public static DriverStation ds = DriverStation.getInstance();
-
+  public XboxController xbC= new XboxController(0);
   Command m_autonomousCommand;
+  Command teleOpDrive;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
 
   /**
@@ -37,7 +39,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    m_oi = new OI();
+    m_oi = new OI(xbC);
+    teleOpDrive= new teleOpDrive(xbC);
     //m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
     // chooser.addOption("My Auto", new MyAutoCommand());
     SmartDashboard.putData("Auto mode", m_chooser);
@@ -122,6 +125,9 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
+    while(ds.isOperatorControl()){
+      teleOpDrive.start();
+    }
   }
 
   /**
