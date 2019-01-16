@@ -35,9 +35,10 @@ public class Robot extends TimedRobot {
   //TalonSRX t;
   Spark spark;
   VictorSP vsp;
+  TalonSRX vL, vR;
   AnalogInput range= new AnalogInput(0);
   double scale;
-  TestPipeline pipe;
+  
 
 
   /**
@@ -51,7 +52,10 @@ public class Robot extends TimedRobot {
    spark= new Spark(1);
    vsp= new VictorSP(0);
    xbC= new XboxController(0);
-   pipe= new TestPipeline();
+   vL= new TalonSRX(3);
+   vR= new TalonSRX(2);
+   vL.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+   vR.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
   }
 
   /**
@@ -109,22 +113,34 @@ public class Robot extends TimedRobot {
       if(xbC.getBumper(Hand.kLeft)){
         spark.set(-1);
         vsp.set(-1);
+        vL.set(ControlMode.PercentOutput,-1);
+        vR.set(ControlMode.PercentOutput,-1);
+
       } else if(xbC.getBumper(Hand.kRight)){
         spark.set(1);
         vsp.set(1);
+        vL.set(ControlMode.PercentOutput,1);
+        vR.set(ControlMode.PercentOutput,1);
       }else if(xbC.getXButton()){
         spark.set(-0.5);
         vsp.set(-0.5);
+        vL.set(ControlMode.PercentOutput,-0.5);
+        vR.set(ControlMode.PercentOutput,-0.5);
       } else if(xbC.getBButton()){
         spark.set(0.5);
         vsp.set(0.5);
-      } else{
+        vL.set(ControlMode.PercentOutput,0.5);
+        vR.set(ControlMode.PercentOutput,0.5);
+      } else if(xbC.getAButton()){
+        vsp.set(0.5);
+      }else{
         spark.set(0);
         vsp.set(0);
+        vL.set(ControlMode.PercentOutput, 0);
+        vR.set(ControlMode.PercentOutput, 0);
       }
     }
   }
-
   /**
    * This function is called periodically during test mode.
    */
