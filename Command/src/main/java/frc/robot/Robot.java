@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.commands.*;
-import frc.robot.subsystems.drivetrain;
+import frc.robot.subsystems.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -26,6 +26,7 @@ import frc.robot.subsystems.drivetrain;
  */
 public class Robot extends TimedRobot {
   public static drivetrain drive = drivetrain.start();
+  public static scoringMech score=scoringMech.start();
   public static OI m_oi;
   public static DriverStation ds = DriverStation.getInstance();
   public XboxController xbC= new XboxController(0);
