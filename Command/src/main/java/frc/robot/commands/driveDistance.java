@@ -9,72 +9,61 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
-import frc.robot.PID;
-import edu.wpi.first.wpilibj.Timer;
 import frc.robot.constants;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 /**
  * An example command.  You can replace me with your own command.
  */
 public class driveDistance extends Command {
-  int inches;
-  PID dist,ang;
-  Timer time;
-  boolean isDone;
-  public driveDistance(int i) {
+  double P,I,D;
+  double integral, previous_error, setpoint, error, derivative, output;
+  double avgEncoder;
+  TalonSRX tL, tR;
+  turnAngle straight;
+  public driveDistance() {
     
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
-    inches=i;
-    dist=new PID(Robot.drive.leftMain,Robot.drive.rightMain);
-    ang= new PID(Robot.drive.gyro);
-    time= new Timer();
+    P= constants.gyroP;
+    I= constants.gyroI;
+    D= constants.gyroD;
+    straight= new turnAngle(); 
+    tL= Robot.drive.leftMain;
+    tR= Robot.drive.rightMain;
+    avgEncoder=Robot.drive.leftMain.getSelectedSensorPosition()+Robot.drive.rightMain.getSelectedSensorPosition();
   }
-
+  public void PID(){
+    error = setpoint-avgEncoder;
+    integral+= (error*.02);
+    derivative= (error-previous_error)/.02;
+    previous_error=error;
+    output=P*error+I*integral+D*derivative;
+  }
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    isDone=false;
+    
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    Robot.drive.resetGyro();
-    
-      dist.setSetpoint((int)((inches/constants.wheelDiameter)*4096));
-      ang.setSetpoint(0);
-      if(dist.distanceSpeed()>0.2){
-        Robot.drive.drive(dist.distanceSpeed(),ang.angle());
-      }else {
-        if(dist.avgEncoder>dist.setpoint-60 && dist.avgEncoder<dist.setpoint+60){
-            time.reset();
-            time.start();
-            
-            if(time.get()<=2){
-              Robot.drive.drive(0.25 * dist.distanceSpeed(),ang.angle());
-            }else{
-              isDone=true;
-            }
-        }else{
-          Robot.drive.drive(dist.distanceSpeed(),ang.angle());
-        }
-      }
+    straight.setSetpoint(0);
+    straight.PID();
+    PID();
+    Robot.drive.drive(output,straight.output);
   }
 
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(isDone){
-      return true;
-    }else{
     return false;
-  }
   }
 
   // Called once after isFinished returns true
   @Override
   protected void end() {
-    Robot.drive.drive(0,0);
+    Robot.drive.stop();
   }
 
   // Called when another command which requires one or more of the same

@@ -36,6 +36,7 @@ public class drivetrain extends Subsystem {
     public PigeonIMU gyro;
     Timer time;
     boolean hasLeft=false;
+    double[] ypr;
     public static drivetrain start(){
        return starter;
     }
@@ -55,7 +56,7 @@ public class drivetrain extends Subsystem {
         leftSlave.setNeutralMode(NeutralMode.Brake);
         range = new AnalogInput(0);
         gyro= new PigeonIMU(rightSlave);
-        
+        ypr= new double[3];
     }
     public double applyDeadband(double value, double deadband) {
       if (Math.abs(value) > deadband) {
@@ -64,56 +65,18 @@ public class drivetrain extends Subsystem {
         return 0.0;
       }
     }
+    public void stop(){
+      drive(0,0);
+    }
+    public void findGyroVals(){
+      gyro.getYawPitchRoll(ypr);
+    }
     public void resetGyro(){
       gyro.setYaw(0);
     }
     public double getYaw(){
-      double[] yaw=new double[3];
-      gyro.getYawPitchRoll(yaw);
-      return yaw[0];
+      return ypr[0];
     }
-    /*public void teleOpDrive(XboxController controller){
-        // Version of arcadeDrive from edu.wpi.first.wpilibj.RobotDrive, lines 401-417
-        // Joe Lange (Driver) is used to this naturally from years past, maybe we can change it.
-        double y= controller.getY(Hand.kLeft);
-        double x= controller.getX(Hand.kLeft);
-        double leftMotors, rightMotors;
-        if (y > 0.0) {
-            if (x > 0.0) {
-              leftMotors = y - x;
-              rightMotors = Math.max(y, x);
-            } else {
-              leftMotors = Math.max(y, -x);
-              rightMotors = y + x;
-            }
-          } else {
-            if (x > 0.0) {
-              leftMotors = -Math.max(-y, x);
-              rightMotors = y + x;
-            } else {
-              leftMotors = y - x;
-              rightMotors = -Math.max(-y, -x);
-            }
-          }
-        rightMain.set(ControlMode.PercentOutput, rightMotors);
-        leftMain.set(ControlMode.PercentOutput, leftMotors);
-        if(controller.getAButtonPressed()){
-          driveDistanceInches(5*12);
-        }
-        if(controller.getBButtonPressed()){
-          turnAngle(90);
-        }
-        if(controller.getStartButton()){
-          resetGyro();
-        }
-    }*/
-    public void autoDrive(){
-        // Have plenty of ideas, need event details
-    }
-    /*public void stop(){
-        rightMain.set(ControlMode.PercentOutput, 0);
-        leftMain.set(ControlMode.PercentOutput, 0);
-    }*/
     public double rangeFinderDistance(distanceUnit unit){
       final float Vi=5/1024;
       
@@ -158,48 +121,30 @@ public class drivetrain extends Subsystem {
         leftSlave.follow(leftMain);
       }
     }
-    public void driveDistanceInches(double inches){
-      resetGyro();
-      PID pidSpeed= new PID(leftMain,rightMain);
-      PID pidAngle= new PID(gyro);
-      pidSpeed.setSetpoint((int)((inches/constants.wheelDiameter)*4096));
-      pidAngle.setSetpoint(0);
-      if(pidSpeed.distanceSpeed()>0.2){
-        drive(pidSpeed.distanceSpeed(),pidAngle.angle());
-      }else {
-        if(pidSpeed.avgEncoder>pidSpeed.setpoint-60 && pidSpeed.avgEncoder<pidSpeed.setpoint+60){
-            time.reset();
-            time.start();
-            hasLeft=false;
-            if(time.get()<=2){
-              drive(0.2,pidAngle.angle());
-            }else{
-              drive(0,0);
-            }
-        }else{
-          drive(pidSpeed.distanceSpeed(),pidAngle.angle());
+    public void drive(XboxController controller){
+      double y= applyDeadband(.75*controller.getY(Hand.kLeft),0.1);
+      double x= applyDeadband(.75*controller.getX(Hand.kLeft),0.1);
+      double leftMotors,rightMotors;
+      if (y > 0.0) {
+        if (x > 0.0) {
+          leftMotors = y - x;
+          rightMotors = Math.max(y, x);
+        } else {
+          leftMotors = Math.max(y, -x);
+          rightMotors = y + x;
         }
-      }
-    }
-    public void turnAngle(int angle){
-      resetGyro();
-      PID angleSet= new PID(gyro);
-      angleSet.setSetpoint(angle);
-      if(angleSet.angle()>0.2){
-        drive(0,angleSet.angle());
-      }else {
-        if(angleSet.ypr[0]>angleSet.setpoint-3 && angleSet.ypr[0]<angleSet.setpoint+3){
-            time.reset();
-            time.start();
-            hasLeft=false;
-            if(time.get()<=2){
-              drive(0,0.2);
-            }else{
-              drive(0,0);
-            }
-        }else{
-          drive(0,angleSet.angle());
+      } else {
+        if (x > 0.0) {
+          leftMotors = -Math.max(-y, x);
+          rightMotors = y + x;
+        } else {
+          leftMotors = y - x;
+          rightMotors = -Math.max(-y, -x);
         }
+        rightMain.set(ControlMode.PercentOutput,rightMotors);
+        leftMain.set(ControlMode.PercentOutput,-1*leftMotors);
+        rightSlave.follow(rightMain);
+        leftSlave.follow(leftMain);
       }
     }
 

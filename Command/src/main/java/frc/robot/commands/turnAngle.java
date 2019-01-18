@@ -7,67 +7,63 @@
 
 package frc.robot.commands;
 
+import com.ctre.phoenix.sensors.PigeonIMU;
+
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
-import frc.robot.PID;
-import edu.wpi.first.wpilibj.Timer;
+import frc.robot.constants;
+
 
 public class turnAngle extends Command {
-  int angle;
-  PID ang;
-  Timer time;
-  boolean isDone;
-  public turnAngle(int a) {
+  double P,I,D;
+  double integral, previous_error, setpoint, error, derivative, output;
+  PigeonIMU pidgey;
+
+  public turnAngle() {
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
     requires(Robot.drive);
-    angle=a;
-    PID ang= new PID(Robot.drive.gyro);;
+    pidgey= Robot.drive.gyro;
+    P= constants.gyroP;
+    I= constants.gyroI;
+    D= constants.gyroD; 
   }
-
+  public void setSetpoint(int setpoint){
+    this.setpoint=setpoint;
+  }
+  public void setSetpointFromPos(int inc){
+    setpoint+=inc;
+  }
+  public void PID(){
+    error = setpoint-Robot.drive.getYaw();
+    integral+= (error*.02);
+    derivative= (error-previous_error)/.02;
+    previous_error=error;
+    output=P*error+I*integral+D*derivative;
+  }
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    isDone=false;
+   
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    Robot.drive.resetGyro();
-      ang.setSetpoint(angle);
-      if(ang.angle()>0.2){
-        Robot.drive.drive(0,ang.angle());
-      }else {
-        if(Robot.drive.getYaw()>ang.setpoint-3 && Robot.drive.getYaw()<ang.setpoint+3){
-            time.reset();
-            time.start();
-            
-            if(time.get()<=2){
-              Robot.drive.drive(0,.25*ang.angle());
-            }else{
-              isDone=true;
-            }
-        }else{
-          Robot.drive.drive(0,ang.angle());
-        }
-      }
+   PID();
+   Robot.drive.drive(0,output);
   }
 
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(isDone){
-      return true;
-    }else{
     return false;
-    }
   }
 
   // Called once after isFinished returns true
   @Override
   protected void end() {
-    Robot.drive.drive(0,0);
+    Robot.drive.stop();
   }
 
   // Called when another command which requires one or more of the same

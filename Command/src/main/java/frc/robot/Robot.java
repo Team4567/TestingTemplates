@@ -31,9 +31,9 @@ public class Robot extends TimedRobot {
   public static DriverStation ds = DriverStation.getInstance();
   public XboxController xbC= new XboxController(0);
   Command m_autonomousCommand;
-  Command teleOpDrive;
+  Command teleOpDrive,turnAngle,driveDistance;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
-  Command turnAngle;
+
 
   /**
    * This function is run when the robot is first started up and should be
@@ -42,7 +42,8 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     teleOpDrive= new teleOpDrive(xbC);
-    turnAngle = new turnAngle(90);
+    turnAngle=new turnAngle();
+    driveDistance= new driveDistance();
     //m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
     // chooser.addOption("My Auto", new MyAutoCommand());
     SmartDashboard.putData("Auto mode", m_chooser);
@@ -58,6 +59,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    drive.findGyroVals();
   }
 
   /**
@@ -89,7 +91,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     m_autonomousCommand = m_chooser.getSelected();
     drive.resetGyro();
-    turnAngle.start();
+    
     /*
      * String autoSelected = SmartDashboard.getString("Auto Selector",
      * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand

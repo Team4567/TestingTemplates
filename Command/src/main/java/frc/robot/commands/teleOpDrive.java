@@ -35,30 +35,7 @@ public class teleOpDrive extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    double y= Robot.drive.applyDeadband(.75*xbC.getY(Hand.kLeft),0.1);
-    double x= Robot.drive.applyDeadband(.75*xbC.getX(Hand.kLeft),0.1);
-    double leftMotors,rightMotors;
-    if (y > 0.0) {
-        if (x > 0.0) {
-          leftMotors = y - x;
-          rightMotors = Math.max(y, x);
-        } else {
-          leftMotors = Math.max(y, -x);
-          rightMotors = y + x;
-        }
-      } else {
-        if (x > 0.0) {
-          leftMotors = -Math.max(-y, x);
-          rightMotors = y + x;
-        } else {
-          leftMotors = y - x;
-          rightMotors = -Math.max(-y, -x);
-        }
-      }
-      Robot.drive.rightMain.set(ControlMode.PercentOutput, rightMotors);
-      Robot.drive.leftMain.set(ControlMode.PercentOutput,-1*leftMotors);
-      Robot.drive.rightSlave.follow(Robot.drive.rightMain);
-      Robot.drive.leftSlave.follow(Robot.drive.leftMain);
+    Robot.drive.drive(xbC);
   }
 
   // Make this return true when this Command no longer needs to run execute()
