@@ -12,6 +12,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.wpilibj.XboxController;
@@ -29,7 +30,7 @@ public class drivetrain extends Subsystem {
   // here. Call these from Commands.
   private static drivetrain starter = new drivetrain();
     public TalonSRX rightMain,leftMain;
-    private TalonSRX rightSlave, leftSlave;
+    public TalonSRX rightSlave, leftSlave;
     private AnalogInput range;
     private double scaleR;
     public PigeonIMU gyro;
@@ -53,8 +54,15 @@ public class drivetrain extends Subsystem {
         leftSlave.follow(leftMain);
         leftSlave.setNeutralMode(NeutralMode.Brake);
         range = new AnalogInput(0);
-        gyro= new PigeonIMU(5);
+        gyro= new PigeonIMU(rightSlave);
         
+    }
+    public double applyDeadband(double value, double deadband) {
+      if (Math.abs(value) > deadband) {
+          return value;
+      } else {
+        return 0.0;
+      }
     }
     public void resetGyro(){
       gyro.setYaw(0);
@@ -145,7 +153,9 @@ public class drivetrain extends Subsystem {
           rightMotors = -Math.max(-y, -x);
         }
         rightMain.set(ControlMode.PercentOutput,rightMotors);
-        leftMain.set(ControlMode.PercentOutput,leftMotors);
+        leftMain.set(ControlMode.PercentOutput,-1*leftMotors);
+        rightSlave.follow(rightMain);
+        leftSlave.follow(leftMain);
       }
     }
     public void driveDistanceInches(double inches){

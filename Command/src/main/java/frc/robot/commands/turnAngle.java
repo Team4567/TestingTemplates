@@ -22,7 +22,7 @@ public class turnAngle extends Command {
     // eg. requires(chassis);
     requires(Robot.drive);
     angle=a;
-    ang= new PID(Robot.drive.gyro);
+    PID ang= new PID(Robot.drive.gyro);;
   }
 
   // Called just before this Command runs the first time
@@ -35,7 +35,6 @@ public class turnAngle extends Command {
   @Override
   protected void execute() {
     Robot.drive.resetGyro();
-    
       ang.setSetpoint(angle);
       if(ang.angle()>0.2){
         Robot.drive.drive(0,ang.angle());

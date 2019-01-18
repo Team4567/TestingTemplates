@@ -33,6 +33,7 @@ public class Robot extends TimedRobot {
   Command m_autonomousCommand;
   Command teleOpDrive;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
+  Command turnAngle;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -41,6 +42,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     teleOpDrive= new teleOpDrive(xbC);
+    turnAngle = new turnAngle(90);
     //m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
     // chooser.addOption("My Auto", new MyAutoCommand());
     SmartDashboard.putData("Auto mode", m_chooser);
@@ -86,7 +88,8 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_chooser.getSelected();
-
+    drive.resetGyro();
+    turnAngle.start();
     /*
      * String autoSelected = SmartDashboard.getString("Auto Selector",
      * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
@@ -95,9 +98,9 @@ public class Robot extends TimedRobot {
      */
 
     // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.start();
-    }
+    //if (m_autonomousCommand != null) {
+      //m_autonomousCommand.start();
+    //}
   }
 
   /**
@@ -105,7 +108,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    Scheduler.getInstance().run();
+    
+    
   }
 
   @Override
@@ -117,6 +121,8 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    teleOpDrive.start();
+    drive.resetGyro();
   }
 
   /**
@@ -125,9 +131,8 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
-    while(ds.isOperatorControl()){
-      teleOpDrive.start();
-    }
+    System.out.println(drive.getYaw());
+    
   }
 
   /**
