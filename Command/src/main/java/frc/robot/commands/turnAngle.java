@@ -57,7 +57,11 @@ public class turnAngle extends Command {
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    return false;
+    if(output<0.2 && Robot.drive.getYaw()>setpoint-5 && Robot.drive.getYaw()<setpoint+5){
+      return true;
+    }else{
+      return false;
+    }
   }
 
   // Called once after isFinished returns true
