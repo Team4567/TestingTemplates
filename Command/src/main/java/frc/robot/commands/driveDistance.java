@@ -32,12 +32,25 @@ public class driveDistance extends Command {
     tR= Robot.drive.rightMain;
     avgEncoder=Robot.drive.leftMain.getSelectedSensorPosition()+Robot.drive.rightMain.getSelectedSensorPosition();
   }
+  public driveDistance(double setpoint) {
+    
+    // Use requires() here to declare subsystem dependencies
+    requires(Robot.drive);
+    P= constants.gyroP;
+    I= constants.gyroI;
+    D= constants.gyroD;
+    straight= new turnAngle(); 
+    tL= Robot.drive.leftMain;
+    tR= Robot.drive.rightMain;
+    avgEncoder=Robot.drive.leftMain.getSelectedSensorPosition()+Robot.drive.rightMain.getSelectedSensorPosition();
+    this.setpoint=setpoint;
+  }
   public void PID(){
     error = setpoint-avgEncoder;
     integral+= (error*.02);
     derivative= (error-previous_error)/.02;
     previous_error=error;
-    output=P*error+I*integral+D*derivative;
+    output=Math.max(Math.min(P*error+I*integral+D*derivative,-0.5),0.5);
   }
   // Called just before this Command runs the first time
   @Override

@@ -21,14 +21,12 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.AnalogInput;
 import frc.robot.constants;
 import frc.robot.enums.*;
-import frc.robot.PID;
 /**
  * An example subsystem.  You can replace me with your own Subsystem.
  */
 public class drivetrain extends Subsystem {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
-  private static drivetrain starter = new drivetrain();
     public TalonSRX rightMain,leftMain;
     public TalonSRX rightSlave, leftSlave;
     private AnalogInput range;
@@ -37,9 +35,6 @@ public class drivetrain extends Subsystem {
     Timer time;
     boolean hasLeft=false;
     double[] ypr;
-    public static drivetrain start(){
-       return starter;
-    }
     
     public drivetrain(){
         rightMain= new TalonSRX(constants.rightMainMC);

@@ -24,14 +24,37 @@ import frc.robot.subsystems.*;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
+/* Oh hi Sans
+░░░░░░░░██████████████████
+░░░░████░░░░░░░░░░░░░░░░░░████
+░░██░░░░░░░░░░░░░░░░░░░░░░░░░░██
+░░██░░░░░░░░░░░░░░░░░░░░░░░░░░██
+██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██
+██░░░░░░░░░░░░░░░░░░░░██████░░░░██
+██░░░░░░░░░░░░░░░░░░░░██████░░░░██
+██░░░░██████░░░░██░░░░██████░░░░██
+░░██░░░░░░░░░░██████░░░░░░░░░░██
+████░░██░░░░░░░░░░░░░░░░░░██░░████
+██░░░░██████████████████████░░░░██
+██░░░░░░██░░██░░██░░██░░██░░░░░░██
+░░████░░░░██████████████░░░░████
+░░░░░░████░░░░░░░░░░░░░░████
+░░░░░░░░░░██████████████
+
+*/
 public class Robot extends TimedRobot {
-  public static drivetrain drive = drivetrain.start();
-  public static scoringMech score=scoringMech.start();
-  public static OI m_oi;
+  public static drivetrain drive = new drivetrain();
+  public static elevator upper = new elevator();
+  public static scoringMech score=new scoringMech();
   public static DriverStation ds = DriverStation.getInstance();
   public XboxController xbC= new XboxController(0);
-  Command m_autonomousCommand;
-  Command teleOpDrive,turnAngle,driveDistance;
+  public static Command m_autonomousCommand;
+  public static teleOpDrive teleOp;
+  public static turnAngle turn;
+  public static driveDistance goDistance;
+  public static elevatorPosition moveElev;
+
+  
   SendableChooser<Command> m_chooser = new SendableChooser<>();
 
 
@@ -41,9 +64,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    teleOpDrive= new teleOpDrive(xbC);
-    turnAngle=new turnAngle();
-    driveDistance= new driveDistance();
+    teleOp= new teleOpDrive(xbC);
+    turn=new turnAngle();
+    goDistance= new driveDistance();
+    moveElev= new elevatorPosition();
     //m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
     // chooser.addOption("My Auto", new MyAutoCommand());
     SmartDashboard.putData("Auto mode", m_chooser);
@@ -91,6 +115,8 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     m_autonomousCommand = m_chooser.getSelected();
     drive.resetGyro();
+    turn.setSetpoint(0);
+    turn.start();
     
     /*
      * String autoSelected = SmartDashboard.getString("Auto Selector",
@@ -123,8 +149,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    teleOpDrive.start();
-    drive.resetGyro();
+    teleOp.start();
   }
 
   /**
