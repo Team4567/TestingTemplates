@@ -8,6 +8,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.RotatedRect;
 import org.opencv.imgproc.Imgproc;
+import edu.wpi.first.vision.VisionPipeline;
 
 /**
  * GripPipeline class.
@@ -17,7 +18,7 @@ import org.opencv.imgproc.Imgproc;
  *
  * @author GRIP
  */
-public class tapePipeline {
+public class tapePipeline implements VisionPipeline {
 
 	//Outputs
 	private Mat cvCvtcolorOutput = new Mat();

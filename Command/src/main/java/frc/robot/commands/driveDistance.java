@@ -42,7 +42,7 @@ public class driveDistance extends Command {
     straight= new turnAngle(); 
     tL= Robot.drive.leftMain;
     tR= Robot.drive.rightMain;
-    avgEncoder=Robot.drive.leftMain.getSelectedSensorPosition()+Robot.drive.rightMain.getSelectedSensorPosition();
+    avgEncoder=(Robot.drive.leftMain.getSelectedSensorPosition()+Robot.drive.rightMain.getSelectedSensorPosition())/2;
     this.setpoint=setpoint;
   }
   public void PID(){
@@ -61,7 +61,7 @@ public class driveDistance extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    straight.setSetpoint(0);
+    straight.setSetpointToCurrent();
     straight.PID();
     PID();
     Robot.drive.drive(output,straight.output);

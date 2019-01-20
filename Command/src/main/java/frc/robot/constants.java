@@ -21,7 +21,7 @@ public class constants{
     public static final double motorI=0;
     public static final double motorD=0;
     public static final double motorFF=0;
-    public static final double gyroP=0.001;
+    public static final double gyroP=0.006;
     public static final double gyroI=0;
     public static final double gyroD=0;
     public static final double gyroFF=0;

@@ -44,6 +44,9 @@ public class turnAngle extends Command {
   public void setSetpointFromPos(int inc){
     setpoint+=inc;
   }
+  public void setSetpointToCurrent(){
+    setpoint=Robot.drive.getYaw();
+  }
   public void PID(){
     error = setpoint-Robot.drive.getYaw();
     integral+= (error*.02);

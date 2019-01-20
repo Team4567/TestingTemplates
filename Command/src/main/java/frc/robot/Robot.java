@@ -7,15 +7,29 @@
 
 package frc.robot;
 
+import edu.wpi.first.vision.VisionThread;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import frc.robot.commands.*;
+import frc.robot.pipelines.tapePipeline;
 import frc.robot.subsystems.*;
+import edu.wpi.cscore.UsbCamera;
+import java.util.ArrayList;
+import org.opencv.core.RotatedRect;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.NetworkTableInstance;
+
+import org.opencv.imgproc.Imgproc;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.CvType;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -53,6 +67,10 @@ public class Robot extends TimedRobot {
   public static turnAngle turn;
   public static driveDistance goDistance;
   public static elevatorPosition moveElev;
+  public ArrayList<RotatedRect> contourRects;
+  public VisionThread visionThread;
+  NetworkTableInstance inst;
+  NetworkTable table;
 
   
   SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -64,13 +82,31 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+    inst=NetworkTableInstance.getDefault();
+    table= inst.getTable("Contour Rects");
     teleOp= new teleOpDrive(xbC);
     turn=new turnAngle();
     goDistance= new driveDistance();
     moveElev= new elevatorPosition();
+    contourRects= new ArrayList<RotatedRect>();
     //m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
     // chooser.addOption("My Auto", new MyAutoCommand());
     SmartDashboard.putData("Auto mode", m_chooser);
+    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+    camera.setResolution(256, 144);
+    // Thank you WPILIB
+    visionThread = new VisionThread(camera, new tapePipeline(), pipeline -> {
+      MatOfPoint2f dst = new MatOfPoint2f();
+      if (!pipeline.findContoursOutput().isEmpty()) {
+        
+            for(int i=0;i<pipeline.findContoursOutput().size();i++){
+              pipeline.findContoursOutput().get(i).convertTo(dst, CvType.CV_32F);
+              RotatedRect r = Imgproc.minAreaRect(dst);
+              contourRects.add(r);
+            }
+        }
+    });
+    visionThread.start();
   }
 
   /**
@@ -166,6 +202,24 @@ public class Robot extends TimedRobot {
    * This function is called periodically during test mode.
    */
   @Override
+  public void testInit() {
+    super.testInit();
+    teleOp.start();
+  }
+  @Override
   public void testPeriodic() {
+    if(xbC.getAButtonPressed()){
+      for(int i=0;i<contourRects.size();i++){
+        System.out.println("Angle of r #" + i);
+        System.out.println(contourRects.get(i).angle);
+        System.out.println(contourRects.get(i).center.x+ ", "+ contourRects.get(i).center.y);
+        NetworkTableEntry xEntry = table.getEntry("x of rect " + i);
+        NetworkTableEntry yEntry = table.getEntry("y of rect " + i);
+        NetworkTableEntry angleEntry = table.getEntry("angle of rect " + i);
+        xEntry.setDouble(contourRects.get(i).center.x);
+        yEntry.setDouble(contourRects.get(i).center.y);
+        angleEntry.setDouble(contourRects.get(i).angle);
+      }  
+    }
   }
 }

@@ -39,6 +39,9 @@ public class elevatorPosition extends Command {
   public void setSetpointFromPos(int inc){
     setpoint+=inc;
   }
+  public void setSetpointToCurrent(){
+    setpoint=Robot.upper.t1.getSelectedSensorPosition();
+  }
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {

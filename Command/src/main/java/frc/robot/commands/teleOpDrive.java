@@ -21,6 +21,7 @@ import frc.robot.Robot;
 public class teleOpDrive extends Command {
   XboxController xbC;
   int level=1;
+  int encoderLevel=0;
   public teleOpDrive(XboxController controller) {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
@@ -38,38 +39,49 @@ public class teleOpDrive extends Command {
   @Override
   protected void execute() {
     Robot.drive.drive(xbC);
-    if(xbC.getYButtonPressed()){
+    /*if(xbC.getYButtonPressed()){
       level++;
     } else if(xbC.getAButtonPressed()){
       level--;
     }
-    if(level>3){
+    if(level>6){
       level=3;
     }
     if(level<1){
       level=1;
     }
+    // 1= HatchL, 2= CargoL,3= HatchM, 4= CargoM, 5= HatchH, 6= CargoL
     switch(level){
       case 1:
-        Robot.moveElev.setSetpoint(0);
+        encoderLevel=0;
       break;
       case 2:
-        Robot.moveElev.setSetpoint(0);
+        encoderLevel=0;
       break;
       case 3:
-        Robot.moveElev.setSetpoint(0);
+        encoderLevel=0;
+      break;
+      case 4:
+        encoderLevel=0;
+      break;
+      case 5:
+        encoderLevel=0;
+      break;
+      case 6:
+        encoderLevel=0;
       break;
       default:
-        Robot.moveElev.setSetpoint(0);
+        System.out.println("Invalid");
       break;
     }
-    
+      Robot.moveElev.setSetpoint(encoderLevel);
+    */
   }
 
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(Robot.ds.isOperatorControl()){
+    if(Robot.ds.isOperatorControl() || Robot.ds.isTest()){
         return false;
     }else{
         return true;
