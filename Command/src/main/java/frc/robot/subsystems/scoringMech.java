@@ -22,10 +22,10 @@ public class scoringMech extends Subsystem {
   DoubleSolenoid pistonL,pistonR;
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
-  public scoringMech(){
-    intake= new Spark(constants.scoreInSplit);
-    flip= new Spark(constants.scoreFlipSplit);
-  }
+ // public scoringMech(){
+   // intake= new Spark(constants.scoreInSplit);
+    //flip= new Spark(constants.scoreFlipSplit);
+  //}
   
   @Override
   public void initDefaultCommand() {

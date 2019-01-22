@@ -6,19 +6,21 @@
 /*----------------------------------------------------------------------------*/
 
 package frc.robot.autonomous;
-import frc.robot.Robot;
-import edu.wpi.first.wpilibj.command.CommandGroup;
-import frc.robot.commands.*;
 
-public class noMovement extends CommandGroup {
+import edu.wpi.first.wpilibj.command.CommandGroup;
+import frc.robot.Robot;
+import frc.robot.commands.*;
+import frc.robot.constants;
+
+public class testing extends CommandGroup {
   /**
    * Add your docs here.
    */
-  public noMovement() {
+  public testing() {
     requires(Robot.drive);
-    requires(Robot.score);
-    requires(Robot.upper);
-    addSequential(new driveDistance(0,false));
+    addSequential(new driveDistanceTest(((10*12)/constants.wheelCirc)*4096));
+    addSequential(new turnAngleTest(180));
+    addSequential(new driveDistanceTest(((10*12)/constants.wheelCirc)*4096));
     // Add Commands here:
     // e.g. addSequential(new Command1());
     // addSequential(new Command2());

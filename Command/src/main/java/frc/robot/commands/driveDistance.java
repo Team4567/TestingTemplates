@@ -32,7 +32,7 @@ public class driveDistance extends Command {
     tR= Robot.drive.rightMain;
     avgEncoder=tL.getSelectedSensorPosition()+tR.getSelectedSensorPosition();
   }
-  public driveDistance(double setpoint) {
+  public driveDistance(double setpoint,boolean fromCurrent) {
     
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
@@ -43,7 +43,23 @@ public class driveDistance extends Command {
     tL= Robot.drive.leftMain;
     tR= Robot.drive.rightMain;
     avgEncoder=(tL.getSelectedSensorPosition()+tR.getSelectedSensorPosition())/2;
+    if(!fromCurrent){
+      this.setpoint=setpoint;
+    } else{
+      this.setpoint+=setpoint;
+    }
+  }
+  public driveDistance(double setpoint){
+    requires(Robot.drive);
+    P= constants.motorP;
+    I= constants.motorI;
+    D= constants.motorD;
+    straight= new turnAngle(); 
+    tL= Robot.drive.leftMain;
+    tR= Robot.drive.rightMain;
+    avgEncoder=(tL.getSelectedSensorPosition()+tR.getSelectedSensorPosition())/2;
     this.setpoint=setpoint;
+    
   }
   public void setSetpoint(int setpoint){
     this.setpoint=setpoint;

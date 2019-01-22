@@ -110,11 +110,12 @@ public class drivetrain extends Subsystem {
           leftMotors = y - x;
           rightMotors = -Math.max(-y, -x);
         }
-        rightMain.set(ControlMode.PercentOutput,rightMotors);
+        
+      }
+      rightMain.set(ControlMode.PercentOutput,rightMotors);
         leftMain.set(ControlMode.PercentOutput,-1*leftMotors);
         rightSlave.follow(rightMain);
         leftSlave.follow(leftMain);
-      }
     }
     public void drive(XboxController controller){
       double y= applyDeadband(.75*controller.getY(Hand.kLeft),0.1);
@@ -136,11 +137,13 @@ public class drivetrain extends Subsystem {
           leftMotors = y - x;
           rightMotors = -Math.max(-y, -x);
         }
-        rightMain.set(ControlMode.PercentOutput,rightMotors);
+        
+      }
+      rightMain.set(ControlMode.PercentOutput,rightMotors);
         leftMain.set(ControlMode.PercentOutput,-1*leftMotors);
         rightSlave.follow(rightMain);
         leftSlave.follow(leftMain);
-      }
+        
     }
 
   @Override

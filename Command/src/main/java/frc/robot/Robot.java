@@ -73,6 +73,7 @@ public class Robot extends TimedRobot {
   public static turnAngleTest turn;
   public static driveDistanceTest goDistance;
   public static elevatorPosition moveElev;
+  public static testing test;
   public ArrayList<RotatedRect> contourRects;
   public VisionThread visionThread;
   NetworkTableInstance inst;
@@ -95,6 +96,7 @@ public class Robot extends TimedRobot {
     turn=new turnAngleTest();
     goDistance= new driveDistanceTest();
     moveElev= new elevatorPosition();
+    test=new testing();
     contourRects= new ArrayList<RotatedRect>();
     ngP= table.getEntry("Test Gyro P");
     ngI= table.getEntry("Test Gyro I");
@@ -120,12 +122,14 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Auto mode", m_chooser);
     UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
     camera.setResolution(256, 144);
+    camera.setFPS(30);
     // Thank you WPILIB
-    visionThread = new VisionThread(camera, new tapePipeline(), pipeline -> {
-      MatOfPoint2f dst = new MatOfPoint2f();
-      if (!pipeline.findContoursOutput().isEmpty()) {
+    //visionThread = new VisionThread(camera, new tapePipeline(), pipeline -> {
+      
+     /* if (!pipeline.findContoursOutput().isEmpty()) {
         
             for(int i=0;i<pipeline.findContoursOutput().size();i++){
+              MatOfPoint2f dst = new MatOfPoint2f();
               pipeline.findContoursOutput().get(i).convertTo(dst, CvType.CV_32F);
               RotatedRect r = Imgproc.minAreaRect(dst);
               contourRects.add(r);
@@ -134,7 +138,7 @@ public class Robot extends TimedRobot {
           System.out.println("No contours found!");
         }
     });
-    visionThread.start();
+    visionThread.start();*/
   }
 
   /**
@@ -218,12 +222,56 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
-    System.out.println(drive.getYaw());
-    
+    /*if (!contourRects.isEmpty()){
+      for(int i=0;i<contourRects.size();i++){
+        NetworkTableEntry xEntry = table.getEntry("x of rect " + i);
+        NetworkTableEntry yEntry = table.getEntry("y of rect " + i);
+        NetworkTableEntry angleEntry = table.getEntry("angle of rect " + i);
+        xEntry.setDouble(contourRects.get(i).center.x);
+        yEntry.setDouble(contourRects.get(i).center.y);
+        angleEntry.setDouble(contourRects.get(i).angle);
+      }
+    }else{
+      System.out.println("contourRects is empty...");
+    }*/
+    if(xbC.getAButtonPressed()){
+      turn.setSetpoint(180);
+      turn.start();
+    }
+    if(xbC.getBButtonPressed()){
+      turn.cancel();
+      goDistance.cancel();
+      test.cancel();
+    }
+    if(xbC.getXButtonPressed()){
+      goDistance.setSetpoint((int)(((10*12)/constants.wheelCirc)*4096));
+      goDistance.start();
+    }
+    if(xbC.getYButtonPressed()){
+      goDistance.cancel();
+    }
+    if(xbC.getBackButtonPressed()){
+      drive.resetGyro();
+      drive.rightMain.setSelectedSensorPosition(0);
+    }
+    if(xbC.getStartButtonPressed()){
+      test.start();
+    }
+    turn.P=ngP.getDouble(0);
+    turn.I=ngI.getDouble(0);
+    turn.D=ngD.getDouble(0);
+    goDistance.P=nmP.getDouble(0);
+    goDistance.I=nmI.getDouble(0);
+    goDistance.D=nmD.getDouble(0);
+    System.out.println(goDistance.tR.getSelectedSensorPosition() + ", "+ drive.getYaw());
   }
 
   /**
-   * This function is called periodically during test mode.
+   * This function is called periodically
+   * 
+   * 
+   * 
+   *  during test mode.
    */
   @Override
   public void testInit() {
@@ -250,13 +298,15 @@ public class Robot extends TimedRobot {
     }
     if(xbC.getBButtonPressed()){
       turn.cancel();
+      goDistance.cancel();
+
     }
     if(xbC.getXButtonPressed()){
       goDistance.setSetpoint((int)((5*12)/constants.wheelCirc)*4096);
       goDistance.start();
     }
     if(xbC.getYButtonPressed()){
-      goDistance.cancel();
+      
     }
     if(xbC.getBackButtonPressed()){
       drive.resetGyro();
@@ -268,5 +318,6 @@ public class Robot extends TimedRobot {
     goDistance.P=nmP.getDouble(0);
     goDistance.I=nmI.getDouble(0);
     goDistance.D=nmD.getDouble(0);
+    
   }
 }

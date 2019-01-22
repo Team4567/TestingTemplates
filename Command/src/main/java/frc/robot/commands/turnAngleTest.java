@@ -16,7 +16,8 @@ import frc.robot.constants;
 
 public class turnAngleTest extends Command {
   public double P,I,D;
-  double integral=0, previous_error=0, setpoint, error, derivative, output;
+  double integral=0, previous_error=0, setpoint, error, derivative; 
+  public double output;
   PigeonIMU pidgey;
 
   public turnAngleTest() {
@@ -52,7 +53,7 @@ public class turnAngleTest extends Command {
     integral+= (error*.02);
     derivative= (error-previous_error)/.02;
     previous_error=error;
-    output=Math.max(Math.min(P*error+I*integral+D*derivative,-0.5),0.5);
+    output=-1*Math.min(Math.max(P*error+I*integral+D*derivative,-.5),.5);
   }
   // Called just before this Command runs the first time
   @Override
@@ -70,9 +71,9 @@ public class turnAngleTest extends Command {
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(output<0.2 && Robot.drive.getYaw()>setpoint-5 && Robot.drive.getYaw()<setpoint+5){
+    if(Robot.drive.getYaw()>setpoint-10 && Robot.drive.getYaw()<setpoint+10&&Math.abs(output)<.01){
       return true;
-    }else{
+    } else{
       return false;
     }
   }
@@ -81,12 +82,18 @@ public class turnAngleTest extends Command {
   @Override
   protected void end() {
     Robot.drive.stop();
+    //if(Robot.ds.isOperatorControl()){
+      //Robot.teleOp.start();
+    //}
   }
 
   // Called when another command which requires one or more of the same
   // subsystems is scheduled to run
   @Override
   protected void interrupted() {
-    
+    Robot.drive.stop();
+    if(Robot.ds.isOperatorControl()){
+      Robot.teleOp.start();
+    }
   }
 }
