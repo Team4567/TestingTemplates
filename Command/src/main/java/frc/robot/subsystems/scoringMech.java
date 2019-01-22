@@ -26,6 +26,7 @@ public class scoringMech extends Subsystem {
     intake= new Spark(constants.scoreInSplit);
     flip= new Spark(constants.scoreFlipSplit);
   }
+  
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.

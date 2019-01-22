@@ -7,29 +7,36 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
+
 import edu.wpi.first.vision.VisionThread;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.command.Command;
+import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 
-import frc.robot.commands.*;
-import frc.robot.pipelines.tapePipeline;
-import frc.robot.subsystems.*;
-import edu.wpi.cscore.UsbCamera;
-import java.util.ArrayList;
-import org.opencv.core.RotatedRect;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.cscore.UsbCamera;
 
+
+import frc.robot.autonomous.*;
+import frc.robot.commands.*;
+import frc.robot.pipelines.*;
+import frc.robot.subsystems.*;
+
+import org.opencv.core.RotatedRect;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.CvType;
+
+
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -62,18 +69,18 @@ public class Robot extends TimedRobot {
   public static scoringMech score=new scoringMech();
   public static DriverStation ds = DriverStation.getInstance();
   public XboxController xbC= new XboxController(0);
-  public static Command m_autonomousCommand;
   public static teleOpDrive teleOp;
-  public static turnAngle turn;
-  public static driveDistance goDistance;
+  public static turnAngleTest turn;
+  public static driveDistanceTest goDistance;
   public static elevatorPosition moveElev;
   public ArrayList<RotatedRect> contourRects;
   public VisionThread visionThread;
   NetworkTableInstance inst;
   NetworkTable table;
-
+  public NetworkTableEntry ngP,ngI,ngD,nmP,nmI,nmD;
+  public static CommandGroup m_autonomousCommand;
   
-  SendableChooser<Command> m_chooser = new SendableChooser<>();
+  SendableChooser<CommandGroup> m_chooser = new SendableChooser<>();
 
 
   /**
@@ -85,12 +92,31 @@ public class Robot extends TimedRobot {
     inst=NetworkTableInstance.getDefault();
     table= inst.getTable("Contour Rects");
     teleOp= new teleOpDrive(xbC);
-    turn=new turnAngle();
-    goDistance= new driveDistance();
+    turn=new turnAngleTest();
+    goDistance= new driveDistanceTest();
     moveElev= new elevatorPosition();
     contourRects= new ArrayList<RotatedRect>();
-    //m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
-    // chooser.addOption("My Auto", new MyAutoCommand());
+    ngP= table.getEntry("Test Gyro P");
+    ngI= table.getEntry("Test Gyro I");
+    ngD= table.getEntry("Test Gyro D");
+    nmP= table.getEntry("Test Motor P");
+    nmI= table.getEntry("Test Motor I");
+    nmD= table.getEntry("Test Motor D");
+    ngP.setDouble(constants.gyroP);
+    ngI.setDouble(constants.gyroI);
+    ngD.setDouble(constants.gyroD);
+    nmP.setDouble(constants.motorP);
+    nmI.setDouble(constants.motorI);
+    nmD.setDouble(constants.motorD);
+    m_chooser.setDefaultOption("Default Auto, No Movement", new noMovement());
+    m_chooser.addOption("Start: Left, Target: Cargo", new leftCargo());
+    m_chooser.addOption("Start: Left, Target: Rocket", new leftRocket());
+    m_chooser.addOption("Start: Right, Target: Cargo", new rightCargo());
+    m_chooser.addOption("Start: Right, Target: Rocket", new rightRocket());
+    m_chooser.addOption("Start: Center, Target: Left-Side Cargo", new centerLCargo());
+    m_chooser.addOption("Start: Center, Target: Left-Side Rocket", new centerLRocket());
+    m_chooser.addOption("Start: Center, Target: Right-side Rocket", new centerRCargo());
+    m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new centerRRocket());
     SmartDashboard.putData("Auto mode", m_chooser);
     UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
     camera.setResolution(256, 144);
@@ -104,6 +130,8 @@ public class Robot extends TimedRobot {
               RotatedRect r = Imgproc.minAreaRect(dst);
               contourRects.add(r);
             }
+        } else {
+          System.out.println("No contours found!");
         }
     });
     visionThread.start();
@@ -150,21 +178,17 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_chooser.getSelected();
+    /*if(m_autonomousCommand !=null){
+      m_autonomousCommand.start();
+    }else{
+      CommandGroup emerg= new noMovement();
+      emerg.start();
+    }*/
+
     drive.resetGyro();
     turn.setSetpoint(0);
     turn.start();
     
-    /*
-     * String autoSelected = SmartDashboard.getString("Auto Selector",
-     * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
-     * = new MyAutoCommand(); break; case "Default Auto": default:
-     * autonomousCommand = new ExampleCommand(); break; }
-     */
-
-    // schedule the autonomous command (example)
-    //if (m_autonomousCommand != null) {
-      //m_autonomousCommand.start();
-    //}
   }
 
   /**
@@ -208,18 +232,41 @@ public class Robot extends TimedRobot {
   }
   @Override
   public void testPeriodic() {
-    if(xbC.getAButtonPressed()){
+    if (!contourRects.isEmpty()){
       for(int i=0;i<contourRects.size();i++){
-        System.out.println("Angle of r #" + i);
-        System.out.println(contourRects.get(i).angle);
-        System.out.println(contourRects.get(i).center.x+ ", "+ contourRects.get(i).center.y);
         NetworkTableEntry xEntry = table.getEntry("x of rect " + i);
         NetworkTableEntry yEntry = table.getEntry("y of rect " + i);
         NetworkTableEntry angleEntry = table.getEntry("angle of rect " + i);
         xEntry.setDouble(contourRects.get(i).center.x);
         yEntry.setDouble(contourRects.get(i).center.y);
         angleEntry.setDouble(contourRects.get(i).angle);
-      }  
+      }
+    }else{
+      System.out.println("contourRects is empty...");
     }
+    if(xbC.getAButtonPressed()){
+      turn.setSetpoint(90);
+      turn.start();
+    }
+    if(xbC.getBButtonPressed()){
+      turn.cancel();
+    }
+    if(xbC.getXButtonPressed()){
+      goDistance.setSetpoint((int)((5*12)/constants.wheelCirc)*4096);
+      goDistance.start();
+    }
+    if(xbC.getYButtonPressed()){
+      goDistance.cancel();
+    }
+    if(xbC.getBackButtonPressed()){
+      drive.resetGyro();
+      drive.leftMain.setSelectedSensorPosition(0);
+    }
+    turn.P=ngP.getDouble(0);
+    turn.I=ngI.getDouble(0);
+    turn.D=ngD.getDouble(0);
+    goDistance.P=nmP.getDouble(0);
+    goDistance.I=nmI.getDouble(0);
+    goDistance.D=nmD.getDouble(0);
   }
 }

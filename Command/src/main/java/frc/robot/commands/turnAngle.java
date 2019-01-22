@@ -16,7 +16,7 @@ import frc.robot.constants;
 
 public class turnAngle extends Command {
   double P,I,D;
-  double integral, previous_error, setpoint, error, derivative, output;
+  double integral=0, previous_error=0, setpoint, error, derivative, output;
   PigeonIMU pidgey;
 
   public turnAngle() {

@@ -14,13 +14,13 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 /**
  * An example command.  You can replace me with your own command.
  */
-public class driveDistance extends Command {
-  double P,I,D;
+public class driveDistanceTest extends Command {
+  public double P,I,D;
   double integral=0, previous_error=0, setpoint, error, derivative, output;
   double avgEncoder;
   TalonSRX tL, tR;
   turnAngle straight;
-  public driveDistance() {
+  public driveDistanceTest() {
     
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
@@ -29,10 +29,9 @@ public class driveDistance extends Command {
     D= constants.motorD;
     straight= new turnAngle(); 
     tL= Robot.drive.leftMain;
-    tR= Robot.drive.rightMain;
-    avgEncoder=tL.getSelectedSensorPosition()+tR.getSelectedSensorPosition();
+    avgEncoder=tL.getSelectedSensorPosition();
   }
-  public driveDistance(double setpoint) {
+  public driveDistanceTest(double setpoint) {
     
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
@@ -42,7 +41,7 @@ public class driveDistance extends Command {
     straight= new turnAngle(); 
     tL= Robot.drive.leftMain;
     tR= Robot.drive.rightMain;
-    avgEncoder=(tL.getSelectedSensorPosition()+tR.getSelectedSensorPosition())/2;
+    avgEncoder=tL.getSelectedSensorPosition();
     this.setpoint=setpoint;
   }
   public void setSetpoint(int setpoint){

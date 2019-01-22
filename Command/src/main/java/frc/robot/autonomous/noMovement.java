@@ -7,17 +7,18 @@
 
 package frc.robot.autonomous;
 import frc.robot.Robot;
-
 import edu.wpi.first.wpilibj.command.CommandGroup;
+import frc.robot.commands.*;
 
-public class centerRRocket extends CommandGroup {
+public class noMovement extends CommandGroup {
   /**
    * Add your docs here.
    */
-  public centerRRocket() {
+  public noMovement() {
     requires(Robot.drive);
     requires(Robot.score);
     requires(Robot.upper);
+    addSequential(new driveDistance(0));
     // Add Commands here:
     // e.g. addSequential(new Command1());
     // addSequential(new Command2());
