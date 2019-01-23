@@ -17,7 +17,7 @@ public class constants{
     public static final double wheelCirc=wheelDiameter*Math.PI;
     public static final double inchEScale= (1/wheelCirc)*4096;
 
-    public static final double motorP=0.001;
+    public static final double motorP=0.006;
     public static final double motorI=0;
     public static final double motorD=0;
     public static final double motorFF=0;
