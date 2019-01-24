@@ -30,4 +30,7 @@ public class constants{
     public static final double elevD=0;
     public static final double elevFF=0;
     
+    public static final int camW=256;
+    public static final int camH=144;
+    public static final int camFPS=30;
 }
