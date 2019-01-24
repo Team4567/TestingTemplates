@@ -77,7 +77,7 @@ public class Robot extends TimedRobot {
   public ArrayList<RotatedRect> contourRects;
   public VisionThread visionThread;
   NetworkTableInstance inst;
-  NetworkTable table;
+  NetworkTable tablea,tableb;
   public NetworkTableEntry ngP,ngI,ngD,nmP,nmI,nmD;
   public static CommandGroup m_autonomousCommand;
   
@@ -91,19 +91,20 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     inst=NetworkTableInstance.getDefault();
-    table= inst.getTable("Contour Rects");
+    tablea= inst.getTable("Contour Rects");
+    tableb=inst.getTable("PID Values");
     teleOp= new teleOpDrive(xbC);
     turn=new turnAngleTest();
     goDistance= new driveDistanceTest();
     moveElev= new elevatorPosition();
     test=new testing();
     contourRects= new ArrayList<RotatedRect>();
-    ngP= table.getEntry("Test Gyro P");
-    ngI= table.getEntry("Test Gyro I");
-    ngD= table.getEntry("Test Gyro D");
-    nmP= table.getEntry("Test Motor P");
-    nmI= table.getEntry("Test Motor I");
-    nmD= table.getEntry("Test Motor D");
+    ngP= tableb.getEntry("Test Gyro P");
+    ngI= tableb.getEntry("Test Gyro I");
+    ngD= tableb.getEntry("Test Gyro D");
+    nmP= tableb.getEntry("Test Motor P");
+    nmI= tableb.getEntry("Test Motor I");
+    nmD= tableb.getEntry("Test Motor D");
     ngP.setDouble(constants.gyroP);
     ngI.setDouble(constants.gyroI);
     ngD.setDouble(constants.gyroD);
@@ -124,21 +125,32 @@ public class Robot extends TimedRobot {
     camera.setResolution(256, 144);
     camera.setFPS(30);
     // Thank you WPILIB
-    //visionThread = new VisionThread(camera, new tapePipeline(), pipeline -> {
+    visionThread = new VisionThread(camera, new TestGreen(), pipeline -> {
       
-     /* if (!pipeline.findContoursOutput().isEmpty()) {
-        
-            for(int i=0;i<pipeline.findContoursOutput().size();i++){
+      if (!pipeline.findContoursOutput().isEmpty()) {
+          int i;
+          
+            for(i=0;i<contourRects.size();i++){
+              
               MatOfPoint2f dst = new MatOfPoint2f();
               pipeline.findContoursOutput().get(i).convertTo(dst, CvType.CV_32F);
               RotatedRect r = Imgproc.minAreaRect(dst);
-              contourRects.add(r);
+              if(i<2){
+                contourRects.add(r);
+                
+              }else{
+                contourRects.clear();
+                contourRects.add(r);
+                i=0;
+              }
             }
+          
         } else {
           System.out.println("No contours found!");
         }
+
     });
-    visionThread.start();*/
+    visionThread.start();
   }
 
   /**
@@ -222,19 +234,24 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
-    /*if (!contourRects.isEmpty()){
+    if (!contourRects.isEmpty()){
+      System.out.println(contourRects.size());
       for(int i=0;i<contourRects.size();i++){
-        NetworkTableEntry xEntry = table.getEntry("x of rect " + i);
-        NetworkTableEntry yEntry = table.getEntry("y of rect " + i);
-        NetworkTableEntry angleEntry = table.getEntry("angle of rect " + i);
+        tablea.delete("x of rect "+i);
+        tablea.delete("y of rect "+i);
+        tablea.delete("angle of rect "+i);
+        NetworkTableEntry xEntry = tablea.getEntry("x of rect " + i);
+        NetworkTableEntry yEntry = tablea.getEntry("y of rect " + i);
+        NetworkTableEntry angleEntry = tablea.getEntry("angle of rect " + i);
         xEntry.setDouble(contourRects.get(i).center.x);
         yEntry.setDouble(contourRects.get(i).center.y);
         angleEntry.setDouble(contourRects.get(i).angle);
-      }
+         }
     }else{
       System.out.println("contourRects is empty...");
-    }*/
-    if(xbC.getAButtonPressed()){
+    }
+    
+    /*if(xbC.getAButtonPressed()){
       turn.setSetpoint(180);
       turn.start();
     }
@@ -257,13 +274,14 @@ public class Robot extends TimedRobot {
     if(xbC.getStartButtonPressed()){
       test.start();
     }
+    */
     turn.P=ngP.getDouble(0);
     turn.I=ngI.getDouble(0);
     turn.D=ngD.getDouble(0);
     goDistance.P=nmP.getDouble(0);
     goDistance.I=nmI.getDouble(0);
     goDistance.D=nmD.getDouble(0);
-    System.out.println(goDistance.tR.getSelectedSensorPosition() + ", "+ drive.getYaw());
+    //System.out.println(goDistance.tR.getSelectedSensorPosition() + ", "+ drive.getYaw());
   }
 
   /**
@@ -280,44 +298,6 @@ public class Robot extends TimedRobot {
   }
   @Override
   public void testPeriodic() {
-    if (!contourRects.isEmpty()){
-      for(int i=0;i<contourRects.size();i++){
-        NetworkTableEntry xEntry = table.getEntry("x of rect " + i);
-        NetworkTableEntry yEntry = table.getEntry("y of rect " + i);
-        NetworkTableEntry angleEntry = table.getEntry("angle of rect " + i);
-        xEntry.setDouble(contourRects.get(i).center.x);
-        yEntry.setDouble(contourRects.get(i).center.y);
-        angleEntry.setDouble(contourRects.get(i).angle);
-      }
-    }else{
-      System.out.println("contourRects is empty...");
-    }
-    if(xbC.getAButtonPressed()){
-      turn.setSetpoint(90);
-      turn.start();
-    }
-    if(xbC.getBButtonPressed()){
-      turn.cancel();
-      goDistance.cancel();
-
-    }
-    if(xbC.getXButtonPressed()){
-      goDistance.setSetpoint((int)((5*12)/constants.wheelCirc)*4096);
-      goDistance.start();
-    }
-    if(xbC.getYButtonPressed()){
-      
-    }
-    if(xbC.getBackButtonPressed()){
-      drive.resetGyro();
-      drive.leftMain.setSelectedSensorPosition(0);
-    }
-    turn.P=ngP.getDouble(0);
-    turn.I=ngI.getDouble(0);
-    turn.D=ngD.getDouble(0);
-    goDistance.P=nmP.getDouble(0);
-    goDistance.I=nmI.getDouble(0);
-    goDistance.D=nmD.getDouble(0);
     
   }
 }
