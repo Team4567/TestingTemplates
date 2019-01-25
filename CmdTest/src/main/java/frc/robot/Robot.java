@@ -7,13 +7,39 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
+
+import edu.wpi.first.vision.VisionThread;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.command.Command;
+import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.ExampleSubsystem;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.cscore.UsbCamera;
+
+
+import frc.robot.autonomous.*;
+import frc.robot.commands.*;
+import frc.robot.pipelines.*;
+import frc.robot.subsystems.*;
+
+import org.opencv.core.RotatedRect;
+import org.opencv.core.Rect;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.CvType;
+
+
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -22,12 +48,47 @@ import frc.robot.subsystems.ExampleSubsystem;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends TimedRobot {
-  public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
-  public static OI m_oi;
+/* Oh hi Sans
+░░░░░░░░██████████████████
+░░░░████░░░░░░░░░░░░░░░░░░████
+░░██░░░░░░░░░░░░░░░░░░░░░░░░░░██
+░░██░░░░░░░░░░░░░░░░░░░░░░░░░░██
+██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██
+██░░░░░░░░░░░░░░░░░░░░██████░░░░██
+██░░░░░░░░░░░░░░░░░░░░██████░░░░██
+██░░░░██████░░░░██░░░░██████░░░░██
+░░██░░░░░░░░░░██████░░░░░░░░░░██
+████░░██░░░░░░░░░░░░░░░░░░██░░████
+██░░░░██████████████████████░░░░██
+██░░░░░░██░░██░░██░░██░░██░░░░░░██
+░░████░░░░██████████████░░░░████
+░░░░░░████░░░░░░░░░░░░░░████
+░░░░░░░░░░██████████████
 
-  Command m_autonomousCommand;
-  SendableChooser<Command> m_chooser = new SendableChooser<>();
+*/
+public class Robot extends TimedRobot {
+  public static drivetrain drive = new drivetrain();
+  public static elevator upper = new elevator();
+  public static scoringMech score=new scoringMech();
+  public static DriverStation ds = DriverStation.getInstance();
+  public XboxController xbC= new XboxController(0);
+  public static teleOpDrive teleOp;
+  public static turnAngleTest turn;
+  public static driveDistanceTest goDistance;
+  public static elevatorPosition moveElev;
+  public static testing test;
+  public ArrayList<RotatedRect> contourRectsL;
+  public ArrayList<RotatedRect> contourRectsR;
+  public VisionThread visionThread;
+  NetworkTableInstance inst;
+  public static NetworkTable tableL,tableR,tableb,tableO;
+  public NetworkTableEntry ngP,ngI,ngD,nmP,nmI,nmD;
+  public static CommandGroup m_autonomousCommand;
+  double sizeCont;
+  pairTape pair;
+  private final Object imgLock=new Object();
+  SendableChooser<CommandGroup> m_chooser = new SendableChooser<>();
+
 
   /**
    * This function is run when the robot is first started up and should be
@@ -35,11 +96,41 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    m_oi = new OI();
-    m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
-    // chooser.addOption("My Auto", new MyAutoCommand());
+    inst=NetworkTableInstance.getDefault();
+    tableb=inst.getTable("PID Values");
+    teleOp= new teleOpDrive(xbC);
+    turn=new turnAngleTest();
+    goDistance= new driveDistanceTest();
+    moveElev= new elevatorPosition();
+    test=new testing();
+    ngP= tableb.getEntry("Test Gyro P");
+    ngI= tableb.getEntry("Test Gyro I");
+    ngD= tableb.getEntry("Test Gyro D");
+    nmP= tableb.getEntry("Test Motor P");
+    nmI= tableb.getEntry("Test Motor I");
+    nmD= tableb.getEntry("Test Motor D");
+    ngP.setDouble(constants.gyroP);
+    ngI.setDouble(constants.gyroI);
+    ngD.setDouble(constants.gyroD);
+    nmP.setDouble(constants.motorP);
+    nmI.setDouble(constants.motorI);
+    nmD.setDouble(constants.motorD);
+    m_chooser.setDefaultOption("Default Auto, No Movement", new noMovement());
+    m_chooser.addOption("Start: Left, Target: Cargo", new leftCargo());
+    m_chooser.addOption("Start: Left, Target: Rocket", new leftRocket());
+    m_chooser.addOption("Start: Right, Target: Cargo", new rightCargo());
+    m_chooser.addOption("Start: Right, Target: Rocket", new rightRocket());
+    m_chooser.addOption("Start: Center, Target: Left-Side Cargo", new centerLCargo());
+    m_chooser.addOption("Start: Center, Target: Left-Side Rocket", new centerLRocket());
+    m_chooser.addOption("Start: Center, Target: Right-side Rocket", new centerRCargo());
+    m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new centerRRocket());
     SmartDashboard.putData("Auto mode", m_chooser);
+    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+    camera.setResolution(constants.camW, constants.camH);
+    camera.setFPS(constants.camFPS);
+    // Thank you WPILIB
   }
+  
 
   /**
    * This function is called every robot packet, no matter the mode. Use
@@ -51,6 +142,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    drive.findGyroVals();
   }
 
   /**
@@ -81,18 +173,17 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_chooser.getSelected();
-
-    /*
-     * String autoSelected = SmartDashboard.getString("Auto Selector",
-     * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
-     * = new MyAutoCommand(); break; case "Default Auto": default:
-     * autonomousCommand = new ExampleCommand(); break; }
-     */
-
-    // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
+    /*if(m_autonomousCommand !=null){
       m_autonomousCommand.start();
-    }
+    }else{
+      CommandGroup emerg= new noMovement();
+      emerg.start();
+    }*/
+
+    drive.resetGyro();
+    turn.setSetpoint(0);
+    turn.start();
+    
   }
 
   /**
@@ -100,7 +191,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    Scheduler.getInstance().run();
+    
+    
   }
 
   @Override
@@ -112,6 +204,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    teleOp.start();
   }
 
   /**
@@ -120,12 +213,64 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
+    SmartDashboard.putNumber("Gyro Val", drive.getYaw());
+    SmartDashboard.putNumber("Encoder Pos", drive.rightMain.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Setpoint",turn.getSetpoint());
+    SmartDashboard.putNumber("Output",turn.output);
+    if(xbC.getAButtonPressed()){
+      turn.setSetpoint(turn.getSetpoint()+45);
+      turn.start();
+    }
+    if(xbC.getBButtonPressed()){
+      turn.cancel();
+      goDistance.cancel();
+      test.cancel();
+    }
+    if(xbC.getXButtonPressed()){
+      turn.setSetpoint(turn.getSetpoint()+45);
+    }
+    if(xbC.getYButtonPressed()){
+      turn.setSetpoint(0);
+    }
+    if(xbC.getBackButtonPressed()){
+      drive.resetGyro();
+      drive.rightMain.setSelectedSensorPosition(0);
+    }
+    if(xbC.getStartButtonPressed()){
+      turn.start();
+    }
+    if(xbC.getBumperPressed(Hand.kLeft)){
+      turn.setSetpoint(-151);
+      turn.start(); 
+    }
+    if(xbC.getBumperPressed(Hand.kRight)){
+      turn.setSetpoint(29);
+      turn.start();
+    }
+    turn.P=ngP.getDouble(0);
+
+    turn.I=ngI.getDouble(0);
+    turn.D=ngD.getDouble(0);
+    goDistance.P=nmP.getDouble(0);
+    goDistance.I=nmI.getDouble(0);
+    goDistance.D=nmD.getDouble(0);
+    //System.out.println(goDistance.tR.getSelectedSensorPosition() + ", "+ drive.getYaw());
   }
 
   /**
-   * This function is called periodically during test mode.
+   * This function is called periodically
+   * 
+   * 
+   * 
+   *  during test mode.
    */
   @Override
+  public void testInit() {
+    super.testInit();
+    teleOp.start();
+  }
+  @Override
   public void testPeriodic() {
+    
   }
 }

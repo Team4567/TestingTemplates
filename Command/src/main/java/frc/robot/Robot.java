@@ -33,6 +33,7 @@ import frc.robot.subsystems.*;
 
 import org.opencv.core.RotatedRect;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.CvType;
 
@@ -78,10 +79,10 @@ public class Robot extends TimedRobot {
   public ArrayList<RotatedRect> contourRectsR;
   public VisionThread visionThread;
   NetworkTableInstance inst;
-  public static NetworkTable tableL,tableR,tableb;
+  public static NetworkTable tableL,tableR,tableb,tableO;
   public NetworkTableEntry ngP,ngI,ngD,nmP,nmI,nmD;
   public static CommandGroup m_autonomousCommand;
-  
+  double sizeCont;
   pairTape pair;
   
   SendableChooser<CommandGroup> m_chooser = new SendableChooser<>();
@@ -96,6 +97,7 @@ public class Robot extends TimedRobot {
     inst=NetworkTableInstance.getDefault();
     tableL= inst.getTable("Left Contour Rects");
     tableb=inst.getTable("PID Values");
+    tableO=inst.getTable("Ball Values");
     tableR=inst.getTable("Right Contour Rects");
     teleOp= new teleOpDrive(xbC);
     turn=new turnAngleTest();
@@ -131,28 +133,32 @@ public class Robot extends TimedRobot {
     camera.setResolution(constants.camW, constants.camH);
     camera.setFPS(constants.camFPS);
     // Thank you WPILIB
-    visionThread = new VisionThread(camera, new TestGreen(), pipeline -> {
+    visionThread = new VisionThread(camera, new BallPipeline(), pipeline -> {
       
-      if (!pipeline.findContoursOutput().isEmpty()) {
+      if (!pipeline.filterContoursOutput().isEmpty()) {
           int i;
-          
-            for(i=0;i<pipeline.findContoursOutput().size();i++){
-              
-              MatOfPoint2f dst = new MatOfPoint2f();
-              pipeline.findContoursOutput().get(i).convertTo(dst, CvType.CV_32F);
-              RotatedRect r = Imgproc.minAreaRect(dst);
-              if(r.angle>44){
+          sizeCont=pipeline.filterContoursOutput().size();
+            for(i=0;i<pipeline.filterContoursOutput().size();i++){
+              NetworkTableEntry xEntry= tableO.getEntry("x of "+i);
+              NetworkTableEntry yEntry= tableO.getEntry("y of "+i);
+              Moments m= Imgproc.moments(pipeline.filterContoursOutput().get(i),false);
+              xEntry.setDouble((int)(m.get_m10()/m.get_m00()));
+              yEntry.setDouble((int)(m.get_m01()/m.get_m00()));
+              //MatOfPoint2f dst = new MatOfPoint2f();
+              //pipeline.findContoursOutput().get(i).convertTo(dst, CvType.CV_32F);
+              //RotatedRect r = Imgproc.minAreaRect(dst);
+              /*if(r.angle>44){
                 contourRectsL.add(r);
               }else{
                 contourRectsR.add(r);
-              }
-             
+              }*/
+              
             }
           
         } else {
-          System.out.println("No contours found!");
+          //System.out.println("No contours found!");
         }
-
+        System.out.println(pipeline.filterContoursOutput().size());
     });
     visionThread.start();
   }
@@ -238,7 +244,17 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
-    
+    for(int i=0;i<sizeCont;i++){
+      NetworkTableEntry xEntry=tableO.getEntry("x of "+i);
+      NetworkTableEntry yEntry=tableO.getEntry("y of "+i);
+      double error= -xEntry.getDouble(0.0);
+      if(xbC.getAButton()){
+        teleOp.cancel();
+        drive.drive(0,.00625*error);
+      } else{
+        teleOp.start();
+      }
+    }
     
     /*if(xbC.getAButtonPressed()){
       turn.setSetpoint(180);
