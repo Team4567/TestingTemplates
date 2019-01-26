@@ -7,6 +7,7 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 import frc.robot.constants;
@@ -17,10 +18,11 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 public class driveDistanceTest extends Command {
   public double P,I,D;
   public double integral=0, previous_error=0, setpoint, error, derivative;
-  public double output;
+  public double output=0;
   double avgEncoder;
   public TalonSRX tL, tR;
-  turnAngle straight;
+  Timer t;
+  turnAngleTest straight;
   public driveDistanceTest() {
     
     // Use requires() here to declare subsystem dependencies
@@ -28,7 +30,8 @@ public class driveDistanceTest extends Command {
     P= constants.motorP;
     I= constants.motorI;
     D= constants.motorD;
-    straight= new turnAngle(); 
+    t= new Timer();
+    straight= new turnAngleTest(); 
     tR= Robot.drive.rightMain;
     avgEncoder=tR.getSelectedSensorPosition();
   }
@@ -39,28 +42,34 @@ public class driveDistanceTest extends Command {
     P= constants.motorP;
     I= constants.motorI;
     D= constants.motorD;
-    straight= new turnAngle(); 
+    t= new Timer();
+    straight= new turnAngleTest(); 
     tL= Robot.drive.leftMain;
     tR= Robot.drive.rightMain;
     avgEncoder=tR.getSelectedSensorPosition();
     this.setpoint=setpoint;
   }
-  public void setSetpoint(int setpoint){
+  public void setSetpoint(double setpoint){
     this.setpoint=setpoint;
   }
-  public void setSetpointFromPos(int inc){
+  public void setSetpointFromPos(double inc){
     setpoint+=inc;
   }
+  public double calcError(){
+    return setpoint-tR.getSelectedSensorPosition();
+  }
   public void PID(){
-    error = setpoint-tR.getSelectedSensorPosition();
+    error = calcError();
     integral+= (error*.02);
     derivative= (error-previous_error)/.02;
     previous_error=error;
-    output=-1*(Math.min(Math.max(P*error+I*integral+D*derivative,-0.5),0.5));
+    output=(Math.min(Math.max(P*error+I*integral+D*derivative,-0.5),0.5));
   }
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
+    output=0;
+    t.start();
     tR.setSelectedSensorPosition(0);
   }
 
@@ -69,14 +78,23 @@ public class driveDistanceTest extends Command {
   protected void execute() {
     straight.setSetpointToCurrent();
     straight.PID();
-    PID();
+    if(t.get()<=1){
+      output+=.01;
+
+    }else{
+      PID();
+    }
+    if(output<.02){
+      output=.02;
+    }
+    System.out.println(P*error+I*integral+D*derivative);
     Robot.drive.drive(output,0);
   }
 
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(Math.abs(output)<.05&&tR.getSelectedSensorPosition()> setpoint-100 && tR.getSelectedSensorPosition()<setpoint+100){
+    if(tR.getSelectedSensorPosition()> setpoint-200 && tR.getSelectedSensorPosition()<setpoint+200){
       return true;
     }else{
       return false;
@@ -88,15 +106,18 @@ public class driveDistanceTest extends Command {
   @Override
   protected void end() {
     Robot.drive.stop();
-    //if(Robot.ds.isOperatorControl()){
-      //Robot.teleOp.start();
-    //}
+    if(Robot.ds.isOperatorControl()){
+      Robot.teleOp.start();
+    }
   }
 
   // Called when another command which requires one or more of the same
   // subsystems is scheduled to run
   @Override
   protected void interrupted() {
-
+    Robot.drive.stop();
+    if(Robot.ds.isOperatorControl()){
+      Robot.teleOp.start();
+    }
   }
 }

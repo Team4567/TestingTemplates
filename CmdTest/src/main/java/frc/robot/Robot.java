@@ -81,11 +81,12 @@ public class Robot extends TimedRobot {
   public ArrayList<RotatedRect> contourRectsR;
   public VisionThread visionThread;
   NetworkTableInstance inst;
-  public static NetworkTable tableL,tableR,tableb,tableO;
-  public NetworkTableEntry ngP,ngI,ngD,nmP,nmI,nmD;
+  private static NetworkTable tableL,tableR,tableb,tableO,chickenVision;
+  private NetworkTableEntry ngP,ngI,ngD,nmP,nmI,nmD;
+  private NetworkTableEntry driveWanted,cargoWanted,tapeWanted;
   public static CommandGroup m_autonomousCommand;
   double sizeCont;
-  pairTape pair;
+  
   private final Object imgLock=new Object();
   SendableChooser<CommandGroup> m_chooser = new SendableChooser<>();
 
@@ -103,6 +104,10 @@ public class Robot extends TimedRobot {
     goDistance= new driveDistanceTest();
     moveElev= new elevatorPosition();
     test=new testing();
+    chickenVision=inst.getTable("ChickenVision");
+    driveWanted = chickenVision.getEntry("Driver");
+		tapeWanted = chickenVision.getEntry("Tape");
+		cargoWanted = chickenVision.getEntry("Cargo");
     ngP= tableb.getEntry("Test Gyro P");
     ngI= tableb.getEntry("Test Gyro I");
     ngD= tableb.getEntry("Test Gyro D");
@@ -125,9 +130,9 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Start: Center, Target: Right-side Rocket", new centerRCargo());
     m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new centerRRocket());
     SmartDashboard.putData("Auto mode", m_chooser);
-    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-    camera.setResolution(constants.camW, constants.camH);
-    camera.setFPS(constants.camFPS);
+    //UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+    //camera.setResolution(constants.camW, constants.camH);
+    //camera.setFPS(constants.camFPS);
     // Thank you WPILIB
   }
   
@@ -217,17 +222,22 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Encoder Pos", drive.rightMain.getSelectedSensorPosition());
     SmartDashboard.putNumber("Setpoint",turn.getSetpoint());
     SmartDashboard.putNumber("Output",turn.output);
+    SmartDashboard.putNumber("Encoder Speed",((drive.rightMain.getSelectedSensorVelocity()*10)/4096)*constants.wheelCirc);
+    
     if(xbC.getAButtonPressed()){
-      turn.setSetpoint(turn.getSetpoint()+45);
-      turn.start();
+      goDistance.setSetpoint((20*12)/constants.wheelCirc*4096);
+      goDistance.start();
     }
     if(xbC.getBButtonPressed()){
       turn.cancel();
       goDistance.cancel();
       test.cancel();
     }
+    if(xbC.getXButton()){
+      drive.drive(.5,xbC.getX(Hand.kLeft));
+    }
     if(xbC.getXButtonPressed()){
-      turn.setSetpoint(turn.getSetpoint()+45);
+      drive.resetGyro();
     }
     if(xbC.getYButtonPressed()){
       turn.setSetpoint(0);
@@ -240,12 +250,19 @@ public class Robot extends TimedRobot {
       turn.start();
     }
     if(xbC.getBumperPressed(Hand.kLeft)){
-      turn.setSetpoint(-151);
-      turn.start(); 
+      driveWanted.setBoolean(false);
+      cargoWanted.setBoolean(true);
+      tapeWanted.setBoolean(false); 
     }
     if(xbC.getBumperPressed(Hand.kRight)){
-      turn.setSetpoint(29);
-      turn.start();
+      driveWanted.setBoolean(false);
+      cargoWanted.setBoolean(false);
+      tapeWanted.setBoolean(true); 
+    }
+    if(xbC.getTriggerAxis(Hand.kRight)>.5){
+      driveWanted.setBoolean(true);
+      cargoWanted.setBoolean(false);
+      tapeWanted.setBoolean(false); 
     }
     turn.P=ngP.getDouble(0);
 

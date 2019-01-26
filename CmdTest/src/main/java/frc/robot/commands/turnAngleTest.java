@@ -56,7 +56,7 @@ public class turnAngleTest extends Command {
     integral+= (error*.02);
     derivative= (error-previous_error)/.02;
     previous_error=error;
-    output=-1*Math.min(Math.max(P*error+I*integral+D*derivative,-.5),.5);
+    output=Math.min(Math.max(P*error+I*integral+D*derivative,-.5),.5);
   }
   // Called just before this Command runs the first time
   @Override
@@ -92,7 +92,11 @@ public class turnAngleTest extends Command {
       Robot.teleOp.start();
     }
   }
-
+public double getOutput(double angle){
+  setSetpoint(angle);
+  PID();
+  return output;
+}
   // Called when another command which requires one or more of the same
   // subsystems is scheduled to run
   @Override

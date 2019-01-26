@@ -13,11 +13,15 @@ public class constants{
     public static final int scoreInSplit=0;
     public static final int scoreFlipSplit=0;
 
-    public static final double wheelDiameter=6;
-    public static final double wheelCirc=wheelDiameter*Math.PI;
+    
+    //1.5625*12
+    //(1.5625*12)*(236/240)
+    //18.4375
+    public static final double wheelCirc=1.5625*12;
+    public static final double wheelDiameter=wheelCirc/Math.PI;
     public static final double inchEScale= (1/wheelCirc)*4096;
 
-    public static final double motorP=0.006;
+    public static final double motorP=0.0001;
     public static final double motorI=0;
     public static final double motorD=0;
     public static final double motorFF=0;

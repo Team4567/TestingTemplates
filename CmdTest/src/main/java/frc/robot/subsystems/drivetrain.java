@@ -112,8 +112,8 @@ public class drivetrain extends Subsystem {
         }
         
       }
-      rightMain.set(ControlMode.PercentOutput,rightMotors);
-        leftMain.set(ControlMode.PercentOutput,-1*leftMotors);
+      rightMain.set(ControlMode.PercentOutput,-rightMotors);
+        leftMain.set(ControlMode.PercentOutput,leftMotors);
         rightSlave.follow(rightMain);
         leftSlave.follow(leftMain);
     }
