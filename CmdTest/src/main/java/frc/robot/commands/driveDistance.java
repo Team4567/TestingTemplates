@@ -80,7 +80,7 @@ public class driveDistance extends Command {
     t.start();
     tR.setSelectedSensorPosition(0);
     done=false;
-    incPhase=true;
+    
   }
 
   // Called repeatedly when this Command is scheduled to run
@@ -88,11 +88,9 @@ public class driveDistance extends Command {
   protected void execute() {
     straight.setSetpointToCurrent();
     straight.PID();
-    if(t.get()<=1&&output<=desiredOut()&&incPhase){
+    if(t.get()<=1&&output<desiredOut()){
       output+=.01;
-
     }else{
-      incPhase=false;
       PID();
     }
     if(output<constants.minValY){
