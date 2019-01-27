@@ -76,7 +76,7 @@ public class pairTape {
     public double centerMidpointX(){
         double min=99999999;
         int minI=-1;
-        double midpointF;
+        
         for(int i=0;i<Lf.size();i++){
             double midpoint=(Lf.get(i).center.x+Rf.get(i).center.x)/2;
             double midpointDist= Math.abs(midpoint-(constants.camW/2)); 
@@ -86,5 +86,19 @@ public class pairTape {
             }
         }
         return (Lf.get(minI).center.x+Rf.get(minI).center.x)/2;
+    }
+    public int midPairPos(){
+        double min=99999999;
+        int minI=-1;
+        
+        for(int i=0;i<Lf.size();i++){
+            double midpoint=(Lf.get(i).center.x+Rf.get(i).center.x)/2;
+            double midpointDist= Math.abs(midpoint-(constants.camW/2)); 
+            if(midpointDist<min){
+                min=midpointDist;
+                minI=i;
+            }
+        }
+        return minI;
     }
 }

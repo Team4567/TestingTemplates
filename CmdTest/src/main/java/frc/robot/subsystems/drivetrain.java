@@ -21,6 +21,8 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.AnalogInput;
 import frc.robot.constants;
 import frc.robot.enums.*;
+import frc.robot.Robot;
+import frc.robot.commands.teleOpDrive;
 /**
  * An example subsystem.  You can replace me with your own Subsystem.
  */
@@ -148,7 +150,8 @@ public class drivetrain extends Subsystem {
 
   @Override
   public void initDefaultCommand() {
-    // Set the default command for a subsystem here.
-    // setDefaultCommand(new MySpecialCommand());
+    if(Robot.ds.isOperatorControl()){
+      setDefaultCommand(new teleOpDrive(Robot.xbC));
+    }
   }
 }

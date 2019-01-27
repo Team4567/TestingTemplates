@@ -1,4 +1,4 @@
 package frc.robot.enums;
-public enum vision{
+public enum want{
     driver,cargo,tape
 }

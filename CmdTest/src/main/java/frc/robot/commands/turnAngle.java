@@ -8,85 +8,138 @@
 package frc.robot.commands;
 
 import com.ctre.phoenix.sensors.PigeonIMU;
-
+import java.util.ArrayList; 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 import frc.robot.constants;
 
 
 public class turnAngle extends Command {
-  double P,I,D;
-  double integral=0, previous_error=0, setpoint, error, derivative, output;
+  public double P,I,D;
+  double integral=0, previous_error=0, setpoint, error, derivative; 
+  private double output;
   PigeonIMU pidgey;
+  boolean done;
+  boolean outputOnly;
+  Timer t;
+  public turnAngle(boolean outputOnly) {
+    // Use requires() here to declare subsystem dependencies
+    // eg. requires(chassis);
+    if(!outputOnly){
+      requires(Robot.drive);
+    }
+    pidgey= Robot.drive.gyro;
+    P= constants.gyroP;
+    I= constants.gyroI;
+    D= constants.gyroD; 
+    this.outputOnly=outputOnly;
+    t= new Timer();
+  }
+  public turnAngle(double setpoint,boolean outputOnly) {
+    // Use requires() here to declare subsystem dependencies
+    // eg. requires(chassis);
+    if(!outputOnly){
+      requires(Robot.drive);
+    }
+    pidgey= Robot.drive.gyro;
+    P= constants.gyroP;
+    I= constants.gyroI;
+    D= constants.gyroD; 
+    this.setpoint=setpoint;
+    this.outputOnly=outputOnly;
+    t= new Timer();
+  }
+  
+  public double calcError(){
+    return setpoint-Robot.drive.getYaw();
+  }
+  public double desiredOut(){
+    return P*calcError();
+  }
 
-  public turnAngle() {
-    // Use requires() here to declare subsystem dependencies
-    // eg. requires(chassis);
-    requires(Robot.drive);
-    pidgey= Robot.drive.gyro;
-    P= constants.gyroP;
-    I= constants.gyroI;
-    D= constants.gyroD; 
-  }
-  public turnAngle(double setpoint) {
-    // Use requires() here to declare subsystem dependencies
-    // eg. requires(chassis);
-    requires(Robot.drive);
-    pidgey= Robot.drive.gyro;
-    P= constants.gyroP;
-    I= constants.gyroI;
-    D= constants.gyroD; 
+  public void setSetpoint(double setpoint){
     this.setpoint=setpoint;
   }
-  public void setSetpoint(int setpoint){
-    this.setpoint=setpoint;
+  public double getSetpoint(){
+    return setpoint;
   }
   public void setSetpointFromPos(int inc){
-    setpoint+=inc;
+    setpoint=Robot.drive.getYaw()+inc;
   }
   public void setSetpointToCurrent(){
     setpoint=Robot.drive.getYaw();
   }
   public void PID(){
-    error = setpoint-Robot.drive.getYaw();
+    error = calcError();
     integral+= (error*.02);
     derivative= (error-previous_error)/.02;
     previous_error=error;
-    output=Math.max(Math.min(P*error+I*integral+D*derivative,-0.5),0.5);
+    output=Math.min(Math.max(P*error+I*integral+D*derivative,-.5),.5);
   }
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-   
+   done=false;
+   t.start();
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-   PID();
-   Robot.drive.drive(0,output);
+   
+    if(t.get()<=1&&output<desiredOut()){
+      output+=.01;
+    }else{
+      PID();
+    }
+    if(output<constants.minValY){
+      output=constants.minValY;
+    }
+    if(!outputOnly){
+      Robot.drive.drive(0,output);
+    }
   }
-
+  public double getOutput(){
+    return output;
+  }
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(output<0.2 && Robot.drive.getYaw()>setpoint-5 && Robot.drive.getYaw()<setpoint+5){
-      return true;
+    if(!outputOnly){
+       if(Robot.drive.getYaw()>setpoint-.5&&Robot.drive.getYaw()<setpoint+.5){
+         return true;
+       }else{
+         return false;
+      }
     }else{
-      return false;
-    }
+      //Since I am just proving an output, I shall continue until the upper command changes my done boolean!
+      if(done){
+        return true;
+      }else{
+        return false;
+      }
+    } 
   }
 
   // Called once after isFinished returns true
   @Override
   protected void end() {
-    Robot.drive.stop();
+    if(!outputOnly){
+      Robot.drive.stop();
+    }
+    done=true;
+    
   }
+  
 
   // Called when another command which requires one or more of the same
   // subsystems is scheduled to run
   @Override
   protected void interrupted() {
-    
+    if(!outputOnly){
+      Robot.drive.stop();
+    }
+    done=true;
   }
 }

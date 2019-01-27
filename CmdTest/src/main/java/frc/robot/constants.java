@@ -13,20 +13,22 @@ public class constants{
     public static final int scoreInSplit=0;
     public static final int scoreFlipSplit=0;
 
-    
-    //1.5625*12
-    //(1.5625*12)*(236/240)
-    //18.4375
     public static final double wheelCirc=1.5625*12;
     public static final double wheelDiameter=wheelCirc/Math.PI;
-    public static final double inchEScale= (1/wheelCirc)*4096;
+    
+    public static final double minValY=0.1;
+    public static final double minValX=0.1;
 
-    public static final double motorP=0.0001;
+    //1.5625*12- Hallway Floor
+    // - Carpet
+    public static final double motorP=0.00005;
     public static final double motorI=0;
     public static final double motorD=0;
     public static final double motorFF=0;
-    public static final double gyroP=0.004;
-    public static final double gyroI=0.003;
+    // - Hallway Floor
+    // - Carpet
+    public static final double gyroP=0.01;
+    public static final double gyroI=0;
     public static final double gyroD=0;
     public static final double gyroFF=0;
     public static final double elevP=0.001;

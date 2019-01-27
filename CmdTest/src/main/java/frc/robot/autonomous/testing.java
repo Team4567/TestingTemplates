@@ -10,6 +10,7 @@ package frc.robot.autonomous;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import frc.robot.Robot;
 import frc.robot.commands.*;
+import frc.robot.enums.want;
 import frc.robot.constants;
 
 public class testing extends CommandGroup {
@@ -18,10 +19,11 @@ public class testing extends CommandGroup {
    */
   public testing() {
     requires(Robot.drive);
-    addSequential(new driveDistanceTest(((10*12)/constants.wheelCirc)*4096));
-    addSequential(new turnAngleTest(180));
-    addSequential(new driveDistanceTest(((10*12)/constants.wheelCirc)*4096));
+    addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));
+    addSequential(new turnAngle(180,false));
+    addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));
     // Add Commands here:
+    addSequential(new alignVision(want.tape,false));
     // e.g. addSequential(new Command1());
     // addSequential(new Command2());
     // these will run in order.

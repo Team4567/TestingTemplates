@@ -36,12 +36,7 @@ public class rightRocket extends CommandGroup {
     // e.g. if Command1 requires chassis, and Command2 requires arm,
     // a CommandGroup containing them would require both the chassis and the
     // arm.
-    // Currently relative to the back of the robot when doing distance
-    addSequential(new driveDistance(149.25*constants.inchEScale));
-    addSequential(new turnAngle(90));
-    // This or go into vision \/
-    addSequential(new driveDistance(0));
-    addSequential(new turnAngle(28.75));
+    
 
   }
 }
