@@ -25,6 +25,7 @@ public class driveDistance extends Command {
   turnAngle straight;
   public boolean done;
   boolean incPhase;
+  MotorCalculator mc;
   public driveDistance() {
     
     // Use requires() here to declare subsystem dependencies
@@ -37,72 +38,48 @@ public class driveDistance extends Command {
     tR= Robot.drive.rightMain;
     avgEncoder=tR.getSelectedSensorPosition();
   }
-  public driveDistance(double setpoint) {
+  public driveDistance(MotorCalculator mc){
+    requires(Robot.drive);
+    this.mc=mc;
+    straight= new turnAngle(true);
+    tR=Robot.drive.rightMain;
+  }
+  public driveDistance(double setpoint, MotorCalculator mc) {
     
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
-    P= constants.motorP;
-    I= constants.motorI;
-    D= constants.motorD;
-    t= new Timer();
-    straight= new turnAngle(true); 
+    this.mc=mc;
     tL= Robot.drive.leftMain;
     tR= Robot.drive.rightMain;
     avgEncoder=tR.getSelectedSensorPosition();
+    setSetpointInches(setpoint);
+  }
+  public void setSetpointInches(double setpoint){
+    mc.setSetpointInches(setpoint);
     this.setpoint=setpoint;
-  }
-  public void setSetpoint(double setpoint){
-    this.setpoint=setpoint;
-  }
-  public void setSetpointFromPos(double inc){
-    setpoint+=inc;
-  }
-  public void setSetpointToCurrent(){
-    setpoint=tR.getSelectedSensorPosition();
-  }
-  public double calcError(){
-    return setpoint-tR.getSelectedSensorPosition();
-  }
-  public double desiredOut(){
-    return P*calcError();
-  }
-  public void PID(){
-    error = calcError();
-    integral+= (error*.02);
-    derivative= (error-previous_error)/.02;
-    previous_error=error;
-    output=(Math.min(Math.max(P*error+I*integral+D*derivative,-0.5),0.5));
   }
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    output=0;
-    t.start();
-    tR.setSelectedSensorPosition(0);
     done=false;
-    
+    mc.start();
+    straight.setSetpointToCurrent();
+    straight.start();
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    straight.setSetpointToCurrent();
+
     straight.PID();
-    if(t.get()<=1&&output<desiredOut()){
-      output+=.01;
-    }else{
-      PID();
-    }
-    if(output<constants.minValY){
-      output=constants.minValY;
-    }
-    Robot.drive.drive(output,straight.getOutput());
+    Robot.drive.drive(mc.getOutput(),straight.getOutput());
+    System.out.println(mc.getOutput());
   }
 
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(tR.getSelectedSensorPosition()> setpoint-200 && tR.getSelectedSensorPosition()<setpoint+200){
+    if(mc.isDone()){
       return true;
     }else{
       return false;
@@ -115,6 +92,7 @@ public class driveDistance extends Command {
   protected void end() {
     Robot.drive.stop();
     straight.done=true;
+    mc.setDone(true);
   }
 
   // Called when another command which requires one or more of the same
@@ -122,6 +100,7 @@ public class driveDistance extends Command {
   @Override
   protected void interrupted() {
     Robot.drive.stop();
-    
+    mc.setDone(true);
+    straight.done=true;
   }
 }

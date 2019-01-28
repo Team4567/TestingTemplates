@@ -64,6 +64,7 @@ public class Robot extends TimedRobot {
   //Commands
   public static teleOpDrive teleOp;
   public static turnAngle turn,turnOut;
+  public static MotorCalculator simpleMotorP;
   public static driveDistance goDistance;
   public static elevatorPosition moveElev;
   private static testing test;
@@ -76,7 +77,7 @@ public class Robot extends TimedRobot {
   //NetworkTables
   NetworkTableInstance inst;
   private static NetworkTable tablePID,chickenVision;
-  private NetworkTableEntry ngP,ngI,ngD,nmP,nmI,nmD,minValY,minValX;
+  private NetworkTableEntry ngP,ngI,ngD,nmP,nmI,nmD;
   private NetworkTableEntry driveWanted,cargoWanted,tapeWanted,tapeYaw,cargoYaw;
 
   /**
@@ -93,9 +94,7 @@ public class Robot extends TimedRobot {
     teleOp= new teleOpDrive(xbC);
     turn=new turnAngle(false);
     turnOut= new turnAngle(true);
-    align= new alignVision(false);
-    alignOut= new alignVision(true);
-    goDistance= new driveDistance();
+    goDistance= new driveDistance(new simpleMotorP(drive.rightMain,drive.leftMain));
     moveElev= new elevatorPosition();
     test=new testing();
     //Interfaces/Controllers
@@ -118,16 +117,14 @@ public class Robot extends TimedRobot {
     nmP= tablePID.getEntry("Test Motor P");
     nmI= tablePID.getEntry("Test Motor I");
     nmD= tablePID.getEntry("Test Motor D");
-    minValY= tablePID.getEntry("Min Val Test Y");
-    minValX= tablePID.getEntry("Min Val Test X");
+    
     ngP.setDouble(constants.gyroP);
     ngI.setDouble(constants.gyroI);
     ngD.setDouble(constants.gyroD);
     nmP.setDouble(constants.motorP);
     nmI.setDouble(constants.motorI);
     nmD.setDouble(constants.motorD);
-    minValY.setDouble(0.0);
-    minValX.setDouble(0.0);
+    
     chickenVision=inst.getTable("ChickenVision");
     driveWanted = chickenVision.getEntry("Driver");
 		tapeWanted = chickenVision.getEntry("Tape");
@@ -230,7 +227,7 @@ public class Robot extends TimedRobot {
     
     //Init Distance
     if(xbC.getAButtonPressed()){
-      goDistance.setSetpoint((20*12)/constants.wheelCirc*4096);
+      goDistance.setSetpointInches(20*12);
       goDistance.start();
     }
     //EMERGENCY CANCEL ANY ACTIVE COMMAND THRU TELEOP. MAKE SURE CANCEL IS SET UP IN THE COMMANDS
@@ -240,12 +237,12 @@ public class Robot extends TimedRobot {
       test.cancel();
     }
     //Steady Driving Testing, probably no longer needed
-    if(xbC.getXButton()){
-      drive.drive(minValY.getDouble(0.0),0);
+    if(xbC.getYButton()){
+      drive.drive(constants.minValY,0);
     }
     // Reset Turning Setpoint(For 45 Degree Increment Testing)
-    if(xbC.getYButtonPressed()){
-      drive.drive(0,minValX.getDouble(0.0));
+    if(xbC.getXButton()){
+      drive.drive(0,constants.minValX);
     }
     // Reset Positioning Devices
     if(xbC.getBackButtonPressed()){

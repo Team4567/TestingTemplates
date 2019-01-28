@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.command.Command;
 public class maintainAngle extends turnAngle {
   public maintainAngle(boolean outputOnly) {
     super(outputOnly);
+    
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
   }
@@ -23,7 +24,10 @@ public class maintainAngle extends turnAngle {
   }
 
   // Called repeatedly when this Command is scheduled to run
-  
+  @Override
+  protected void execute() {
+    super.execute();
+  }
 
   // Make this return true when this Command no longer needs to run execute()
   @Override

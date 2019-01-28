@@ -19,11 +19,11 @@ public class testing extends CommandGroup {
    */
   public testing() {
     requires(Robot.drive);
-    addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));
-    addSequential(new turnAngle(180,false));
-    addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));
+    //addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));
+    //addSequential(new turnAngle(180,false));
+    //addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));
     // Add Commands here:
-    addSequential(new alignVision(want.tape,false));
+    //addSequential(new alignVision(want.tape,false));
     // e.g. addSequential(new Command1());
     // addSequential(new Command2());
     // these will run in order.

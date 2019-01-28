@@ -39,14 +39,14 @@ public class teleOpDrive extends Command {
   @Override
   protected void execute() {
     Robot.drive.drive(xbC);
-    if(xbC.getBumperPressed(Hand.kRight)){
-      Robot.alignOut.start();
-    }
-    if(xbC.getBumper(Hand.kRight)){
-      Robot.drive.drive(xbC.getY(Hand.kLeft),Robot.alignOut.getOutput());
+    //if(xbC.getBumperPressed(Hand.kRight)){
+      //Robot.alignOut.start();
+    //}
+    //if(xbC.getBumper(Hand.kRight)){
+    //  Robot.drive.drive(xbC.getY(Hand.kLeft),Robot.alignOut.getOutput());
       
       
-    }
+    //}
     /*if(xbC.getYButtonPressed()){
       level++;
     } else if(xbC.getAButtonPressed()){

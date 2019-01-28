@@ -18,7 +18,7 @@ import frc.robot.constants;
 public class turnAngle extends Command {
   public double P,I,D;
   double integral=0, previous_error=0, setpoint, error, derivative; 
-  private double output;
+  private double output,previous_output;
   PigeonIMU pidgey;
   boolean done;
   boolean outputOnly;
@@ -81,20 +81,32 @@ public class turnAngle extends Command {
   @Override
   protected void initialize() {
    done=false;
-   t.start();
+   
   }
-
+  public void calculate() {
+    previous_output=output;
+    output=Math.max(Math.min(P*(setpoint-Robot.drive.getYaw()),0.5),-0.5);
+  }
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-   
-    if(t.get()<=1&&output<desiredOut()){
-      output+=.01;
+    calculate();
+    if(output-previous_output<=.02){
+
     }else{
-      PID();
+      if(output-previous_output>0){
+        output=previous_output+.02;
+      }else if(output-previous_output<0){
+        output=previous_output-.02;
+        if(output<constants.minValY){
+          output=constants.minValY;
+        }
+      }else{
+        
+      }
     }
-    if(output<constants.minValY){
-      output=constants.minValY;
+    if(Math.abs(output)<constants.minValX){
+      output=constants.minValX;
     }
     if(!outputOnly){
       Robot.drive.drive(0,output);
