@@ -66,9 +66,9 @@ public class simpleMotorP extends Command implements MotorCalculator {
 
     }else{
       if(output-previous_output>0){
-        output=previous_output+.02;
+        output=previous_output+.01;
       }else if(output-previous_output<0){
-        output=previous_output-.02;
+        output=previous_output-.01;
       }else{
         
       }
@@ -98,7 +98,7 @@ public class simpleMotorP extends Command implements MotorCalculator {
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(done||(tR.getSelectedSensorPosition()>setpoint+200&&tR.getSelectedSensorPosition()<setpoint+600)){
+    if(done||(tR.getSelectedSensorPosition()>setpoint-200&&tR.getSelectedSensorPosition()<setpoint+200)){
       return true;
     }else{
     return false;
@@ -119,5 +119,6 @@ public class simpleMotorP extends Command implements MotorCalculator {
   protected void interrupted() {
     output=0;
     done=true;
+    System.out.println("SimpleMotorP was interrupted!");
   }
 }

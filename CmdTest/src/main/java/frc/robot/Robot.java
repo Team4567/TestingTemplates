@@ -220,8 +220,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Encoder Pos", drive.rightMain.getSelectedSensorPosition());
     SmartDashboard.putNumber("Turn Setpoint",turn.getSetpoint());
     SmartDashboard.putNumber("Turn Output",turn.getOutput());
-    SmartDashboard.putNumber("Distance Setpoint Raw", goDistance.setpoint);
-    SmartDashboard.putNumber("Distance Setpoint Inches", goDistance.setpoint/4096*constants.wheelCirc);
+    SmartDashboard.putNumber("Distance Setpoint Raw", goDistance.setpointInch/constants.wheelCirc*4096);
+    SmartDashboard.putNumber("Distance Setpoint Inches", goDistance.setpointInch);
     SmartDashboard.putNumber("Distance Output",goDistance.output);
     SmartDashboard.putNumber("Encoder Speed",((drive.rightMain.getSelectedSensorVelocity()*10)/4096)*constants.wheelCirc);
     
