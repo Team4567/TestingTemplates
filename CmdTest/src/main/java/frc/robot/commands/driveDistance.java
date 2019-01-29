@@ -17,52 +17,44 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
  */
 public class driveDistance extends Command {
   public double P,I,D;
-  public double integral=0, previous_error=0, setpointInch, error, derivative;
+  public double integral=0, previous_error=0, setpoint, error, derivative;
   public double output=0;
   double avgEncoder;
-  private TalonSRX tL, tR;
-  Timer t;
-  turnAngle straight;
+  public TalonSRX tL, tR;
+  turnCalculator straight;
   public boolean done;
   boolean incPhase;
-  MotorCalculator mc;
-  String mcType;
-  public driveDistance(MotorCalculator mc){
+  
+  motorCalculator mc;
+  public driveDistance(motorCalculator mc){
     requires(Robot.drive);
     this.mc=mc;
-    straight= new turnAngle(true);
-    tL=Robot.drive.leftMain;
+    straight= new simpleTurnP(Robot.drive.gyro);
     tR=Robot.drive.rightMain;
-    // If it is in this format, it is likely a teleOp and called repeatedly. This allows new mc to be made, preventing bug
-    switch(mc.getClass().getName()){
-      case "simpleMotorP":
-        mcType="simpleMotorP";
-      break;
-    }
+    tL=Robot.drive.leftMain;
   }
-  public driveDistance(double setpointInches, MotorCalculator mc) {
+  public driveDistance(double setpointI, motorCalculator mc) {
     
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
     this.mc=mc;
-    tL= Robot.drive.leftMain;
-    tR= Robot.drive.rightMain;
-    avgEncoder=tR.getSelectedSensorPosition();
-    setSetpointInches(setpointInches);
+    straight= new simpleTurnP(Robot.drive.gyro);
+    tR=Robot.drive.rightMain;
+    tL=Robot.drive.leftMain;
+    setSetpointInches(setpointI);
+    
   }
-  public void setSetpointInches(double setpointInch){ 
-    this.setpointInch=setpointInch;
+  public void setSetpointInches(double setpoint){
+    mc.setSetpointInches(setpoint);
+    this.setpoint=setpoint;
   }
+  
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
     done=false;
-    switch(mcType){
-      case "simpleMotorP":
-        mc= new simpleMotorP(tR, tL);
-      break;
-    }
-    mc.setSetpointInches(setpointInch);
+    tR.setSelectedSensorPosition(0);
+    mc.setDone(false);
     mc.start();
     straight.setSetpointToCurrent();
     straight.start();
@@ -71,8 +63,9 @@ public class driveDistance extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
+
     Robot.drive.drive(mc.getOutput(),straight.getOutput());
-    System.out.println(mc.getOutput());
+    System.out.println(straight.getOutput());
   }
 
   // Make this return true when this Command no longer needs to run execute()
@@ -90,7 +83,7 @@ public class driveDistance extends Command {
   @Override
   protected void end() {
     Robot.drive.stop();
-    straight.done=true;
+    straight.setDone(true);
     mc.setDone(true);
   }
 
@@ -100,6 +93,6 @@ public class driveDistance extends Command {
   protected void interrupted() {
     Robot.drive.stop();
     mc.setDone(true);
-    straight.done=true;
+    straight.setDone(true);
   }
 }

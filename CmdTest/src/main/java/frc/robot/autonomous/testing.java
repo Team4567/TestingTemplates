@@ -19,6 +19,9 @@ public class testing extends CommandGroup {
    */
   public testing() {
     requires(Robot.drive);
+    addSequential(new driveDistance(10*12,new simpleMotorP(Robot.drive.rightMain,Robot.drive.leftMain)));
+    addSequential(new turnAngle(180,new simpleTurnP(Robot.drive.gyro)));
+    addSequential(new driveDistance(10*12,new simpleMotorP(Robot.drive.rightMain,Robot.drive.leftMain)));
     //addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));
     //addSequential(new turnAngle(180,false));
     //addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));

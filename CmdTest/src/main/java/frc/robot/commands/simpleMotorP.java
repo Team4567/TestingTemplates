@@ -12,7 +12,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.constants;
 
-public class simpleMotorP extends Command implements MotorCalculator {
+public class simpleMotorP extends Command implements motorCalculator {
   public static boolean done;
   private double output,previous_output;
   public double setpoint;
@@ -20,7 +20,7 @@ public class simpleMotorP extends Command implements MotorCalculator {
   TalonSRX tR,tL;
   public simpleMotorP(double setpointInches, TalonSRX tR, TalonSRX tL) {
     done=false;
-    setpoint=setpointInches/constants.wheelCirc*4096;
+    setSetpointInches(setpointInches);
     P= constants.motorP;
     I= constants.motorI;
     D= constants.motorD;
@@ -50,6 +50,7 @@ public class simpleMotorP extends Command implements MotorCalculator {
     tR.setSelectedSensorPosition(0);
     previous_output=0;
     output=0;
+    calculate();
   }
 
   // Called repeatedly when this Command is scheduled to run
@@ -66,9 +67,9 @@ public class simpleMotorP extends Command implements MotorCalculator {
 
     }else{
       if(output-previous_output>0){
-        output=previous_output+.01;
+        output=previous_output+.05;
       }else if(output-previous_output<0){
-        output=previous_output-.01;
+        output=previous_output-.05;
       }else{
         
       }
@@ -98,7 +99,7 @@ public class simpleMotorP extends Command implements MotorCalculator {
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(done||(tR.getSelectedSensorPosition()>setpoint-200&&tR.getSelectedSensorPosition()<setpoint+200)){
+    if(done||(tR.getSelectedSensorPosition()>setpoint+200&&tR.getSelectedSensorPosition()<setpoint+600)){
       return true;
     }else{
     return false;
@@ -108,7 +109,6 @@ public class simpleMotorP extends Command implements MotorCalculator {
   // Called once after isFinished returns true
   @Override
   protected void end() {
-    output=0;
     done=true;
     System.out.println("Target Reached");
   }
@@ -117,8 +117,6 @@ public class simpleMotorP extends Command implements MotorCalculator {
   // subsystems is scheduled to run
   @Override
   protected void interrupted() {
-    output=0;
     done=true;
-    System.out.println("SimpleMotorP was interrupted!");
   }
 }

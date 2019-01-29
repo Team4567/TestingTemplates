@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 import frc.robot.enums.want;
 
-public class alignVision extends turnAngle{
+public class alignVision extends Command{
   //P,I,D,integral,previous_error,setpoint,error,derivative,output,pidgey,done,outputOnly all inherited
   //Retreive Vision Info
   NetworkTableInstance inst=NetworkTableInstance.getDefault();
@@ -22,16 +22,16 @@ public class alignVision extends turnAngle{
   NetworkTableEntry driveWanted,tapeWanted,cargoWanted,tapeYaw,cargoYaw;
   // Alert us if we have a target selected (not in driver mode)/if we just want the output(no movement, for other commands)
   private boolean targetSelected;
+  double setpoint;
   want w;
+  turnCalculator tc;
   //Able to be defined if turnAngle is moving us or not moving us
   //Output, to be copied to others
-  public alignVision(want w, boolean outputOnly) {
-    super(outputOnly);
-    this.outputOnly=outputOnly;
+  public alignVision(want w) {
+    tc= new simpleTurnP(Robot.drive.gyro);
     this.w=w;
-    if(!outputOnly){
       requires(Robot.drive);
-    }
+    
     driveWanted = chickenVision.getEntry("Driver");
 		tapeWanted = chickenVision.getEntry("Tape");
 		cargoWanted = chickenVision.getEntry("Cargo");
@@ -46,16 +46,19 @@ public class alignVision extends turnAngle{
     if(w==want.tape){
       System.out.println("Aligning to Tape");  
       targetSelected=true; 
-      setSetpoint(tapeYaw.getDouble(123456789));
-      if(getSetpoint()==123456789){
+      tc.setSetpoint(tapeYaw.getDouble(123456789));
+      setpoint=tapeYaw.getDouble(123456789);
+      System.out.println(setpoint);
+      if(tc.getSetpoint()==123456789){
         System.out.println("Yaw at the Default/None Found Value- 123456789");
         targetSelected=false;
       }
     }else if(w==want.cargo){
       System.out.println("Aligning to Cargo");
       targetSelected=true;
-      setSetpoint(cargoYaw.getDouble(123456789));
-      if(getSetpoint()==123456789){
+      tc.setSetpoint(cargoYaw.getDouble(123456789));
+      setpoint=cargoYaw.getDouble(123456789);
+      if(tc.getSetpoint()==123456789){
         System.out.println("Yaw at the Default/None Found Value- 123456789");
         targetSelected=false;
       }
@@ -63,15 +66,17 @@ public class alignVision extends turnAngle{
       System.out.println("No Target Selected");
       targetSelected=false;
     }
-    super.initialize();
+    Robot.drive.gyro.setYaw(0);
+    tc.start();
   }
 
   // Called repeatedly when this Command is scheduled to run
   
   @Override
   protected void execute() {
-    super.execute();
-      
+    if(targetSelected){
+      Robot.drive.drive(0,tc.getOutput());
+    }
       
   }
   
@@ -81,7 +86,11 @@ public class alignVision extends turnAngle{
     if(!targetSelected){
       return true;
     }else{
-      return super.isFinished();
+      if(Robot.drive.getYaw()>setpoint-1&&Robot.drive.getYaw()<setpoint+1){
+        return true;
+      }else{
+        return false;
+     }
       
     }
   }
@@ -91,7 +100,8 @@ public class alignVision extends turnAngle{
   
   @Override
   protected void end() {
-    super.end();
+    Robot.drive.stop();
+
   }
 
   // Called when another command which requires one or more of the same
@@ -99,6 +109,6 @@ public class alignVision extends turnAngle{
   
   @Override
   protected void interrupted() {
-    super.interrupted();
+    Robot.drive.stop();
   }
 }

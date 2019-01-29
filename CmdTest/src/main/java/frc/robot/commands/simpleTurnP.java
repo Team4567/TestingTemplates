@@ -8,42 +8,25 @@
 package frc.robot.commands;
 
 import com.ctre.phoenix.sensors.PigeonIMU;
-import java.util.ArrayList; 
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
+import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.constants;
 
-
-public class turnAngle extends Command {
-  double integral=0, previous_error=0, setpoint, error, derivative; 
-  
-  PigeonIMU pidgey;
-  boolean done;
-  turnCalculator tc;
-  public turnAngle(turnCalculator tc) {
+public class simpleTurnP extends Command implements turnCalculator{
+  public static boolean done;
+  private double output,previous_output;
+  public double setpoint;
+  public double P,I,D;
+  private PigeonIMU gyro;
+  public simpleTurnP(PigeonIMU gyro) {
+    done=false;
+    P= constants.gyroP;
+    I= constants.gyroI;
+    D= constants.gyroD;
+    this.gyro=gyro;
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
-
-    pidgey= Robot.drive.gyro;
-    
-    this.tc=tc;
-    
   }
-  public turnAngle(double setpoint,turnCalculator tc) {
-    // Use requires() here to declare subsystem dependencies
-    // eg. requires(chassis);
-    
-      requires(Robot.drive);
-    
-    pidgey= Robot.drive.gyro;
-    setSetpoint(setpoint);
-    this.tc=tc;
-    
-    
-  }
-  
-  
   public void setSetpoint(double setpoint){
     this.setpoint=setpoint;
   }
@@ -56,48 +39,77 @@ public class turnAngle extends Command {
   public void setSetpointToCurrent(){
     setpoint=Robot.drive.getYaw();
   }
+  public void calculate() {
+    previous_output=output;
+    output=Math.max(Math.min(P*(setpoint-Robot.drive.getYaw()),0.4),-0.4);
+  }
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-   done=false;
-   tc.setDone(false);
-   tc.setSetpoint(setpoint);
-   tc.start();
+    
   }
+
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
+    calculate();
+    if(output-previous_output<=.02){
+
+    }else{
+      if(output-previous_output>0){
+        output=previous_output+.02;
+      }else if(output-previous_output<0){
+        output=previous_output-.02;
+        
+      }else{
+        
+      }
+    }
+    if(Math.abs(output)<constants.minValX){
+      if(output>0){
+        output=constants.minValX;
+      }else if(output<0){
+        output=-1*constants.minValX;
+      }else{
+        output=0;
+      }
+    }
     
-      Robot.drive.drive(0,tc.getOutput());
-    
-    
+  }
+  @Override
+  public double getOutput() {
+    return output;
+  }
+  @Override
+  public void setDone(boolean set) {
+    done=set;
+  }
+  @Override
+  public boolean isDone() {
+    return done;
   }
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-       if(Robot.drive.getYaw()>setpoint-1&&Robot.drive.getYaw()<setpoint+1){
-         return true;
-       }else{
-         return false;
-      }
-    
+    if(done){
+      return true;  
+    }else{
+      return false;
+    }
   }
 
   // Called once after isFinished returns true
   @Override
   protected void end() {
-    Robot.drive.stop();
     done=true;
-    tc.setDone(true);
+    output=0;
   }
-  
 
   // Called when another command which requires one or more of the same
   // subsystems is scheduled to run
   @Override
   protected void interrupted() {
-    Robot.drive.stop();
     done=true;
-    tc.setDone(true);
+    output=0;
   }
 }

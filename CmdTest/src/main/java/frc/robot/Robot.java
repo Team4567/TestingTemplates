@@ -24,6 +24,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 
 import frc.robot.autonomous.*;
 import frc.robot.commands.*;
+import frc.robot.enums.want;
 import frc.robot.pipelines.*;
 import frc.robot.subsystems.*;
 
@@ -64,11 +65,11 @@ public class Robot extends TimedRobot {
   //Commands
   public static teleOpDrive teleOp;
   public static turnAngle turn,turnOut;
-  public static MotorCalculator simpleMotorP;
+  public static motorCalculator simpleMotorP;
   public static driveDistance goDistance;
   public static elevatorPosition moveElev;
   private static testing test;
-  public static alignVision align,alignOut;
+  public static alignVision align;
   public static CommandGroup m_autonomousCommand;
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
@@ -76,8 +77,8 @@ public class Robot extends TimedRobot {
   SendableChooser<CommandGroup> m_chooser = new SendableChooser<>();
   //NetworkTables
   NetworkTableInstance inst;
-  private static NetworkTable tablePID,chickenVision;
-  private NetworkTableEntry ngP,ngI,ngD,nmP,nmI,nmD;
+  private static NetworkTable chickenVision;
+  private NetworkTableEntry nmP,nmI,nmD;
   private NetworkTableEntry driveWanted,cargoWanted,tapeWanted,tapeYaw,cargoYaw;
 
   /**
@@ -92,11 +93,11 @@ public class Robot extends TimedRobot {
     score= new scoringMech();
     //Commands
     teleOp= new teleOpDrive(xbC);
-    turn=new turnAngle(false);
-    turnOut= new turnAngle(true);
+    turn=new turnAngle(new simpleTurnP(drive.gyro));
     goDistance= new driveDistance(new simpleMotorP(drive.rightMain,drive.leftMain));
     moveElev= new elevatorPosition();
     test=new testing();
+    align=new alignVision(want.tape);
     //Interfaces/Controllers
     m_chooser.setDefaultOption("Default Auto, No Movement", new noMovement());
     m_chooser.addOption("Start: Left, Target: Cargo", new leftCargo());
@@ -110,20 +111,9 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Auto mode", m_chooser);
     //NetworkTables
     inst=NetworkTableInstance.getDefault();
-    tablePID=inst.getTable("PID/Testing Values");
-    ngP= tablePID.getEntry("Test Gyro P");
-    ngI= tablePID.getEntry("Test Gyro I");
-    ngD= tablePID.getEntry("Test Gyro D");
-    nmP= tablePID.getEntry("Test Motor P");
-    nmI= tablePID.getEntry("Test Motor I");
-    nmD= tablePID.getEntry("Test Motor D");
     
-    ngP.setDouble(constants.gyroP);
-    ngI.setDouble(constants.gyroI);
-    ngD.setDouble(constants.gyroD);
-    nmP.setDouble(constants.motorP);
-    nmI.setDouble(constants.motorI);
-    nmD.setDouble(constants.motorD);
+    
+  
     
     chickenVision=inst.getTable("ChickenVision");
     driveWanted = chickenVision.getEntry("Driver");
@@ -218,16 +208,10 @@ public class Robot extends TimedRobot {
     Scheduler.getInstance().run();
     SmartDashboard.putNumber("Gyro Val", drive.getYaw());
     SmartDashboard.putNumber("Encoder Pos", drive.rightMain.getSelectedSensorPosition());
-    SmartDashboard.putNumber("Turn Setpoint",turn.getSetpoint());
-    SmartDashboard.putNumber("Turn Output",turn.getOutput());
-    SmartDashboard.putNumber("Distance Setpoint Raw", goDistance.setpointInch/constants.wheelCirc*4096);
-    SmartDashboard.putNumber("Distance Setpoint Inches", goDistance.setpointInch);
-    SmartDashboard.putNumber("Distance Output",goDistance.output);
-    SmartDashboard.putNumber("Encoder Speed",((drive.rightMain.getSelectedSensorVelocity()*10)/4096)*constants.wheelCirc);
     
     //Init Distance
     if(xbC.getAButtonPressed()){
-      goDistance.setSetpointInches(20*12);
+      goDistance.setSetpointInches(10*12);
       goDistance.start();
     }
     //EMERGENCY CANCEL ANY ACTIVE COMMAND THRU TELEOP. MAKE SURE CANCEL IS SET UP IN THE COMMANDS
@@ -238,7 +222,8 @@ public class Robot extends TimedRobot {
     }
     //Steady Driving Testing, probably no longer needed
     if(xbC.getYButton()){
-      drive.drive(constants.minValY,0);
+      turn.setSetpoint(180);
+      turn.start();
     }
     // Reset Turning Setpoint(For 45 Degree Increment Testing)
     if(xbC.getXButton()){
@@ -251,7 +236,7 @@ public class Robot extends TimedRobot {
     }
     //Init turning
     if(xbC.getStartButtonPressed()){
-      turn.start();
+      align.start();
     }
     // Switch Vision Modes
     if(xbC.getTriggerAxis(Hand.kLeft)>.5){
@@ -263,7 +248,7 @@ public class Robot extends TimedRobot {
       driveWanted.setBoolean(false);
       cargoWanted.setBoolean(false);
       tapeWanted.setBoolean(true); 
-    }
+    }                                                    
     //Probably Not Going to Have driveWanted as an option during comp
     //Extra button press not needed
     if(xbC.getBumperPressed(Hand.kRight)){
@@ -285,12 +270,7 @@ public class Robot extends TimedRobot {
       }
     }
     // Allow PID Values to be adjusted without redeploy
-    turn.P=ngP.getDouble(0);
-    turn.I=ngI.getDouble(0);
-    turn.D=ngD.getDouble(0);
-    goDistance.P=nmP.getDouble(0);
-    goDistance.I=nmI.getDouble(0);
-    goDistance.D=nmD.getDouble(0);
+    
     
   }
 

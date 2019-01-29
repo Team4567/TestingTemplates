@@ -1,5 +1,5 @@
 package frc.robot.commands;
-public interface MotorCalculator{
+public interface motorCalculator{
     public void calculate();
     public double getOutput();
     public void start();
