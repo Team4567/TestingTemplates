@@ -76,7 +76,11 @@ public class MaxAccelProportionalControl {
             output = c.getOutput( currentPosition );
 
             System.out.println("CurrentPosition: " + currentPosition + " Output: " + output );
-            currentPosition += output * 1024.0; // 4096 ticks per rev, 0.25 rev/call
+
+            // Max speed in ticks/call (for 1.0 output), 4096 ticks per rev, 0.25 rev/call
+            // This needs to be accurate for the output to reflect reality.
+            // We should measure speed at 0.5 (max) and double.
+            currentPosition += output * 1024.0; 
 
         }
         System.out.println("CurrentPosition: " + currentPosition );
