@@ -65,7 +65,7 @@ public class MaxAccelProportionalControl {
         // It is never called unless run explicitly, usually in the debugger.
 
         // Target 20000 ticks, max output change of 0.1, Kp, Max Output 0.5, 100 ticks for just under 1/2 inch
-        MaxAccelProportionalControl c = new MaxAccelProportionalControl( 20000, 0.10, 0.0001, 0.5, 0.05, 100 );
+        MaxAccelProportionalControl c = new MaxAccelProportionalControl( 20000, 0.10, 0.0004, 0.5, 0.05, 100 );
 
         int maxRuns = 100;
         double currentPosition = 0;
@@ -76,7 +76,7 @@ public class MaxAccelProportionalControl {
             output = c.getOutput( currentPosition );
 
             System.out.println("CurrentPosition: " + currentPosition + " Output: " + output );
-            currentPosition += output * 4096.0; // 4096 ticks per rev, 1 rev/sec
+            currentPosition += output * 1024.0; // 4096 ticks per rev, 0.25 rev/call
 
         }
         System.out.println("CurrentPosition: " + currentPosition );
