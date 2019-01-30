@@ -69,7 +69,7 @@ public class Robot extends TimedRobot {
   public static driveDistance goDistance;
   public static elevatorPosition moveElev;
   private static testing test;
-  public static alignVision align;
+  public static goVision go;
   public static CommandGroup m_autonomousCommand;
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
@@ -97,7 +97,7 @@ public class Robot extends TimedRobot {
     goDistance= new driveDistance(new simpleMotorP(drive.rightMain,drive.leftMain));
     moveElev= new elevatorPosition();
     test=new testing();
-    align=new alignVision(want.tape);
+    go=new goVision(xbC,want.tape);
     //Interfaces/Controllers
     m_chooser.setDefaultOption("Default Auto, No Movement", new noMovement());
     m_chooser.addOption("Start: Left, Target: Cargo", new leftCargo());
@@ -236,7 +236,10 @@ public class Robot extends TimedRobot {
     }
     //Init turning
     if(xbC.getStartButtonPressed()){
-      align.start();
+      go.start();
+    }
+    if(xbC.getAButtonReleased()){
+      go.cancel();
     }
     // Switch Vision Modes
     if(xbC.getTriggerAxis(Hand.kLeft)>.5){
