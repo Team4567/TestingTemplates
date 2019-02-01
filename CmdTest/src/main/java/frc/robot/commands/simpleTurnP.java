@@ -18,12 +18,14 @@ public class simpleTurnP extends Command implements turnCalculator{
   public double setpoint;
   public double P,I,D;
   private PigeonIMU gyro;
-  public simpleTurnP(PigeonIMU gyro) {
+  private boolean doAccel;
+  public simpleTurnP(PigeonIMU gyro,boolean a) {
     done=false;
     P= constants.gyroP;
     I= constants.gyroI;
     D= constants.gyroD;
     this.gyro=gyro;
+    doAccel=a;
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
   }
@@ -43,16 +45,11 @@ public class simpleTurnP extends Command implements turnCalculator{
     previous_output=output;
     output=Math.max(Math.min(P*(setpoint-Robot.drive.getYaw()),0.4),-0.4);
   }
-  // Called just before this Command runs the first time
-  @Override
-  protected void initialize() {
-    
+  public void giveOutput(double out){
+    previous_output=output;
+    this.output=out;
   }
-
-  // Called repeatedly when this Command is scheduled to run
-  @Override
-  protected void execute() {
-    calculate();
+  private void accelCheck(){
     if(output-previous_output<=.02){
 
     }else{
@@ -65,15 +62,27 @@ public class simpleTurnP extends Command implements turnCalculator{
         
       }
     }
+  }
+  private void minCheck(){
     if(Math.abs(output)<constants.minValX){
-      if(output>0){
-        output=constants.minValX;
-      }else if(output<0){
-        output=-1*constants.minValX;
-      }else{
-        output=0;
-      }
+      output=Math.signum(output)*constants.minValX;
     }
+  }
+  // Called just before this Command runs the first time
+  @Override
+  protected void initialize() {
+    
+  }
+
+  // Called repeatedly when this Command is scheduled to run
+  @Override
+  protected void execute() {
+    calculate();
+    if(doAccel){
+      accelCheck();
+    }
+    minCheck();
+    
     
   }
   @Override

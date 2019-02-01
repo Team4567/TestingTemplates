@@ -66,7 +66,7 @@ public class Robot extends TimedRobot {
   public static teleOpDrive teleOp;
   public static turnAngle turn,turnOut;
   public static motorCalculator simpleMotorP;
-  public static driveDistance goDistance;
+  public static driveDistance goDistance,goNew;
   public static elevatorPosition moveElev;
   private static testing test;
   public static goVision go;
@@ -93,7 +93,7 @@ public class Robot extends TimedRobot {
     score= new scoringMech();
     //Commands
     teleOp= new teleOpDrive(xbC);
-    turn=new turnAngle(new simpleTurnP(drive.gyro));
+    turn=new turnAngle(new simpleTurnP(drive.gyro,true));
     goDistance= new driveDistance(new simpleMotorP(drive.rightMain,drive.leftMain));
     moveElev= new elevatorPosition();
     test=new testing();
@@ -208,12 +208,13 @@ public class Robot extends TimedRobot {
     Scheduler.getInstance().run();
     SmartDashboard.putNumber("Gyro Val", drive.getYaw());
     SmartDashboard.putNumber("Encoder Pos", drive.rightMain.getSelectedSensorPosition());
-    
+    System.out.println(drive.rangeFinderDistance());
     //Init Distance
     if(xbC.getAButtonPressed()){
       goDistance.setSetpointInches(10*12);
       goDistance.start();
     }
+    drive.test.set(xbC.getY(Hand.kRight));
     //EMERGENCY CANCEL ANY ACTIVE COMMAND THRU TELEOP. MAKE SURE CANCEL IS SET UP IN THE COMMANDS
     if(xbC.getBButtonPressed()){
       turn.cancel();
@@ -224,10 +225,11 @@ public class Robot extends TimedRobot {
     if(xbC.getYButton()){
       turn.setSetpoint(180);
       turn.start();
+
     }
     // Reset Turning Setpoint(For 45 Degree Increment Testing)
     if(xbC.getXButton()){
-      drive.drive(0,constants.minValX);
+      drive.drive(0.075,0);
     }
     // Reset Positioning Devices
     if(xbC.getBackButtonPressed()){
@@ -236,10 +238,10 @@ public class Robot extends TimedRobot {
     }
     //Init turning
     if(xbC.getStartButtonPressed()){
-      go.start();
+      test.start();
     }
-    if(xbC.getAButtonReleased()){
-      go.cancel();
+    if(xbC.getStartButtonReleased()){
+      //go.setDone(true);
     }
     // Switch Vision Modes
     if(xbC.getTriggerAxis(Hand.kLeft)>.5){

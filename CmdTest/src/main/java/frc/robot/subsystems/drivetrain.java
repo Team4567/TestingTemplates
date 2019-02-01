@@ -17,6 +17,7 @@ import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.AnalogInput;
 import frc.robot.constants;
@@ -34,6 +35,7 @@ public class drivetrain extends Subsystem {
     private AnalogInput range;
     private double scaleR;
     public PigeonIMU gyro;
+    public VictorSP test;
     Timer time;
     boolean hasLeft=false;
     double[] ypr;
@@ -54,6 +56,7 @@ public class drivetrain extends Subsystem {
         range = new AnalogInput(0);
         gyro= new PigeonIMU(rightSlave);
         ypr= new double[3];
+        test= new VictorSP(0);
     }
     public double applyDeadband(double value, double deadband) {
       if (Math.abs(value) > deadband) {
@@ -74,18 +77,13 @@ public class drivetrain extends Subsystem {
     public double getYaw(){
       return ypr[0];
     }
-    public double rangeFinderDistance(distanceUnit unit){
+    public double rangeFinderDistance(){
       final float Vi=5/1024;
       
       //Vi= Volts per 5 mm
-      if(unit== distanceUnit.centimeters){
-        scaleR = (Vi/5)*100;
+      scaleR = ((Vi/5)*100)/2.54;
 
-      }
-      if(unit==distanceUnit.inches){
-        scaleR = ((Vi/5)*100)/2.54;
-
-      }
+      
       return (range.getVoltage()*scaleR);
     }
     public double encoderDistanceInInches(TalonSRX t){

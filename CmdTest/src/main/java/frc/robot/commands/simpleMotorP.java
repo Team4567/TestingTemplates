@@ -14,10 +14,11 @@ import frc.robot.constants;
 
 public class simpleMotorP extends Command implements motorCalculator {
   public static boolean done;
-  private double output,previous_output;
+  private double output, prevOutput;
   public double setpoint;
   public double P,I,D;
   TalonSRX tR,tL;
+
   public simpleMotorP(double setpointInches, TalonSRX tR, TalonSRX tL) {
     done=false;
     setSetpointInches(setpointInches);
@@ -29,6 +30,7 @@ public class simpleMotorP extends Command implements motorCalculator {
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
   }
+
   public simpleMotorP(TalonSRX tR, TalonSRX tL) {
     done=false;
     P= constants.motorP;
@@ -39,6 +41,7 @@ public class simpleMotorP extends Command implements motorCalculator {
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
   }
+
   public void setSetpointInches(double setpoint){
     this.setpoint=setpoint/constants.wheelCirc*4096;
   }
@@ -48,7 +51,7 @@ public class simpleMotorP extends Command implements motorCalculator {
   protected void initialize() {
     done=false;
     tR.setSelectedSensorPosition(0);
-    previous_output=0;
+    prevOutput=0;
     output=0;
     calculate();
   }
@@ -57,32 +60,23 @@ public class simpleMotorP extends Command implements motorCalculator {
   
   @Override
   public void calculate() {
-    previous_output=output;
-    output=Math.max(Math.min(P*(setpoint-tR.getSelectedSensorPosition()),0.5),-0.5);
+    prevOutput=output;
+    double currentPosition = tR.getSelectedSensorPosition();
+    output=Math.max(Math.min(P*(setpoint-currentPosition),0.5),-0.5);
   }
+
   @Override
   protected void execute() {
     calculate();
-    if(Math.abs(output-previous_output)<.02){
-
-    }else{
-      if(output-previous_output>0){
-        output=previous_output+.05;
-      }else if(output-previous_output<0){
-        output=previous_output-.05;
-      }else{
-        
-      }
-      
+    // Limit change in output to 0.02
+    if( Math.abs(output-prevOutput) > 0.02 ) 
+    {
+        output=prevOutput+Math.signum(output-prevOutput) * 0.05;
     }
-    if(Math.abs(output)<constants.minValY){
-      if(output>0){
-        output=constants.minValY;
-      }else if(output<0){
-        output=-1*constants.minValY;
-      }else{
-        output=0;
-      }
+    // Make sure output is at least minValY
+    if( Math.abs(output) < constants.minValY && output<prevOutput) 
+    {
+        output = Math.signum(output) * constants.minValY;
     }
   }
   
@@ -99,7 +93,7 @@ public class simpleMotorP extends Command implements motorCalculator {
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(done||(tR.getSelectedSensorPosition()>setpoint+200&&tR.getSelectedSensorPosition()<setpoint+600)){
+    if(done||(tR.getSelectedSensorPosition()>setpoint-100&&tR.getSelectedSensorPosition()<setpoint+100&&getOutput()==.1)){
       return true;
     }else{
     return false;

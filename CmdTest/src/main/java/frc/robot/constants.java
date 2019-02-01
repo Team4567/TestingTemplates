@@ -17,7 +17,8 @@ public class constants{
     public static final double wheelDiameter=wheelCirc/Math.PI;
     
     public static final double minValY=0.1;
-    public static final double minValX=0.175;
+    public static final double minValX=0.0;
+    //0.2
 
     //1.5625*12- Hallway Floor
     // - Carpet

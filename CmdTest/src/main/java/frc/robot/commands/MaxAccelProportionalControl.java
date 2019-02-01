@@ -12,7 +12,12 @@
 
 package frc.robot.commands;
 
-public class MaxAccelProportionalControl {
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+
+import edu.wpi.first.wpilibj.command.Command;
+import frc.robot.constants;
+
+public class MaxAccelProportionalControl extends Command implements motorCalculator{
     private double targetValue;
     private double maxAccel;        // max the output can change per call.
     private double Kp;
@@ -20,9 +25,20 @@ public class MaxAccelProportionalControl {
     private double minOutput;       // Stay above dead zone so we reach targetValue
     private double minError;        // error that is close enough.
     private double previousOutput;
-      
+    private boolean done;
+    private TalonSRX tR;
     public MaxAccelProportionalControl( double targetValue, double maxAccel, double Kp, double maxOutput, 
                                         double minOutput, double minError ) {
+        this.targetValue = targetValue;
+        this.maxAccel = Math.abs(maxAccel);
+        this.Kp = constants.motorP;
+        this.maxOutput = Math.abs(maxOutput);
+        this.minOutput = Math.abs(minOutput);
+        this.minError = Math.abs(minError);
+        this.previousOutput = 0.0;
+    }
+    public MaxAccelProportionalControl( double targetValue, double maxAccel, double Kp, double maxOutput, 
+                                        double minOutput, double minError,TalonSRX tR ) {
         this.targetValue = targetValue;
         this.maxAccel = Math.abs(maxAccel);
         this.Kp = Kp;
@@ -30,8 +46,17 @@ public class MaxAccelProportionalControl {
         this.minOutput = Math.abs(minOutput);
         this.minError = Math.abs(minError);
         this.previousOutput = 0.0;
+        this.tR=tR;
     }
-
+    public void setSetpointInches(double set){
+        targetValue=set/constants.wheelCirc*4096;
+    }
+    public void setDone(boolean done){
+        this.done=done;
+    }
+    public boolean isDone(){
+        return done;
+    }
     public double getOutput( double currentValue ) {
         // Separate the direction to simplify the math.
         // We could have a setpoint forward or backwards.
@@ -59,7 +84,20 @@ public class MaxAccelProportionalControl {
         previousOutput = newOutput;
         return newOutput;
     }
-
+    public double getOutput(){
+        return getOutput(tR.getSelectedSensorPosition());
+    }
+    public void calculate(){
+        
+    }
+    @Override
+    protected boolean isFinished() {
+        if(done){
+            return true;
+        }else{
+            return false;
+        }
+    }
     public static void main(String[] args) {
         // This the test routine.
         // It is never called unless run explicitly, usually in the debugger.

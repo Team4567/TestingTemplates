@@ -15,7 +15,7 @@ import frc.robot.enums.want;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
-
+import frc.robot.constants;
 public class goVision extends Command {
   NetworkTableInstance inst=NetworkTableInstance.getDefault();
   NetworkTable chickenVision=inst.getTable("ChickenVision");
@@ -23,7 +23,9 @@ public class goVision extends Command {
   private XboxController xbC;
   double yDist;
   motorCalculator mc;
+  turnCalculator tc;
   private boolean xbM;
+  private boolean done;
   private want w;
   private double setpointX,prevCalcX,outCalcX;
 
@@ -35,17 +37,19 @@ public class goVision extends Command {
     this.xbC=xbC;
     xbM=true;
     this.w=w;
+
     driveWanted = chickenVision.getEntry("Driver");
 		tapeWanted = chickenVision.getEntry("Tape");
 		cargoWanted = chickenVision.getEntry("Cargo");
     tapeYaw=chickenVision.getEntry("tapeYaw");
     cargoYaw=chickenVision.getEntry("cargoYaw");
   }
-  public goVision(double yDist,motorCalculator mc,want w){
+  public goVision(double yDist,want w,motorCalculator mc){
     xbM=false;
     this.yDist=yDist;
     this.mc=mc;
     this.w=w;
+
     driveWanted = chickenVision.getEntry("Driver");
 		tapeWanted = chickenVision.getEntry("Tape");
 		cargoWanted = chickenVision.getEntry("Cargo");
@@ -57,14 +61,20 @@ public class goVision extends Command {
   protected void initialize() {
     if(w==want.tape){
       System.out.println("Aligning to Tape");  
+      driveWanted.setBoolean(false);
+      tapeWanted.setBoolean(true);
+      cargoWanted.setBoolean(false);
     }else if(w==want.cargo){
       System.out.println("Aligning to Cargo");
-       
+      driveWanted.setBoolean(false);
+      tapeWanted.setBoolean(false);
+      cargoWanted.setBoolean(true);
       }
     calcX();
-    Robot.drive.gyro.setYaw(0);
+    
   }
-  private double calcX(){
+  private void calcX(){
+    prevCalcX=outCalcX;
     switch(w){
       case tape:
       setpointX=tapeYaw.getDouble(123456789);
@@ -79,23 +89,43 @@ public class goVision extends Command {
         }
       break;
     }
-    return Math.min(Math.max(.015*-setpointX,-.4),.4);
+    outCalcX= Math.min(Math.max(.015*-setpointX,-.4),.4);
+    if(outCalcX-prevCalcX<=.02){
+
+    }else{
+      
+        outCalcX=prevCalcX+Math.signum(outCalcX-prevCalcX)*.02;
+      
+        
+        
+      
+    }
+    if(Math.abs(outCalcX)<constants.minValX){
+      outCalcX=Math.signum(outCalcX)*constants.minValX;
+    }
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
+    calcX();
     if(xbM){
-      Robot.drive.drive(xbC.getY(Hand.kLeft),calcX());
+      Robot.drive.drive(xbC.getY(Hand.kLeft),outCalcX);
     }else{
       
     }
   }
-
+  public void setDone(boolean done){
+    this.done=done;
+  }
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    return false;
+    if(done){
+      return true;
+    }else{
+      return false;
+    }
   }
 
   // Called once after isFinished returns true

@@ -29,7 +29,7 @@ public class driveDistance extends Command {
   public driveDistance(motorCalculator mc){
     requires(Robot.drive);
     this.mc=mc;
-    straight= new simpleTurnP(Robot.drive.gyro);
+    straight= new simpleTurnP(Robot.drive.gyro,false);
     tR=Robot.drive.rightMain;
     tL=Robot.drive.leftMain;
   }
@@ -38,7 +38,7 @@ public class driveDistance extends Command {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
     this.mc=mc;
-    straight= new simpleTurnP(Robot.drive.gyro);
+    straight= new simpleTurnP(Robot.drive.gyro,false);
     tR=Robot.drive.rightMain;
     tL=Robot.drive.leftMain;
     setSetpointInches(setpointI);
@@ -56,7 +56,7 @@ public class driveDistance extends Command {
     tR.setSelectedSensorPosition(0);
     mc.setDone(false);
     mc.start();
-    straight.setSetpointToCurrent();
+    straight.setSetpoint(Robot.drive.getYaw());
     straight.start();
   }
 
