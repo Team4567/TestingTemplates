@@ -10,7 +10,7 @@ package frc.robot.commands;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
-import frc.robot.constants;
+import frc.robot.Constants;
 
 public class simpleTurnP extends Command implements turnCalculator{
   public static boolean done;
@@ -21,9 +21,9 @@ public class simpleTurnP extends Command implements turnCalculator{
   private boolean doAccel;
   public simpleTurnP(PigeonIMU gyro,boolean a) {
     done=false;
-    P= constants.gyroP;
-    I= constants.gyroI;
-    D= constants.gyroD;
+    P= Constants.gyroP;
+    I= Constants.gyroI;
+    D= Constants.gyroD;
     this.gyro=gyro;
     doAccel=a;
     // Use requires() here to declare subsystem dependencies
@@ -64,8 +64,8 @@ public class simpleTurnP extends Command implements turnCalculator{
     }
   }
   private void minCheck(){
-    if(Math.abs(output)<constants.minValX){
-      output=Math.signum(output)*constants.minValX;
+    if(Math.abs(output)<Constants.minValX){
+      output=Math.signum(output)*Constants.minValX;
     }
   }
   // Called just before this Command runs the first time

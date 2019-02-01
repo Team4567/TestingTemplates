@@ -6,7 +6,7 @@
 /*----------------------------------------------------------------------------*/
 
 package frc.robot.commands;
-import frc.robot.constants;
+import frc.robot.Constants;
 import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
 
@@ -14,15 +14,15 @@ public class elevatorPosition extends Command {
   double P,I,D;
   double integral, previous_error, setpoint, error, derivative, output;
   public elevatorPosition() {
-    P=constants.elevP;
-    I=constants.elevI;
-    D=constants.elevD;
+    P=Constants.elevP;
+    I=Constants.elevI;
+    D=Constants.elevD;
     requires(Robot.upper);
   }
   public elevatorPosition(int setpoint) {
-    P=constants.elevP;
-    I=constants.elevI;
-    D=constants.elevD;
+    P=Constants.elevP;
+    I=Constants.elevI;
+    D=Constants.elevD;
     this.setpoint=setpoint;
     requires(Robot.upper);
   }

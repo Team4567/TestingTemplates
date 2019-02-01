@@ -1,6 +1,6 @@
 package frc.robot;
 
-public class constants{
+public class Constants {
     public static final int rightMainMC = 2;
     public static final int leftMainMC = 3;
     public static final int rightSlaveMC = 1;
@@ -18,6 +18,8 @@ public class constants{
     
     public static final double minValY=0.1;
     public static final double minValX=0.0;
+    public static final double closeEnough=100;  // 100 ticks is less than 1/2 inch
+
     //0.2
 
     //1.5625*12- Hallway Floor

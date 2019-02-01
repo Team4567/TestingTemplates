@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.AnalogInput;
-import frc.robot.constants;
+import frc.robot.Constants;
 import frc.robot.enums.*;
 import frc.robot.Robot;
 import frc.robot.commands.teleOpDrive;
@@ -41,16 +41,16 @@ public class drivetrain extends Subsystem {
     double[] ypr;
     
     public drivetrain(){
-        rightMain= new TalonSRX(constants.rightMainMC);
+        rightMain= new TalonSRX(Constants.rightMainMC);
         rightMain.setNeutralMode(NeutralMode.Brake);
         rightMain.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        leftMain= new TalonSRX(constants.leftMainMC);
+        leftMain= new TalonSRX(Constants.leftMainMC);
         leftMain.setNeutralMode(NeutralMode.Brake);
         rightMain.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        rightSlave= new TalonSRX(constants.rightSlaveMC);
+        rightSlave= new TalonSRX(Constants.rightSlaveMC);
         rightSlave.follow(rightMain);
         rightSlave.setNeutralMode(NeutralMode.Brake);
-        leftSlave= new TalonSRX(constants.leftSlaveMC);
+        leftSlave= new TalonSRX(Constants.leftSlaveMC);
         leftSlave.follow(leftMain);
         leftSlave.setNeutralMode(NeutralMode.Brake);
         range = new AnalogInput(0);
@@ -87,10 +87,10 @@ public class drivetrain extends Subsystem {
       return (range.getVoltage()*scaleR);
     }
     public double encoderDistanceInInches(TalonSRX t){
-      return t.getSelectedSensorPosition()*((1/4096)*(constants.wheelCirc));
+      return t.getSelectedSensorPosition()*((1/4096)*(Constants.wheelCirc));
     }
     public double encoderDistanceInCentimenters(TalonSRX t){
-      return t.getSelectedSensorPosition()*((1/4096)*(constants.wheelCirc)*2.54);
+      return t.getSelectedSensorPosition()*((1/4096)*(Constants.wheelCirc)*2.54);
     }
     public void drive(double y,double x){
       double leftMotors,rightMotors;

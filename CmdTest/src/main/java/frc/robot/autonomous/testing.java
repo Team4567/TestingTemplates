@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
 import frc.robot.Robot;
 import frc.robot.commands.*;
 import frc.robot.enums.want;
-import frc.robot.constants;
+import frc.robot.Constants;
 
 public class testing extends CommandGroup {
   /**
@@ -19,9 +19,11 @@ public class testing extends CommandGroup {
    */
   public testing() {
     requires(Robot.drive);
-    addSequential(new driveDistance(10*12,new simpleMotorP(Robot.drive.rightMain,Robot.drive.leftMain)));
+
+    // parameter to SimpleMotorP: maxOutChange, Kp, maxOut, minOut, closeEnough
+    addSequential(new DriveDistance(10*12,new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough ) ));
     addSequential(new turnAngle(180,new simpleTurnP(Robot.drive.gyro,true)));
-    addSequential(new driveDistance(10*12,new simpleMotorP(Robot.drive.rightMain,Robot.drive.leftMain)));
+    addSequential(new DriveDistance(10*12,new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough )));
     //addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));
     //addSequential(new turnAngle(180,false));
     //addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));

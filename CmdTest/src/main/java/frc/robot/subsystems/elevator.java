@@ -12,7 +12,7 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
-import frc.robot.constants;
+import frc.robot.Constants;
 
 /**
  * Add your docs here.
@@ -23,9 +23,9 @@ public class elevator extends Subsystem {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   public elevator(){
-    t1=new TalonSRX(constants.elevatorMainMC);
+    t1=new TalonSRX(Constants.elevatorMainMC);
     t1.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-    t2=new TalonSRX(constants.elevatorSlaveMC);
+    t2=new TalonSRX(Constants.elevatorSlaveMC);
     
   }
   

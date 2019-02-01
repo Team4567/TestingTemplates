@@ -15,14 +15,15 @@ import frc.robot.enums.want;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import frc.robot.constants;
+import frc.robot.Constants;
+
 public class goVision extends Command {
   NetworkTableInstance inst=NetworkTableInstance.getDefault();
   NetworkTable chickenVision=inst.getTable("ChickenVision");
   NetworkTableEntry driveWanted,tapeWanted,cargoWanted,tapeYaw,cargoYaw;
   private XboxController xbC;
   double yDist;
-  motorCalculator mc;
+  MotorCalculator mc;
   turnCalculator tc;
   private boolean xbM;
   private boolean done;
@@ -44,7 +45,7 @@ public class goVision extends Command {
     tapeYaw=chickenVision.getEntry("tapeYaw");
     cargoYaw=chickenVision.getEntry("cargoYaw");
   }
-  public goVision(double yDist,want w,motorCalculator mc){
+  public goVision(double yDist,want w, MotorCalculator mc){
     xbM=false;
     this.yDist=yDist;
     this.mc=mc;
@@ -100,8 +101,8 @@ public class goVision extends Command {
         
       
     }
-    if(Math.abs(outCalcX)<constants.minValX){
-      outCalcX=Math.signum(outCalcX)*constants.minValX;
+    if(Math.abs(outCalcX)<Constants.minValX){
+      outCalcX=Math.signum(outCalcX)*Constants.minValX;
     }
   }
 

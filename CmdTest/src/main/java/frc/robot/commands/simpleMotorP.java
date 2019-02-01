@@ -1,116 +1,103 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2018 FIRST. All Rights Reserved.                             */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package frc.robot.commands;
 
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+/*----------------------------------------------------------------------------*/
+/* Sample control function that implements Proportional control to a maximum  */
+/* speed but limits the acceleration at startup.                              */
+/* The units don't matter as long as they are consistant:                     */
+/* setPoint in the constructor, currentValue passed to getOuput and Kp all    */
+/* should have the same distance unit (could be ticks or inches...)           */
+/* maxAccel is the max change in the output per call.                         */
+/*                                                                            */
+/* NOTE: This is not a command, just a utility that can be used to control    */
+/*       any motor.  This would be typically used by a command.               */
+/*----------------------------------------------------------------------------*/
 
-import edu.wpi.first.wpilibj.command.Command;
-import frc.robot.constants;
+public class SimpleMotorP implements MotorCalculator {
 
-public class simpleMotorP extends Command implements motorCalculator {
-  public static boolean done;
-  private double output, prevOutput;
-  public double setpoint;
-  public double P,I,D;
-  TalonSRX tR,tL;
+    private double targetValue;
+    private double maxAccel;        // max the output can change per call.
+    private double Kp;
+    private double maxOutput;       // Not too fast until we fully test robot.
+    private double minOutput;       // Stay above dead zone so we reach targetValue
+    private double minError;        // error that is close enough.
+    private double previousOutput;
 
-  public simpleMotorP(double setpointInches, TalonSRX tR, TalonSRX tL) {
-    done=false;
-    setSetpointInches(setpointInches);
-    P= constants.motorP;
-    I= constants.motorI;
-    D= constants.motorD;
-    this.tR=tR;
-    this.tL=tL;
-    // Use requires() here to declare subsystem dependencies
-    // eg. requires(chassis);
-  }
-
-  public simpleMotorP(TalonSRX tR, TalonSRX tL) {
-    done=false;
-    P= constants.motorP;
-    I= constants.motorI;
-    D= constants.motorD;
-    this.tR=tR;
-    this.tL=tL;
-    // Use requires() here to declare subsystem dependencies
-    // eg. requires(chassis);
-  }
-
-  public void setSetpointInches(double setpoint){
-    this.setpoint=setpoint/constants.wheelCirc*4096;
-  }
-
-  // Called just before this Command runs the first time
-  @Override
-  protected void initialize() {
-    done=false;
-    tR.setSelectedSensorPosition(0);
-    prevOutput=0;
-    output=0;
-    calculate();
-  }
-
-  // Called repeatedly when this Command is scheduled to run
-  
-  @Override
-  public void calculate() {
-    prevOutput=output;
-    double currentPosition = tR.getSelectedSensorPosition();
-    output=Math.max(Math.min(P*(setpoint-currentPosition),0.5),-0.5);
-  }
-
-  @Override
-  protected void execute() {
-    calculate();
-    // Limit change in output to 0.02
-    if( Math.abs(output-prevOutput) > 0.02 ) 
-    {
-        output=prevOutput+Math.signum(output-prevOutput) * 0.05;
+    public SimpleMotorP( double maxOutChange, double Kp, double maxOutput, double minOutput, double minError ) {
+        init( maxOutChange, Kp, maxOutput, minOutput, minError );
     }
-    // Make sure output is at least minValY
-    if( Math.abs(output) < constants.minValY && output<prevOutput) 
-    {
-        output = Math.signum(output) * constants.minValY;
+
+    public SimpleMotorP( double targetValue, double maxOutChange, double Kp, double maxOutput, 
+                                        double minOutput, double minError ) {
+        init( maxOutChange, Kp, maxOutput, minOutput, minError );
+        setSetpoint( targetValue );
     }
-  }
-  
-  @Override
-  public double getOutput() {
-    return output;
-  }
-  public void setDone(boolean set){
-    done=set;
-  }
-  public boolean isDone(){
-    return done;
-  }
-  // Make this return true when this Command no longer needs to run execute()
-  @Override
-  protected boolean isFinished() {
-    if(done||(tR.getSelectedSensorPosition()>setpoint-100&&tR.getSelectedSensorPosition()<setpoint+100&&getOutput()==.1)){
-      return true;
-    }else{
-    return false;
+
+    private void init( double maxAccel, double Kp, double maxOutput, double minOutput, double minError ) {
+        this.targetValue = 0.0;
+        this.maxAccel = Math.abs(maxAccel);
+        this.Kp = Kp;
+        this.maxOutput = Math.abs(maxOutput);
+        this.minOutput = Math.abs(minOutput);
+        this.minError = Math.abs(minError);
+        this.previousOutput = 0.0;
+    }
+
+    public void setSetpoint(double set) {
+        targetValue=set;
+    }
+
+    public double getOutput( double currentValue ) {
+        // Separate the direction to simplify the math.
+        // We could have a setpoint forward or backwards.
+        // also, if we overshoot we need to come back.
+        double direction = Math.signum(targetValue - currentValue);  // -1, 0, 1 returned for sign.
+        double error = Math.abs(targetValue - currentValue);
+        if( error < minError ) {
+            error = 0.0;
+        }
+        double newOutput = error * Kp;
+
+        if( newOutput > maxOutput ) {
+            newOutput = maxOutput;
+        } else if( error > 0.0 && newOutput < minOutput ) {
+            newOutput = minOutput;
+        }
+
+        newOutput *= direction;  // Apply direction
+
+        if( Math.abs(newOutput - previousOutput) > maxAccel ) {
+            double directionOfOutputChange = Math.signum( newOutput - previousOutput );
+            newOutput = previousOutput + (maxAccel * directionOfOutputChange );
+        }
+
+        previousOutput = newOutput;
+        return newOutput;
+    }
+
+    public static void main(String[] args) {
+        // This the test routine.
+        // It is never called unless run explicitly, usually in the debugger.
+
+        // Target 20000 ticks, max output change of 0.1, Kp, Max Output 0.5, 100 ticks for just under 1/2 inch
+        SimpleMotorP c = new SimpleMotorP( 20000, 0.10, 0.0004, 0.5, 0.05, 100 );
+
+        int maxRuns = 100;
+        double currentPosition = 0;
+        double output = 0.0;
+
+        // done only when position is within 100 AND output has settled on zero.
+        while( (Math.abs(20000-currentPosition) > 100 || output != 0.0) && maxRuns-- > 0 ) {  
+            output = c.getOutput( currentPosition );
+
+            System.out.println("CurrentPosition: " + currentPosition + " Output: " + output );
+
+            // Max speed in ticks/call (for 1.0 output), 4096 ticks per rev, 0.25 rev/call
+            // This needs to be accurate for the output to reflect reality.
+            // We should measure speed at 0.5 (max) and double.
+            currentPosition += output * 1024.0; 
+
+        }
+        System.out.println("CurrentPosition: " + currentPosition );
     }
   }
 
-  // Called once after isFinished returns true
-  @Override
-  protected void end() {
-    done=true;
-    System.out.println("Target Reached");
-  }
-
-  // Called when another command which requires one or more of the same
-  // subsystems is scheduled to run
-  @Override
-  protected void interrupted() {
-    done=true;
-  }
-}

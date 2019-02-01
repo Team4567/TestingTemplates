@@ -65,8 +65,8 @@ public class Robot extends TimedRobot {
   //Commands
   public static teleOpDrive teleOp;
   public static turnAngle turn,turnOut;
-  public static motorCalculator simpleMotorP;
-  public static driveDistance goDistance,goNew;
+  public static MotorCalculator simpleMotorP;
+  public static DriveDistance goDistance,goNew;
   public static elevatorPosition moveElev;
   private static testing test;
   public static goVision go;
@@ -94,7 +94,7 @@ public class Robot extends TimedRobot {
     //Commands
     teleOp= new teleOpDrive(xbC);
     turn=new turnAngle(new simpleTurnP(drive.gyro,true));
-    goDistance= new driveDistance(new simpleMotorP(drive.rightMain,drive.leftMain));
+    goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
     moveElev= new elevatorPosition();
     test=new testing();
     go=new goVision(xbC,want.tape);
