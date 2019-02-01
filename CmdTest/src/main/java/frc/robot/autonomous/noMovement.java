@@ -10,11 +10,11 @@ import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import frc.robot.commands.*;
 
-public class noMovement extends CommandGroup {
+public class NoMovement extends CommandGroup {
   /**
    * Add your docs here.
    */
-  public noMovement() {
+  public NoMovement() {
     requires(Robot.drive);
     requires(Robot.score);
     requires(Robot.upper);

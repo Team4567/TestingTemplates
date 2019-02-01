@@ -13,7 +13,7 @@ import frc.robot.commands.*;
 import frc.robot.enums.want;
 import frc.robot.Constants;
 
-public class testing extends CommandGroup {
+public class Testing extends CommandGroup {
   /**
    * Add your docs here.
    */
@@ -21,9 +21,9 @@ public class testing extends CommandGroup {
     requires(Robot.drive);
 
     // parameter to SimpleMotorP: maxOutChange, Kp, maxOut, minOut, closeEnough
-    addSequential(new DriveDistance(10*12,new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough ) ));
-    addSequential(new turnAngle(180,new simpleTurnP(Robot.drive.gyro,true)));
-    addSequential(new DriveDistance(10*12,new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough )));
+    addSequential(new DriveDistance(10*12, new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough ) ));
+    addSequential(new TurnAngle(180, new SimpleTurnP( 180, .02, .003, .4, .1, 1 ) ) );
+    addSequential(new DriveDistance(10*12, new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough )));
     //addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));
     //addSequential(new turnAngle(180,false));
     //addSequential(new driveDistance(((10*12)/constants.wheelCirc)*4096));

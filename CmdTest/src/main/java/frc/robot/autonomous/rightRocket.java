@@ -12,11 +12,11 @@ import frc.robot.Robot;
 import frc.robot.Constants;
 import frc.robot.commands.*;
 
-public class rightRocket extends CommandGroup {
+public class RightRocket extends CommandGroup {
   /**
    * Add your docs here.
    */
-  public rightRocket() {
+  public RightRocket() {
     requires(Robot.drive);
     requires(Robot.score);
     requires(Robot.upper);

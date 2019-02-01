@@ -12,89 +12,53 @@ import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 
 
-public class turnAngle extends Command {
+public class TurnAngle extends Command {
   double integral=0, previous_error=0, setpoint, error, derivative; 
-  
-  PigeonIMU pidgey;
   boolean done;
-  turnCalculator tc;
-  public turnAngle(turnCalculator tc) {
-    // Use requires() here to declare subsystem dependencies
-    // eg. requires(chassis);
-
-    pidgey= Robot.drive.gyro;
-    
-    this.tc=tc;
-    
+  TurnCalculator tc;
+  public TurnAngle(TurnCalculator tc) {
+    init(tc);
   }
-  public turnAngle(double setpoint,turnCalculator tc) {
-    // Use requires() here to declare subsystem dependencies
-    // eg. requires(chassis);
-    
-      requires(Robot.drive);
-    
-    pidgey= Robot.drive.gyro;
+
+  public TurnAngle(double setpoint,TurnCalculator tc) {
+    init(tc);
     setSetpoint(setpoint);
-    this.tc=tc;
-    
-    
   }
   
+  private void init(TurnCalculator tc){
+    requires(Robot.drive);
+    this.tc=tc;
+  }
   
   public void setSetpoint(double setpoint){
     this.setpoint=setpoint;
   }
-  public double getSetpoint(){
-    return setpoint;
-  }
-  public void setSetpointFromPos(int inc){
-    setpoint=Robot.drive.getYaw()+inc;
-  }
-  public void setSetpointToCurrent(){
-    setpoint=Robot.drive.getYaw();
-  }
-  // Called just before this Command runs the first time
+
   @Override
   protected void initialize() {
-   done=false;
-   tc.setDone(false);
-   tc.setSetpoint(setpoint);
-   tc.start();
+    done=false;
+    tc.setSetpoint(setpoint);
   }
-  // Called repeatedly when this Command is scheduled to run
+
   @Override
   protected void execute() {
-    
-      Robot.drive.drive(0,tc.getOutput());
-    
-    
+    done=(tc.getOutput( Robot.drive.getYaw() ) == 0);
+    Robot.drive.drive( 0, tc.getOutput( Robot.drive.getYaw() ) );
   }
+
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-       if(Robot.drive.getYaw()>setpoint-1&&Robot.drive.getYaw()<setpoint+1){
-         return true;
-       }else{
-         return false;
-      }
-    
+       return done;  
   }
 
-  // Called once after isFinished returns true
   @Override
   protected void end() {
     Robot.drive.stop();
-    done=true;
-    tc.setDone(true);
   }
   
-
-  // Called when another command which requires one or more of the same
-  // subsystems is scheduled to run
   @Override
   protected void interrupted() {
     Robot.drive.stop();
-    done=true;
-    tc.setDone(true);
   }
 }

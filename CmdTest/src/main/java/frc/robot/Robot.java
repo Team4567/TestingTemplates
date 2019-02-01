@@ -59,17 +59,17 @@ import frc.robot.subsystems.*;
 */
 public class Robot extends TimedRobot {
   //Subsystems
-  public static drivetrain drive;
-  public static elevator upper;
-  public static scoringMech score;
+  public static Drivetrain drive;
+  public static Elevator upper;
+  public static ScoringMech score;
   //Commands
-  public static teleOpDrive teleOp;
-  public static turnAngle turn,turnOut;
+  public static TeleOpDrive teleOp;
+  public static TurnAngle turn,turnOut;
   public static MotorCalculator simpleMotorP;
   public static DriveDistance goDistance,goNew;
-  public static elevatorPosition moveElev;
+  public static ElevatorPosition moveElev;
   private static testing test;
-  public static goVision go;
+  public static GoVision go;
   public static CommandGroup m_autonomousCommand;
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
@@ -88,16 +88,16 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     //Subsystems
-    drive= new drivetrain();
-    upper= new elevator();
-    score= new scoringMech();
+    drive= new Drivetrain();
+    upper= new Elevator();
+    score= new ScoringMech();
     //Commands
-    teleOp= new teleOpDrive(xbC);
-    turn=new turnAngle(new simpleTurnP(drive.gyro,true));
+    teleOp= new TeleOpDrive(xbC);
+    turn=new TurnAngle(new SimpleTurnP(.02, .002, .4, .1, 1 ) );
     goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
-    moveElev= new elevatorPosition();
+    moveElev= new ElevatorPosition();
     test=new testing();
-    go=new goVision(xbC,want.tape);
+    go=new GoVision(xbC,want.tape);
     //Interfaces/Controllers
     m_chooser.setDefaultOption("Default Auto, No Movement", new noMovement());
     m_chooser.addOption("Start: Left, Target: Cargo", new leftCargo());
@@ -261,7 +261,7 @@ public class Robot extends TimedRobot {
       cargoWanted.setBoolean(false);
       tapeWanted.setBoolean(false); 
     }
-    if(xbC.getBumperPressed(Hand.kLeft)){
+    /*if(xbC.getBumperPressed(Hand.kLeft)){
       if(cargoWanted.getBoolean(false)){
         
       }else if(tapeWanted.getBoolean(false)){
@@ -273,8 +273,8 @@ public class Robot extends TimedRobot {
         }
         turn.start();
       }
-    }
-    // Allow PID Values to be adjusted without redeploy
+    }*/
+    
     
     
   }

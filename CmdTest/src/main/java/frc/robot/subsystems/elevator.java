@@ -17,12 +17,12 @@ import frc.robot.Constants;
 /**
  * Add your docs here.
  */
-public class elevator extends Subsystem {
+public class Elevator extends Subsystem {
   
   public TalonSRX t1,t2;
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
-  public elevator(){
+  public Elevator(){
     t1=new TalonSRX(Constants.elevatorMainMC);
     t1.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
     t2=new TalonSRX(Constants.elevatorSlaveMC);

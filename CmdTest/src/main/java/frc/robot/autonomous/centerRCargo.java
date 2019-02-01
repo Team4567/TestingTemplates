@@ -10,11 +10,11 @@ import frc.robot.Robot;
 
 import edu.wpi.first.wpilibj.command.CommandGroup;
 
-public class centerRCargo extends CommandGroup {
+public class CenterRCargo extends CommandGroup {
   /**
    * Add your docs here.
    */
-  public centerRCargo() {
+  public CenterRCargo() {
     requires(Robot.drive);
     requires(Robot.score);
     requires(Robot.upper);

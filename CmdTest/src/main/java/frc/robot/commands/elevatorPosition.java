@@ -10,16 +10,16 @@ import frc.robot.Constants;
 import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
 
-public class elevatorPosition extends Command {
+public class ElevatorPosition extends Command {
   double P,I,D;
   double integral, previous_error, setpoint, error, derivative, output;
-  public elevatorPosition() {
+  public ElevatorPosition() {
     P=Constants.elevP;
     I=Constants.elevI;
     D=Constants.elevD;
     requires(Robot.upper);
   }
-  public elevatorPosition(int setpoint) {
+  public ElevatorPosition(int setpoint) {
     P=Constants.elevP;
     I=Constants.elevI;
     D=Constants.elevD;

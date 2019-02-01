@@ -14,12 +14,12 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 /**
  * Add your docs here.
  */
-public class scoringMech extends Subsystem {
+public class ScoringMech extends Subsystem {
   Spark intake,flip;
   DoubleSolenoid pistonL,pistonR;
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
- // public scoringMech(){
+ // public ScoringMech(){
    // intake= new Spark(constants.scoreInSplit);
     //flip= new Spark(constants.scoreFlipSplit);
   //}

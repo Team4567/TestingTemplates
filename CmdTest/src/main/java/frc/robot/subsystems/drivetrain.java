@@ -23,11 +23,11 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import frc.robot.Constants;
 import frc.robot.enums.*;
 import frc.robot.Robot;
-import frc.robot.commands.teleOpDrive;
+import frc.robot.commands.TeleOpDrive;
 /**
  * An example subsystem.  You can replace me with your own Subsystem.
  */
-public class drivetrain extends Subsystem {
+public class Drivetrain extends Subsystem {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
     public TalonSRX rightMain,leftMain;
@@ -40,7 +40,7 @@ public class drivetrain extends Subsystem {
     boolean hasLeft=false;
     double[] ypr;
     
-    public drivetrain(){
+    public Drivetrain(){
         rightMain= new TalonSRX(Constants.rightMainMC);
         rightMain.setNeutralMode(NeutralMode.Brake);
         rightMain.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
@@ -149,7 +149,7 @@ public class drivetrain extends Subsystem {
   @Override
   public void initDefaultCommand() {
     if(Robot.ds.isOperatorControl()){
-      setDefaultCommand(new teleOpDrive(Robot.xbC));
+      setDefaultCommand(new TeleOpDrive(Robot.xbC));
     }
   }
 }

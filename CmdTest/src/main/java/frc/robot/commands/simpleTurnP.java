@@ -12,113 +12,57 @@ import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Constants;
 
-public class simpleTurnP extends Command implements turnCalculator{
-  public static boolean done;
-  private double output,previous_output;
-  public double setpoint;
-  public double P,I,D;
-  private PigeonIMU gyro;
-  private boolean doAccel;
-  public simpleTurnP(PigeonIMU gyro,boolean a) {
-    done=false;
-    P= Constants.gyroP;
-    I= Constants.gyroI;
-    D= Constants.gyroD;
-    this.gyro=gyro;
-    doAccel=a;
-    // Use requires() here to declare subsystem dependencies
-    // eg. requires(chassis);
+public class SimpleTurnP implements TurnCalculator{
+
+  private double targetValue,maxAccel,Kp,maxOutput,minOutput,minError,prevOutput;
+
+  //double targetValue, double maxOutChange, double Kp, double maxOutput, 
+  //double minOutput, double minError
+  public SimpleTurnP(double targetValue, double maxOutChange, double Kp, double maxOutput, double minOutput, double minError) {
+    init(maxOutChange, Kp, maxOutput, minOutput, minError);
+    setSetpoint(targetValue);
+  }
+  public SimpleTurnP(double maxOutChange, double Kp, double maxOutput, double minOutput, double minError) {
+    init(maxOutChange, Kp, maxOutput, minOutput, minError);
+
+  }
+  private void init(double maxOutChange, double Kp, double maxOutput, double minOutput, double minError){
+    
   }
   public void setSetpoint(double setpoint){
-    this.setpoint=setpoint;
+    targetValue=setpoint;
   }
-  public double getSetpoint(){
-    return setpoint;
-  }
-  public void setSetpointFromPos(int inc){
-    setpoint=Robot.drive.getYaw()+inc;
-  }
-  public void setSetpointToCurrent(){
-    setpoint=Robot.drive.getYaw();
-  }
-  public void calculate() {
-    previous_output=output;
-    output=Math.max(Math.min(P*(setpoint-Robot.drive.getYaw()),0.4),-0.4);
-  }
-  public void giveOutput(double out){
-    previous_output=output;
-    this.output=out;
-  }
-  private void accelCheck(){
-    if(output-previous_output<=.02){
-
-    }else{
-      if(output-previous_output>0){
-        output=previous_output+.02;
-      }else if(output-previous_output<0){
-        output=previous_output-.02;
-        
-      }else{
-        
-      }
+  
+  
+  
+  public double getOutput(double currentValue) {
+    double output;
+    double error=Math.abs(targetValue-currentValue);
+    double direction=Math.signum(targetValue-currentValue);
+    if( error < minError ) {
+      error=0;
     }
-  }
-  private void minCheck(){
-    if(Math.abs(output)<Constants.minValX){
-      output=Math.signum(output)*Constants.minValX;
+    output=Kp*error;
+    if( output > maxOutput ) {
+      output = maxOutput;
+    } else if( error > 0.0 && output < minOutput ) {
+      output = minOutput;
     }
+    output *= direction;
+    if( Math.abs(output - prevOutput) > maxAccel ) {
+      double directionOfOutputChange = Math.signum( output - prevOutput );
+      output = prevOutput + (maxAccel * directionOfOutputChange );
+    }
+    
+    prevOutput=output;           
+    
+    
+    return output; 
   }
+  
   // Called just before this Command runs the first time
-  @Override
-  protected void initialize() {
-    
-  }
-
+ 
   // Called repeatedly when this Command is scheduled to run
-  @Override
-  protected void execute() {
-    calculate();
-    if(doAccel){
-      accelCheck();
-    }
-    minCheck();
-    
-    
-  }
-  @Override
-  public double getOutput() {
-    return output;
-  }
-  @Override
-  public void setDone(boolean set) {
-    done=set;
-  }
-  @Override
-  public boolean isDone() {
-    return done;
-  }
-  // Make this return true when this Command no longer needs to run execute()
-  @Override
-  protected boolean isFinished() {
-    if(done){
-      return true;  
-    }else{
-      return false;
-    }
-  }
+  
 
-  // Called once after isFinished returns true
-  @Override
-  protected void end() {
-    done=true;
-    output=0;
-  }
-
-  // Called when another command which requires one or more of the same
-  // subsystems is scheduled to run
-  @Override
-  protected void interrupted() {
-    done=true;
-    output=0;
-  }
 }

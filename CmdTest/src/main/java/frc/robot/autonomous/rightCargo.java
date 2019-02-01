@@ -10,11 +10,11 @@ import frc.robot.Robot;
 
 import edu.wpi.first.wpilibj.command.CommandGroup;
 
-public class rightCargo extends CommandGroup {
+public class RightCargo extends CommandGroup {
   /**
    * Add your docs here.
    */
-  public rightCargo() {
+  public RightCargo() {
     requires(Robot.drive);
     requires(Robot.score);
     requires(Robot.upper);

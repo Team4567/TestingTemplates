@@ -18,7 +18,7 @@ public class DriveDistance extends Command {
   public double output=0;
   double avgEncoder;
   public TalonSRX tL, tR;
-  turnCalculator straight;
+  TurnCalculator straight;
   private boolean done;
   boolean incPhase;
   
@@ -36,7 +36,7 @@ public class DriveDistance extends Command {
   private void init( MotorCalculator mc ) {
     requires(Robot.drive);
     this.mc=mc;
-    straight= new simpleTurnP(Robot.drive.gyro,false);
+    straight= new SimpleTurnP( .02, .0015, .4, .1, 1 );
     tR=Robot.drive.rightMain;
     tL=Robot.drive.leftMain;
   }
@@ -51,17 +51,14 @@ public class DriveDistance extends Command {
     done=false;
     tR.setSelectedSensorPosition(0);
     straight.setSetpoint(Robot.drive.getYaw());
-    straight.start();
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    double output = mc.getOutput( tR.getSelectedSensorPosition() );
-    done = (output == 0.0 );
-
-    Robot.drive.drive( output, straight.getOutput() );
-    System.out.println( straight.getOutput() );
+    done = (mc.getOutput( tR.getSelectedSensorPosition() ) == 0.0 );
+    Robot.drive.drive( mc.getOutput( tR.getSelectedSensorPosition() ), straight.getOutput( Robot.drive.getYaw() ) );
+    System.out.println( straight.getOutput( Robot.drive.getYaw() ) );
   }
 
   // Make this return true when this Command no longer needs to run execute()
@@ -74,7 +71,6 @@ public class DriveDistance extends Command {
   @Override
   protected void end() {
     Robot.drive.stop();
-    straight.setDone(true);
   }
 
   // Called when another command which requires one or more of the same
@@ -82,6 +78,6 @@ public class DriveDistance extends Command {
   @Override
   protected void interrupted() {
     Robot.drive.stop();
-    straight.setDone(true);
+
   }
 }

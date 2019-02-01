@@ -18,11 +18,11 @@ import frc.robot.Robot;
 /**
  * Driving Controls for TeleOp
  */
-public class teleOpDrive extends Command {
+public class TeleOpDrive extends Command {
   XboxController xbC;
   int level=1;
   int encoderLevel=0;
-  public teleOpDrive(XboxController controller) {
+  public TeleOpDrive(XboxController controller) {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
     requires(Robot.upper);

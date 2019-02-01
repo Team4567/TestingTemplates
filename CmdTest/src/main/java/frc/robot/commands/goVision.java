@@ -17,21 +17,21 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import frc.robot.Constants;
 
-public class goVision extends Command {
+public class GoVision extends Command {
   NetworkTableInstance inst=NetworkTableInstance.getDefault();
   NetworkTable chickenVision=inst.getTable("ChickenVision");
   NetworkTableEntry driveWanted,tapeWanted,cargoWanted,tapeYaw,cargoYaw;
   private XboxController xbC;
   double yDist;
   MotorCalculator mc;
-  turnCalculator tc;
+  TurnCalculator tc;
   private boolean xbM;
   private boolean done;
   private want w;
   private double setpointX,prevCalcX,outCalcX;
 
   
-  public goVision(XboxController xbC,want w) {
+  public GoVision(XboxController xbC,want w) {
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
     requires(Robot.drive);
@@ -45,9 +45,12 @@ public class goVision extends Command {
     tapeYaw=chickenVision.getEntry("tapeYaw");
     cargoYaw=chickenVision.getEntry("cargoYaw");
   }
-  public goVision(double yDist,want w, MotorCalculator mc){
+  public GoVision(double yDist,want w, MotorCalculator mc){
     xbM=false;
     this.yDist=yDist;
+    
+  }
+  private void init(MotorCalculator mc, want w){
     this.mc=mc;
     this.w=w;
 

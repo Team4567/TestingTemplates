@@ -13,12 +13,12 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableEntry;
 
-public class setWanted extends Command {
+public class SetWanted extends Command {
   private want w;
   private NetworkTableInstance inst;
   private NetworkTable chickenVision;
   private NetworkTableEntry driveWanted,cargoWanted,tapeWanted;
-  public setWanted(want w) {
+  public SetWanted(want w) {
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
     this.w=w;
