@@ -18,7 +18,7 @@ import edu.wpi.first.vision.VisionPipeline;
  *
  * @author GRIP
  */
-public class tapePipeline implements VisionPipeline {
+public class TapePipeline implements VisionPipeline {
 
 	//Outputs
 	private Mat cvCvtcolorOutput = new Mat();

@@ -1,6 +1,6 @@
 package frc.robot.enums;
 
-public enum startingPosition{
+public enum StartingPosition{
     left, right, center
 
 }

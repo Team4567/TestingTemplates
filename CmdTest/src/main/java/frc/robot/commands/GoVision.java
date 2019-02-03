@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Robot;
-import frc.robot.enums.want;
+import frc.robot.enums.Want;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -27,11 +27,11 @@ public class GoVision extends Command {
   TurnCalculator tc;
   private boolean xbM;
   private boolean done;
-  private want w;
+  private Want w;
   private double setpointX,prevCalcX,outCalcX;
 
   
-  public GoVision(XboxController xbC,want w) {
+  public GoVision(XboxController xbC,Want w) {
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
     requires(Robot.drive);
@@ -45,12 +45,12 @@ public class GoVision extends Command {
     tapeYaw=chickenVision.getEntry("tapeYaw");
     cargoYaw=chickenVision.getEntry("cargoYaw");
   }
-  public GoVision(double yDist,want w, MotorCalculator mc){
+  public GoVision(double yDist,Want w, MotorCalculator mc){
     xbM=false;
     this.yDist=yDist;
     
   }
-  private void init(MotorCalculator mc, want w){
+  private void init(MotorCalculator mc, Want w){
     this.mc=mc;
     this.w=w;
 
@@ -63,12 +63,12 @@ public class GoVision extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    if(w==want.tape){
+    if(w==Want.tape){
       System.out.println("Aligning to Tape");  
       driveWanted.setBoolean(false);
       tapeWanted.setBoolean(true);
       cargoWanted.setBoolean(false);
-    }else if(w==want.cargo){
+    }else if(w==Want.cargo){
       System.out.println("Aligning to Cargo");
       driveWanted.setBoolean(false);
       tapeWanted.setBoolean(false);

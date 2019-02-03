@@ -56,7 +56,7 @@ public class Drivetrain extends Subsystem {
         range = new AnalogInput(0);
         gyro= new PigeonIMU(rightSlave);
         ypr= new double[3];
-        test= new VictorSP(0);
+        
     }
     public double applyDeadband(double value, double deadband) {
       if (Math.abs(value) > deadband) {
@@ -78,13 +78,7 @@ public class Drivetrain extends Subsystem {
       return ypr[0];
     }
     public double rangeFinderDistance(){
-      final float Vi=5/1024;
-      
-      //Vi= Volts per 5 mm
-      scaleR = ((Vi/5)*100)/2.54;
-
-      
-      return (range.getVoltage()*scaleR);
+      return ((range.getVoltage()*5000)/123.952);   
     }
     public double encoderDistanceInInches(TalonSRX t){
       return t.getSelectedSensorPosition()*((1/4096)*(Constants.wheelCirc));

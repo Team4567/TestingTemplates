@@ -10,14 +10,14 @@ package frc.robot.autonomous;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import frc.robot.Robot;
 import frc.robot.commands.*;
-import frc.robot.enums.want;
+import frc.robot.enums.Want;
 import frc.robot.Constants;
 
 public class Testing extends CommandGroup {
   /**
    * Add your docs here.
    */
-  public testing() {
+  public Testing() {
     requires(Robot.drive);
 
     // parameter to SimpleMotorP: maxOutChange, Kp, maxOut, minOut, closeEnough

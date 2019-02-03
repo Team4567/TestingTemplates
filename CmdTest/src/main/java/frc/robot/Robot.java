@@ -24,7 +24,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 
 import frc.robot.autonomous.*;
 import frc.robot.commands.*;
-import frc.robot.enums.want;
+import frc.robot.enums.Want;
 import frc.robot.pipelines.*;
 import frc.robot.subsystems.*;
 
@@ -68,7 +68,7 @@ public class Robot extends TimedRobot {
   public static MotorCalculator simpleMotorP;
   public static DriveDistance goDistance,goNew;
   public static ElevatorPosition moveElev;
-  private static testing test;
+  private static Testing test;
   public static GoVision go;
   public static CommandGroup m_autonomousCommand;
   //Interfaces/Controllers
@@ -80,6 +80,7 @@ public class Robot extends TimedRobot {
   private static NetworkTable chickenVision;
   private NetworkTableEntry nmP,nmI,nmD;
   private NetworkTableEntry driveWanted,cargoWanted,tapeWanted,tapeYaw,cargoYaw;
+  
 
   /**
    * This function is run when the robot is first started up and should be
@@ -96,18 +97,18 @@ public class Robot extends TimedRobot {
     turn=new TurnAngle(new SimpleTurnP(.02, .002, .4, .1, 1 ) );
     goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
     moveElev= new ElevatorPosition();
-    test=new testing();
-    go=new GoVision(xbC,want.tape);
+    test=new Testing();
+    go=new GoVision(xbC,Want.tape);
     //Interfaces/Controllers
-    m_chooser.setDefaultOption("Default Auto, No Movement", new noMovement());
-    m_chooser.addOption("Start: Left, Target: Cargo", new leftCargo());
-    m_chooser.addOption("Start: Left, Target: Rocket", new leftRocket());
-    m_chooser.addOption("Start: Right, Target: Cargo", new rightCargo());
-    m_chooser.addOption("Start: Right, Target: Rocket", new rightRocket());
-    m_chooser.addOption("Start: Center, Target: Left-Side Cargo", new centerLCargo());
-    m_chooser.addOption("Start: Center, Target: Left-Side Rocket", new centerLRocket());
-    m_chooser.addOption("Start: Center, Target: Right-side Rocket", new centerRCargo());
-    m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new centerRRocket());
+    m_chooser.setDefaultOption("Default Auto, No Movement", new NoMovement());
+    m_chooser.addOption("Start: Left, Target: Cargo", new LeftCargo());
+    m_chooser.addOption("Start: Left, Target: Rocket", new LeftRocket());
+    m_chooser.addOption("Start: Right, Target: Cargo", new RightCargo());
+    m_chooser.addOption("Start: Right, Target: Rocket", new RightRocket());
+    m_chooser.addOption("Start: Center, Target: Left-Side Cargo", new CenterLCargo());
+    m_chooser.addOption("Start: Center, Target: Left-Side Rocket", new CenterLRocket());
+    m_chooser.addOption("Start: Center, Target: Right-side Rocket", new CenterRCargo());
+    m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new CenterRRocket());
     SmartDashboard.putData("Auto mode", m_chooser);
     //NetworkTables
     inst=NetworkTableInstance.getDefault();
@@ -214,7 +215,7 @@ public class Robot extends TimedRobot {
       goDistance.setSetpointInches(10*12);
       goDistance.start();
     }
-    drive.test.set(xbC.getY(Hand.kRight));
+    
     //EMERGENCY CANCEL ANY ACTIVE COMMAND THRU TELEOP. MAKE SURE CANCEL IS SET UP IN THE COMMANDS
     if(xbC.getBButtonPressed()){
       turn.cancel();
@@ -223,7 +224,7 @@ public class Robot extends TimedRobot {
     }
     //Steady Driving Testing, probably no longer needed
     if(xbC.getYButton()){
-      turn.setSetpoint(180);
+      turn.setSetpoint(5);
       turn.start();
 
     }

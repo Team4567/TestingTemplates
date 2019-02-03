@@ -1,4 +1,4 @@
 package frc.robot.enums;
-public enum want{
+public enum Want{
     driver,cargo,tape
 }
