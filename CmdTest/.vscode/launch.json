@@ -6,6 +6,27 @@
   "configurations": [
     {
       "type": "java",
+      "name": "CodeLens (Launch) - TestTapePipeLine",
+      "request": "launch",
+      "mainClass": "frc.robot.pipelines.TestTapePipeLine",
+      "projectName": "CmdTest"
+    },
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - TapePipeline",
+      "request": "launch",
+      "mainClass": "frc.robot.pipelines.TapePipeline",
+      "projectName": "CmdTest"
+    },
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - Test",
+      "request": "launch",
+      "mainClass": "frc.robot.commands.Test",
+      "projectName": "CmdTest"
+    },
+    {
+      "type": "java",
       "name": "CodeLens (Launch) - SimpleMotorP",
       "request": "launch",
       "mainClass": "frc.robot.commands.SimpleMotorP",
