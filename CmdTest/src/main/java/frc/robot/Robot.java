@@ -10,6 +10,7 @@ package frc.robot;
 import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -18,6 +19,7 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -80,7 +82,6 @@ public class Robot extends TimedRobot {
   private static NetworkTable chickenVision;
   private NetworkTableEntry nmP,nmI,nmD;
   private NetworkTableEntry driveWanted,cargoWanted,tapeWanted,tapeYaw,cargoYaw;
-  
 
   /**
    * This function is run when the robot is first started up and should be
@@ -88,6 +89,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+    
     //Subsystems
     drive= new Drivetrain();
     upper= new Elevator();
