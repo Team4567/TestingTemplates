@@ -15,8 +15,12 @@ import org.opencv.features2d.FeatureDetector;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.*;
 import org.opencv.objdetect.*;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.cscore.CvSink;
+import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
 /**
 * LineFollow class.
@@ -26,8 +30,12 @@ import edu.wpi.cscore.UsbCamera;
 * @author GRIP
 */
 public class LineFollow {
-	UsbCamera cam= CameraServer.getInstance().startAutomaticCapture();
-    CvSink sink=CameraServer.getInstance().getVideo();
+			UsbCamera cam= CameraServer.getInstance().startAutomaticCapture();
+	
+			CvSink sink=CameraServer.getInstance().getVideo();
+			CvSource out=CameraServer.getInstance().putVideo("Line View", 256, 144);
+			NetworkTableInstance inst=NetworkTableInstance.getDefault();
+			NetworkTable lineOutput=inst.getTable("Line Output");
 	//Outputs
 	private Mat hsvThresholdOutput = new Mat();
 	private Mat cvErodeOutput = new Mat();
@@ -43,10 +51,11 @@ public class LineFollow {
 	 * This is the primary method that runs the entire pipeline and updates the outputs.
 	 */
 	public void process() {
+				cam.setResolution(256,144);
 		// Step HSV_Threshold0:
-		Mat input= new Mat();
-		sink.grabFrame(input);
-		Mat hsvThresholdInput = input;
+				Mat input= new Mat();
+				sink.grabFrame(input);
+				Mat hsvThresholdInput = input;
 		double[] hsvThresholdHue = {40.46762589928058, 112.42320819112628};
 		double[] hsvThresholdSaturation = {0.0, 28.72013651877133};
 		double[] hsvThresholdValue = {204.09172661870502, 255.0};
@@ -69,7 +78,8 @@ public class LineFollow {
 		int cvDilateBordertype = Core.BORDER_CONSTANT;
 		Scalar cvDilateBordervalue = new Scalar(-1);
 		cvDilate(cvDilateSrc, cvDilateKernel, cvDilateAnchor, cvDilateIterations, cvDilateBordertype, cvDilateBordervalue, cvDilateOutput);
-
+		//Outputs found white areas
+				out.putFrame(cvDilateOutput);
 		// Step Find_Contours0:
 		Mat findContoursInput = cvDilateOutput;
 		boolean findContoursExternalOnly = true;
@@ -89,7 +99,13 @@ public class LineFollow {
 		double filterContoursMinRatio = 0;
 		double filterContoursMaxRatio = 1000;
 		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
-
+				for(int i =0; i<filterContoursOutput.size();i++){
+					NetworkTableEntry x= lineOutput.getEntry("x of "+i);
+					NetworkTableEntry y= lineOutput.getEntry("y of "+i);
+					Rect r= Imgproc.boundingRect(filterContoursOutput.get(i));
+					x.setDouble(r.x);
+					y.setDouble(r.y);
+				}
 	}
 
 	/**
