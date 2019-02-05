@@ -10,7 +10,6 @@ package frc.robot;
 import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -19,7 +18,6 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -71,7 +69,6 @@ public class Robot extends TimedRobot {
   public static DriveDistance goDistance,goNew;
   public static ElevatorPosition moveElev;
   private static Testing test;
-  public static GoVision go;
   public static CommandGroup m_autonomousCommand;
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
@@ -89,7 +86,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    
     //Subsystems
     drive= new Drivetrain();
     upper= new Elevator();
@@ -100,7 +96,6 @@ public class Robot extends TimedRobot {
     goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
     moveElev= new ElevatorPosition();
     test=new Testing();
-    go=new GoVision(xbC,Want.tape);
     //Interfaces/Controllers
     m_chooser.setDefaultOption("Default Auto, No Movement", new NoMovement());
     m_chooser.addOption("Start: Left, Target: Cargo", new LeftCargo());
@@ -217,7 +212,7 @@ public class Robot extends TimedRobot {
       goDistance.setSetpointInches(10*12);
       goDistance.start();
     }
-    
+    drive.test.set(xbC.getY(Hand.kRight));
     //EMERGENCY CANCEL ANY ACTIVE COMMAND THRU TELEOP. MAKE SURE CANCEL IS SET UP IN THE COMMANDS
     if(xbC.getBButtonPressed()){
       turn.cancel();
@@ -226,7 +221,7 @@ public class Robot extends TimedRobot {
     }
     //Steady Driving Testing, probably no longer needed
     if(xbC.getYButton()){
-      turn.setSetpoint(5);
+      turn.setSetpoint(180);
       turn.start();
 
     }

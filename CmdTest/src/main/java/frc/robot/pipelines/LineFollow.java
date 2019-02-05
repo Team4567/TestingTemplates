@@ -30,18 +30,18 @@ import edu.wpi.cscore.UsbCamera;
 * @author GRIP
 */
 public class LineFollow {
-			UsbCamera cam= CameraServer.getInstance().startAutomaticCapture();
+			static UsbCamera cam= CameraServer.getInstance().startAutomaticCapture();
 	
-			CvSink sink=CameraServer.getInstance().getVideo();
-			CvSource out=CameraServer.getInstance().putVideo("Line View", 256, 144);
-			NetworkTableInstance inst=NetworkTableInstance.getDefault();
-			NetworkTable lineOutput=inst.getTable("Line Output");
+			static CvSink sink=CameraServer.getInstance().getVideo();
+			static CvSource out=CameraServer.getInstance().putVideo("Line View", 256, 144);
+			static NetworkTableInstance inst=NetworkTableInstance.getDefault();
+			static NetworkTable lineOutput=inst.getTable("Line Output");
 	//Outputs
-	private Mat hsvThresholdOutput = new Mat();
-	private Mat cvErodeOutput = new Mat();
-	private Mat cvDilateOutput = new Mat();
-	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
-	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
+	private static Mat hsvThresholdOutput = new Mat();
+	private static Mat cvErodeOutput = new Mat();
+	private static Mat cvDilateOutput = new Mat();
+	private static ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
+	private static ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
 
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -50,7 +50,7 @@ public class LineFollow {
 	/**
 	 * This is the primary method that runs the entire pipeline and updates the outputs.
 	 */
-	public void process() {
+	public static void process() {
 				cam.setResolution(256,144);
 		// Step HSV_Threshold0:
 				Mat input= new Mat();
@@ -158,7 +158,7 @@ public class LineFollow {
 	 * @param val The min and max value
 	 * @param output The image in which to store the output.
 	 */
-	private void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val,
+	private static void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val,
 	    Mat out) {
 		Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HSV);
 		Core.inRange(out, new Scalar(hue[0], sat[0], val[0]),
@@ -175,7 +175,7 @@ public class LineFollow {
 	 * @param borderValue value to be used for a constant border.
 	 * @param dst Output Image.
 	 */
-	private void cvErode(Mat src, Mat kernel, Point anchor, double iterations,
+	private static void cvErode(Mat src, Mat kernel, Point anchor, double iterations,
 		int borderType, Scalar borderValue, Mat dst) {
 		if (kernel == null) {
 			kernel = new Mat();
@@ -199,7 +199,7 @@ public class LineFollow {
 	 * @param borderValue value to be used for a constant border.
 	 * @param dst Output Image.
 	 */
-	private void cvDilate(Mat src, Mat kernel, Point anchor, double iterations,
+	private static void cvDilate(Mat src, Mat kernel, Point anchor, double iterations,
 	int borderType, Scalar borderValue, Mat dst) {
 		if (kernel == null) {
 			kernel = new Mat();
@@ -220,7 +220,7 @@ public class LineFollow {
 	 * @param maskSize the size of the mask.
 	 * @param output The image in which to store the output.
 	 */
-	private void findContours(Mat input, boolean externalOnly,
+	private static void findContours(Mat input, boolean externalOnly,
 		List<MatOfPoint> contours) {
 		Mat hierarchy = new Mat();
 		contours.clear();
@@ -252,7 +252,7 @@ public class LineFollow {
 	 * @param minRatio minimum ratio of width to height
 	 * @param maxRatio maximum ratio of width to height
 	 */
-	private void filterContours(List<MatOfPoint> inputContours, double minArea,
+	private static void filterContours(List<MatOfPoint> inputContours, double minArea,
 		double minPerimeter, double minWidth, double maxWidth, double minHeight, double
 		maxHeight, double[] solidity, double maxVertexCount, double minVertexCount, double
 		minRatio, double maxRatio, List<MatOfPoint> output) {
@@ -285,7 +285,9 @@ public class LineFollow {
 	}
 
 
-
+	public static void main(String[] args) {
+		process();
+	}
 
 }
 

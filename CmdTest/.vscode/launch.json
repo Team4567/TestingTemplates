@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "CodeLens (Launch) - LineFollow",
+      "request": "launch",
+      "mainClass": "frc.robot.pipelines.LineFollow",
+      "projectName": "CmdTest"
+    },
+    {
+      "type": "java",
       "name": "CodeLens (Launch) - TestTapePipeLine",
       "request": "launch",
       "mainClass": "frc.robot.pipelines.TestTapePipeLine",
