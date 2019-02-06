@@ -5,7 +5,6 @@ public class Constants {
     public static final int leftMainMC = 3;
     public static final int rightSlaveMC = 1;
     public static final int leftSlaveMC = 4;
-    public static final int rangeFinder = 0;
 
     public static final int elevatorMainMC=5;
     public static final int elevatorSlaveMC=6;
