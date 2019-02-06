@@ -20,6 +20,7 @@ import com.google.gson.JsonParser;
 
 import edu.wpi.cscore.MjpegServer;
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoMode;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -122,7 +123,7 @@ public final class Main {
   /**
    * Read configuration file.
    */
-  @SuppressWarnings("PMD.CyclomaticComplexity")
+//  @SuppressWarnings("PMD.CyclomaticComplexity")
   public static boolean readConfig() {
     // parse file
     JsonElement top;
@@ -240,6 +241,9 @@ public final class Main {
 
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
+      VideoMode m = cameras.get(0).getVideoMode();
+      CameraServer.getInstance().putVideo("Threshold", m.width, m.height);
+
       /*
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new MyPipeline(), pipeline -> {
