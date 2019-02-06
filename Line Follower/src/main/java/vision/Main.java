@@ -461,8 +461,7 @@ public final class Main {
     
     }
     
-    
-  public void main(String[] args) {
+  public static void main(String[] args) {
     
     if (args.length > 0) {
       configFile = args[0];
@@ -488,6 +487,7 @@ public final class Main {
     for (CameraConfig cameraConfig : cameraConfigs) {
       cameras.add(startCamera(cameraConfig));
     }
+    CvSource outputStream = CameraServer.getInstance().putVideo("Output", 640, 480);
 
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
@@ -505,20 +505,18 @@ public final class Main {
                 NetworkTableEntry centerX= lineOut.getEntry("x");
                 NetworkTableEntry isThere=lineOut.getEntry("isDetected");
                 
-
-                CvSource outputStream = CameraServer.getInstance().putVideo("Output", 640, 480);
+                outputStream.putFrame(pipeline.cvDilateOutput());
                 if (!pipeline.filterContoursOutput().isEmpty()) {
                   isThere.setBoolean(true);
                   Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
                   synchronized (imgLock) {
                       centerX.setDouble( r.x + (r.width / 2) );
                   }
-                  outputStream.putFrame(pipeline.cvDilateOutput());
-              }else{
+                } else {
                   isThere.setBoolean(false);
-              }
+                }
 
-      });
+        });
       visionThread.start();
     }
 
