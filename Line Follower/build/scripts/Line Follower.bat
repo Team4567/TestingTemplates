@@ -66,7 +66,7 @@ set CMD_LINE_ARGS=%*
 set CLASSPATH=%APP_HOME%\lib\Line Follower.jar;%APP_HOME%\lib\gson-2.8.5.jar;%APP_HOME%\lib\wpiutil.jar;%APP_HOME%\lib\ntcore.jar;%APP_HOME%\lib\cscore.jar;%APP_HOME%\lib\cameraserver.jar;%APP_HOME%\lib\opencv-344.jar;%APP_HOME%\lib\wpilibj.jar;%APP_HOME%\lib\wpiHal.jar
 
 @rem Execute Line Follower
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %LINE_FOLLOWER_OPTS%  -classpath "%CLASSPATH%" Main %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %LINE_FOLLOWER_OPTS%  -classpath "%CLASSPATH%" vision.Main %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

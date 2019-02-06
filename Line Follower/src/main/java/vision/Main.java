@@ -21,7 +21,7 @@ import com.google.gson.JsonParser;
 
 import edu.wpi.cscore.MjpegServer;
 import edu.wpi.cscore.UsbCamera;
-import edu.wpi.cscore.VideoSource;
+
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import java.io.File;
@@ -38,6 +38,7 @@ import org.opencv.imgproc.*;
 import org.opencv.objdetect.*;
 
 import edu.wpi.first.vision.VisionPipeline;
+import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.vision.VisionThread;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -461,7 +462,7 @@ public final class Main {
     }
     
     
-  public static void main(String[] args) {
+  public void main(String[] args) {
     
     if (args.length > 0) {
       configFile = args[0];
