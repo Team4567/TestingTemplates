@@ -1,3 +1,4 @@
+
 /*----------------------------------------------------------------------------*/
 /* Copyright (c) 2018 FIRST. All Rights Reserved.                             */
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
@@ -18,11 +19,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.MjpegServer;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.cscore.VideoMode;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.vision.VisionPipeline;
 import edu.wpi.first.vision.VisionThread;
@@ -67,7 +70,7 @@ import org.opencv.core.Mat;
 public final class Main {
   private static String configFile = "/boot/frc.json";
 
-  @SuppressWarnings("MemberName")
+//  @SuppressWarnings("MemberName")
   public static class CameraConfig {
     public String name;
     public String path;
@@ -233,6 +236,8 @@ public final class Main {
       ntinst.startClientTeam(team);
     }
 
+    NetworkTableEntry e = ntinst.getEntry("NumContours");
+
     // start cameras
     List<VideoSource> cameras = new ArrayList<>();
     for (CameraConfig cameraConfig : cameraConfigs) {
@@ -242,7 +247,7 @@ public final class Main {
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
       VideoMode m = cameras.get(0).getVideoMode();
-      CameraServer.getInstance().putVideo("Threshold", m.width, m.height);
+      CvSource processed = CameraServer.getInstance().putVideo("Threshold", m.width, m.height);
 
       /*
       VisionThread visionThread = new VisionThread(cameras.get(0),
@@ -253,7 +258,9 @@ public final class Main {
       */
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new TapePipelineNew(), pipeline -> {
-
+                processed.putFrame( pipeline.hslThresholdOutput() );
+                System.out.println("Found contours: " + pipeline.findContoursOutput().size() );
+                e.setDouble( pipeline.findContoursOutput().size() );
       });
       visionThread.start();
     }

@@ -1,21 +1,18 @@
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.HashMap;
+
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfInt;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.first.vision.VisionPipeline;
-
-import org.opencv.core.*;
-import org.opencv.core.Core.*;
-import org.opencv.features2d.FeatureDetector;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.*;
-import org.opencv.objdetect.*;
 
 /**
 * TapePipelineNew class.
@@ -26,13 +23,33 @@ import org.opencv.objdetect.*;
 */
 public class TapePipelineNew implements VisionPipeline {
 
+	static {
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+	}
+
 	//Outputs
 	private Mat hslThresholdOutput = new Mat();
 	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
 
-	static {
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+	// Dynamic setting of Threshold values;
+	private double[] hslThresholdHue = {55.03597122302158, 81.51515151515152};
+	private double[] hslThresholdSaturation = {133.00359712230215, 255.0};
+	private double[] hslThresholdLuminance = {75.67446043165468, 255.0};
+
+	public void setThreasholdHue( double min, double max ) {
+		hslThresholdHue[0] = min;
+		hslThresholdHue[1] = max;
+	}
+
+	public void setThreasholdSaturation( double min, double max ) {
+		hslThresholdSaturation[0] = min;
+		hslThresholdSaturation[1] = max;
+	}
+
+	public void setThreasholdLuminance( double min, double max ) {
+		hslThresholdLuminance[0] = min;
+		hslThresholdLuminance[1] = max;
 	}
 
 	/**
@@ -41,9 +58,9 @@ public class TapePipelineNew implements VisionPipeline {
 	@Override	public void process(Mat source0) {
 		// Step HSL_Threshold0:
 		Mat hslThresholdInput = source0;
-		double[] hslThresholdHue = {55.03597122302158, 81.51515151515152};
-		double[] hslThresholdSaturation = {133.00359712230215, 255.0};
-		double[] hslThresholdLuminance = {75.67446043165468, 255.0};
+//		double[] hslThresholdHue = {55.03597122302158, 81.51515151515152};
+//		double[] hslThresholdSaturation = {133.00359712230215, 255.0};
+//		double[] hslThresholdLuminance = {75.67446043165468, 255.0};
 		hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance, hslThresholdOutput);
 
 		// Step Find_Contours0:
