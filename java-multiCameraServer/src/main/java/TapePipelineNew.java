@@ -41,15 +41,24 @@ public class TapePipelineNew implements VisionPipeline {
 		hslThresholdHue[0] = min;
 		hslThresholdHue[1] = max;
 	}
+	public double[] getThresholdHue() {
+		return hslThresholdHue;
+	}
 
 	public void setThreasholdSaturation( double min, double max ) {
 		hslThresholdSaturation[0] = min;
 		hslThresholdSaturation[1] = max;
 	}
+	public double[] getThresholdSaturation() {
+		return hslThresholdSaturation;
+	}
 
 	public void setThreasholdLuminance( double min, double max ) {
 		hslThresholdLuminance[0] = min;
 		hslThresholdLuminance[1] = max;
+	}
+	public double[] getThresholdLuminance() {
+		return hslThresholdLuminance;
 	}
 
 	/**

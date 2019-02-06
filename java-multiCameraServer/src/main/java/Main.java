@@ -237,6 +237,8 @@ public final class Main {
     }
 
     NetworkTableEntry e = ntinst.getEntry("NumContours");
+    NetworkTableEntry minHue = ntinst.getEntry("MinHue");
+    NetworkTableEntry maxHue = ntinst.getEntry("MaxHue");
 
     // start cameras
     List<VideoSource> cameras = new ArrayList<>();
