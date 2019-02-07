@@ -29,6 +29,26 @@ public class TapePipelineNew implements VisionPipeline {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
+	//image size ratioed to 16:9
+	private static final double IMAGE_WIDTH  = 1280.0;
+	private static final double IMAGE_HEIGHT = 720.0;
+			
+	//Lifecam 3000 from datasheet
+	//Datasheet: https://dl2jx7zfbtwvr.cloudfront.net/specsheets/WEBC1010.pdf
+	private static final double DIAGONAL_FOV = Math.toRadians(68.5);
+			
+	//16:9 aspect ratio
+	private static final double HORIZONTAL_ASPECT = 16;
+	private static final double VERTICAL_ASPECT   = 9;
+			
+	//Reasons for using diagonal aspect is to calculate horizontal field of view.
+	private static final double DIAGONAL_ASPECT = Math.hypot(HORIZONTAL_ASPECT, VERTICAL_ASPECT);
+	//Calculations: http://vrguy.blogspot.com/2013/04/converting-diagonal-field-of-view-and.html
+	private static final double HORIZONTAL_FOV = Math.atan(Math.tan(DIAGONAL_FOV/2) * (HORIZONTAL_ASPECT / DIAGONAL_ASPECT)) * 2;
+			
+	//Focal Length calculations: https://docs.google.com/presentation/d/1ediRsI-oR3-kwawFJZ34_ZTlQS2SDBLjZasjzZ-eXbQ/pub?start=false&loop=false&slide=id.g12c083cffa_0_165
+	private static final double H_FOCAL_LENGTH = IMAGE_WIDTH / (2*Math.tan((HORIZONTAL_FOV/2)));
+
 	//Outputs
 	private Mat hslThresholdOutput = new Mat();
 	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
@@ -38,7 +58,7 @@ public class TapePipelineNew implements VisionPipeline {
 	// Dynamic setting of Threshold values;
 	private static double[] hslThresholdHue = {0.0, 255.0};
 	private static double[] hslThresholdSaturation = {150.0, 255.0};
-	private static double[] hslThresholdLuminance = {200.0, 255.0};
+	private static double[] hslThresholdLuminance = {100.0, 255.0};
 
 	private static double filterContoursMinArea = 42.0;
 
@@ -222,8 +242,19 @@ public class TapePipelineNew implements VisionPipeline {
 
 	private void renderContours( List<MatOfPoint> inputContours, Mat output ) {
 		// Scalar white = new Scalar(255,255,255);
-		Scalar red = new Scalar(0,0,255);
+		Scalar red   = new Scalar(0,0,255);
+		Scalar white = new Scalar(255,255,255);
 		MatOfPoint2f mat2f = new MatOfPoint2f();
+
+		double frameCenter = output.width() / 2;
+		/*
+		Collections.sort(inputContours, new Comparator<MatOfPoint>() {
+			@Override
+			public int compare(MatOfPoint o1, MatOfPoint o2) {
+				return -( o1.contourArea() - o2.contourArea() );  // Sort Reverse
+			}
+		});
+		*/
 
 		for (int i = 0; i < inputContours.size(); i++) {
 			// Imgproc.drawContours(output, inputContours, i, white, -1 );
@@ -234,12 +265,160 @@ public class TapePipelineNew implements VisionPipeline {
 			*/
 			inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
 			RotatedRect rotatedRect = Imgproc.minAreaRect( mat2f );
+
 			Point[] vertices = new Point[4];
 			rotatedRect.points(vertices);
 			for( int j=0; j<4; j++ )
 				Imgproc.line( output, vertices[j], vertices[(j+1)%4], red );
-			
+
+			Point p = rotatedRect.center.clone();
+			double angle = (rotatedRect.size.width < rotatedRect.size.height) ? rotatedRect.angle + 90 : rotatedRect.angle;
+			Imgproc.putText( output, "/"+Math.floor(angle), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
+			p.y += 15;
+			Imgproc.putText( output, "("+Math.floor(rotatedRect.center.x)+","+Math.floor(rotatedRect.center.y)+")", p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
+
+			double yaw = Math.toDegrees(Math.atan( (rotatedRect.center.x - frameCenter) / H_FOCAL_LENGTH ) ); 
+			p.y += 15;
+			Imgproc.putText( output, "Y: "+Math.floor(yaw), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
 		}
 	}
+
+	/*
+	def findTape(contours, image, centerX, centerY):
+    screenHeight, screenWidth, channels = image.shape;
+    #Seen vision targets (correct angle, adjacent to each other)
+    targets = []
+
+        for cnt in cntsSorted:
+            # Get moments of contour; mainly for centroid
+            M = cv2.moments(cnt)
+            # Get convex hull (bounding polygon on contour)
+            hull = cv2.convexHull(cnt)
+            # Calculate Contour area
+            cntArea = cv2.contourArea(cnt)
+            # calculate area of convex hull
+            hullArea = cv2.contourArea(hull)
+            # Filters contours based off of size
+            if (checkContours(cntArea, hullArea)):
+                ### MOSTLY DRAWING CODE, BUT CALCULATES IMPORTANT INFO ###
+                # Gets the centeroids of contour
+                if M["m00"] != 0:
+                    cx = int(M["m10"] / M["m00"])
+                    cy = int(M["m01"] / M["m00"])
+                else:
+                    cx, cy = 0, 0
+                if(len(biggestCnts) < 13):
+                    #### CALCULATES ROTATION OF CONTOUR BY FITTING ELLIPSE ##########
+                    rotation = getEllipseRotation(image, cnt)
+
+                    # Calculates yaw of contour (horizontal position in degrees)
+                    yaw = calculateYaw(cx, centerX, H_FOCAL_LENGTH)
+                    # Calculates yaw of contour (horizontal position in degrees)
+                    pitch = calculatePitch(cy, centerY, V_FOCAL_LENGTH)
+
+                    ##### DRAWS CONTOUR######
+                    # Gets rotated bounding rectangle of contour
+                    rect = cv2.minAreaRect(cnt)
+                    # Creates box around that rectangle
+                    box = cv2.boxPoints(rect)
+                    # Not exactly sure
+                    box = np.int0(box)
+                    # Draws rotated rectangle
+                    cv2.drawContours(image, [box], 0, (23, 184, 80), 3)
+
+
+                    # Calculates yaw of contour (horizontal position in degrees)
+                    yaw = calculateYaw(cx, centerX, H_FOCAL_LENGTH)
+                    # Calculates yaw of contour (horizontal position in degrees)
+                    pitch = calculatePitch(cy, centerY, V_FOCAL_LENGTH)
+
+
+                    # Draws a vertical white line passing through center of contour
+                    cv2.line(image, (cx, screenHeight), (cx, 0), (255, 255, 255))
+                    # Draws a white circle at center of contour
+                    cv2.circle(image, (cx, cy), 6, (255, 255, 255))
+
+                    # Draws the contours
+                    cv2.drawContours(image, [cnt], 0, (23, 184, 80), 1)
+
+                    # Gets the (x, y) and radius of the enclosing circle of contour
+                    (x, y), radius = cv2.minEnclosingCircle(cnt)
+                    # Rounds center of enclosing circle
+                    center = (int(x), int(y))
+                    # Rounds radius of enclosning circle
+                    radius = int(radius)
+                    # Makes bounding rectangle of contour
+                    rx, ry, rw, rh = cv2.boundingRect(cnt)
+                    boundingRect = cv2.boundingRect(cnt)
+                    # Draws countour of bounding rectangle and enclosing circle in green
+                    cv2.rectangle(image, (rx, ry), (rx + rw, ry + rh), (23, 184, 80), 1)
+
+                    cv2.circle(image, center, radius, (23, 184, 80), 1)
+
+                    # Appends important info to array
+                    if [cx, cy, rotation, cnt] not in biggestCnts:
+                         biggestCnts.append([cx, cy, rotation, cnt])
+
+
+        # Sorts array based on coordinates (leftmost to rightmost) to make sure contours are adjacent
+        biggestCnts = sorted(biggestCnts, key=lambda x: x[0])
+        # Target Checking
+        for i in range(len(biggestCnts) - 1):
+            #Rotation of two adjacent contours
+            tilt1 = biggestCnts[i][2]
+            tilt2 = biggestCnts[i + 1][2]
+
+            #x coords of contours
+            cx1 = biggestCnts[i][0]
+            cx2 = biggestCnts[i + 1][0]
+
+            cy1 = biggestCnts[i][1]
+            cy2 = biggestCnts[i + 1][1]
+            # If contour angles are opposite
+            if (np.sign(tilt1) != np.sign(tilt2)):
+                centerOfTarget = math.floor((cx1 + cx2) / 2)
+                #ellipse negative tilt means rotated to right
+                #Note: if using rotated rect (min area rectangle)
+                #      negative tilt means rotated to left
+                # If left contour rotation is tilted to the left then skip iteration
+                if (tilt1 > 0):
+                    if (cx1 < cx2):
+                        continue
+                # If left contour rotation is tilted to the left then skip iteration
+                if (tilt2 > 0):
+                    if (cx2 < cx1):
+                        continue
+                #Angle from center of camera to target (what you should pass into gyro)
+                yawToTarget = calculateYaw(centerOfTarget, centerX, H_FOCAL_LENGTH)
+                #Make sure no duplicates, then append
+                if [centerOfTarget, yawToTarget] not in targets:
+                    targets.append([centerOfTarget, yawToTarget])
+    #Check if there are targets seen
+    if (len(targets) > 0):
+        # pushes that it sees vision target to network tables
+        networkTable.putBoolean("tapeDetected", True)
+        #Sorts targets based on x coords to break any angle tie
+        targets.sort(key=lambda x: math.fabs(x[0]))
+        finalTarget = min(targets, key=lambda x: math.fabs(x[1]))
+        # Puts the yaw on screen
+        #Draws yaw of target + line where center of target is
+        cv2.putText(image, "Yaw: " + str(finalTarget[1]), (40, 40), cv2.FONT_HERSHEY_COMPLEX, .6,
+                    (255, 255, 255))
+        cv2.line(image, (finalTarget[0], screenHeight), (finalTarget[0], 0), (255, 0, 0), 2)
+
+        currentAngleError = finalTarget[1]
+        # pushes vision target angle to network tables
+        networkTable.putNumber("tapeYaw", currentAngleError)
+    else:
+        # pushes that it deosn't see vision target to network tables
+        networkTable.putBoolean("tapeDetected", False)
+
+    cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), (255, 255, 255), 2)
+
+    return image
+*/
+
+
+
 }
 
