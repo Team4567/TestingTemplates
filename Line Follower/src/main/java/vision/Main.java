@@ -503,6 +503,7 @@ public final class Main {
                 NetworkTableInstance inst= NetworkTableInstance.getDefault();
                 NetworkTable lineOut= inst.getTable("Line Follow");
                 NetworkTableEntry centerX= lineOut.getEntry("x");
+                NetworkTableEntry centerY= lineOut.getEntry("y");
                 NetworkTableEntry isThere=lineOut.getEntry("isDetected");
                 
                 outputStream.putFrame(pipeline.cvDilateOutput());
@@ -511,6 +512,7 @@ public final class Main {
                   Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
                   synchronized (imgLock) {
                       centerX.setDouble( r.x + (r.width / 2) );
+                      centerY.setDouble( r.y + (r.height / 2) );
                   }
                 } else {
                   isThere.setBoolean(false);

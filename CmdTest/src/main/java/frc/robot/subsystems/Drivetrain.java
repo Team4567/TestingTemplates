@@ -54,7 +54,7 @@ public class Drivetrain extends Subsystem {
         leftSlave.follow(leftMain);
         leftSlave.setNeutralMode(NeutralMode.Brake);
         range = new AnalogInput(0);
-        gyro= new PigeonIMU(rightSlave);
+        gyro= new PigeonIMU(leftSlave);
         ypr= new double[3];
         
     }

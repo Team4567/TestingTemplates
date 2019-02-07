@@ -22,6 +22,8 @@ public class TeleOpDrive extends Command {
   XboxController xbC;
   int level=1;
   int encoderLevel=0;
+  LineFollow lineCalc= new LineFollow(0,0);
+  public boolean useLineFollow=false;
   public TeleOpDrive(XboxController controller) {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
@@ -38,62 +40,46 @@ public class TeleOpDrive extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    Robot.drive.drive(xbC);
-    //if(xbC.getBumperPressed(Hand.kRight)){
-      //Robot.alignOut.start();
-    //}
-    //if(xbC.getBumper(Hand.kRight)){
-    //  Robot.drive.drive(xbC.getY(Hand.kLeft),Robot.alignOut.getOutput());
+    if(useLineFollow){
+      Robot.drive.drive(xbC.getY(Hand.kLeft), lineCalc.turn());
+    }else{
+      Robot.drive.drive(xbC);
+    }
+    if(xbC.getAButtonPressed()){
       
+    }
+    if(xbC.getBButtonPressed()){
       
-    //}
-    /*if(xbC.getYButtonPressed()){
-      level++;
-    } else if(xbC.getAButtonPressed()){
-      level--;
     }
-    if(level>6){
-      level=3;
+    if(xbC.getYButton()){
+    
     }
-    if(level<1){
-      level=1;
+    if(xbC.getXButton()){
+      
     }
-    // 1= HatchL, 2= CargoL,3= HatchM, 4= CargoM, 5= HatchH, 6= CargoL
-    switch(level){
-      case 1:
-        encoderLevel=0;
-      break;
-      case 2:
-        encoderLevel=0;
-      break;
-      case 3:
-        encoderLevel=0;
-      break;
-      case 4:
-        encoderLevel=0;
-      break;
-      case 5:
-        encoderLevel=0;
-      break;
-      case 6:
-        encoderLevel=0;
-      break;
-      default:
-        System.out.println("Invalid");
-      break;
+    if(xbC.getBackButtonPressed()){
+     
     }
-      Robot.moveElev.setSetpoint(encoderLevel);
-    */
+    if(xbC.getStartButtonPressed()){
+     
+    }
+    if(xbC.getStartButtonReleased()){
+      
+    }
+   
+    if(xbC.getTriggerAxis(Hand.kLeft)>.5){
+      
+    }
+    if(xbC.getTriggerAxis(Hand.kRight)>.5){
+      
+    }                                                    
+    useLineFollow=xbC.getBumper(Hand.kRight);
   }
 
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    if(Robot.ds.isOperatorControl() || Robot.ds.isTest()){
-        return false;
-    }else{
-        return true;
-    }
+    return Robot.ds.isOperatorControl();
   }
 
   // Called once after isFinished returns true
@@ -101,12 +87,13 @@ public class TeleOpDrive extends Command {
   protected void end() {
     Robot.drive.stop();
     Robot.upper.move(0);
-    
   }
 
   // Called when another command which requires one or more of the same
   // subsystems is scheduled to run
   @Override
   protected void interrupted() {
+    Robot.drive.stop();
+    Robot.upper.move(0);
   }
 }
