@@ -204,18 +204,6 @@ public final class Main {
   }
 
   /**
-   * Example pipeline.
-   */
-  public static class MyPipeline implements VisionPipeline {
-    public int val;
-
-    @Override
-    public void process(Mat mat) {
-      val += 1;
-    }
-  }
-
-  /**
    * Main.
    */
   public static void main(String... args) {
@@ -240,6 +228,8 @@ public final class Main {
 
     NetworkTable nt = ntinst.getTable("TapePipeline");
     NetworkTableEntry e = nt.getEntry("NumContours");
+    NetworkTableEntry y= nt.getEntry("Yaw");
+    
     nt.getEntry("MinHue").setDouble( TapePipelineNew.getThresholdHue()[0] );
     nt.getEntry("MinHue").addListener( event -> { 
         TapePipelineNew.setThresholdHue( event.value.getDouble(), TapePipelineNew.getThresholdHue()[1]); 
@@ -300,6 +290,7 @@ public final class Main {
                 output.putFrame( pipeline.output() );
                 // System.out.println("Found contours: " + pipeline.findContoursOutput().size() );
                 e.setDouble( pipeline.filterContoursOutput().size() );
+                y.setDouble( pipeline.getTargetYaw() );
       });
       visionThread.start();
     }

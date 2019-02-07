@@ -431,7 +431,7 @@ public final class Main {
         final MatOfInt hull = new MatOfInt();
         output.clear();
         //operation
-        for (int i = 0; i < inputContours.size(); i++) {
+        for ( int i = 0; i < inputContours.size(); i++ ) {
           final MatOfPoint contour = inputContours.get(i);
           final Rect bb = Imgproc.boundingRect(contour);
           if (bb.width < minWidth || bb.width > maxWidth) continue;
@@ -511,11 +511,11 @@ public final class Main {
                   isThere.setBoolean(true);
                   Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
                   synchronized (imgLock) {
-                      centerX.setDouble( r.x + (r.width / 2) );
-                      centerY.setDouble( r.y + (r.height / 2) );
+                      centerX.setDouble( r.x + ( r.width / 2 ) );
+                      centerY.setDouble( r.y + ( r.height / 2 ) );
                   }
                 } else {
-                  isThere.setBoolean(false);
+                  isThere.setBoolean( false );
                 }
 
         });
@@ -525,8 +525,8 @@ public final class Main {
     // loop forever
     for (;;) {
       try {
-        Thread.sleep(10000);
-      } catch (InterruptedException ex) {
+        Thread.sleep( 10000 );
+      } catch ( InterruptedException ex ) {
         return;
       }
     }
