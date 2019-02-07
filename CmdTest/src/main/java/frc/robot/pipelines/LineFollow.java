@@ -52,6 +52,7 @@ public class LineFollow {
 	 */
 	public static void process() {
 				cam.setResolution(256,144);
+				cam.setFPS(30);
 		// Step HSV_Threshold0:
 				Mat input= new Mat();
 				sink.grabFrame(input);
@@ -282,11 +283,6 @@ public class LineFollow {
 			if (ratio < minRatio || ratio > maxRatio) continue;
 			output.add(contour);
 		}
-	}
-
-
-	public static void main(String[] args) {
-		process();
 	}
 
 }

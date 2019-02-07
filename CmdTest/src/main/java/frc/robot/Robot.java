@@ -25,7 +25,6 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import frc.robot.autonomous.*;
 import frc.robot.commands.*;
 import frc.robot.enums.Want;
-import frc.robot.pipelines.*;
 import frc.robot.subsystems.*;
 
 
@@ -63,13 +62,8 @@ public class Robot extends TimedRobot {
   public static Elevator upper;
   public static ScoringMech score;
   //Commands
-  public static TeleOpDrive teleOp;
-  public static TurnAngle turn,turnOut;
-  public static MotorCalculator simpleMotorP;
-  public static DriveDistance goDistance,goNew;
-  public static ElevatorPosition moveElev;
-  private static Testing test;
   public static CommandGroup m_autonomousCommand;
+  public static TeleOpDrive teleOp;
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
   public static XboxController xbC= new XboxController(0);
@@ -92,10 +86,11 @@ public class Robot extends TimedRobot {
     score= new ScoringMech();
     //Commands
     teleOp= new TeleOpDrive(xbC);
-    turn=new TurnAngle(new SimpleTurnP(.02, .002, .4, .1, 1 ) );
-    goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
-    moveElev= new ElevatorPosition();
-    test=new Testing();
+    //turn=new TurnAngle(new SimpleTurnP(.02, .002, .4, .1, 1 ) );
+    //goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
+    //moveElev= new ElevatorPosition();
+    //test=new Testing();
+    //lineCalc= new LineFollow(0,0);
     //Interfaces/Controllers
     m_chooser.setDefaultOption("Default Auto, No Movement", new NoMovement());
     m_chooser.addOption("Start: Left, Target: Cargo", new LeftCargo());
@@ -173,7 +168,7 @@ public class Robot extends TimedRobot {
     }*/
 
     drive.resetGyro();
-    turn.setSetpoint(0);
+    //turn.setSetpoint(0);
     
   }
 
@@ -195,7 +190,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    teleOp.start();
+    //teleOp.start();
   }
 
   /**
@@ -208,57 +203,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Encoder Pos", drive.rightMain.getSelectedSensorPosition());
     System.out.println(drive.rangeFinderDistance());
     //Init Distance
-    if(xbC.getAButtonPressed()){
-      goDistance.setSetpointInches(10*12);
-      goDistance.start();
-    }
-    drive.test.set(xbC.getY(Hand.kRight));
-    //EMERGENCY CANCEL ANY ACTIVE COMMAND THRU TELEOP. MAKE SURE CANCEL IS SET UP IN THE COMMANDS
-    if(xbC.getBButtonPressed()){
-      turn.cancel();
-      goDistance.cancel();
-      test.cancel();
-    }
-    //Steady Driving Testing, probably no longer needed
-    if(xbC.getYButton()){
-      turn.setSetpoint(180);
-      turn.start();
-
-    }
-    // Reset Turning Setpoint(For 45 Degree Increment Testing)
-    if(xbC.getXButton()){
-      drive.drive(0.075,0);
-    }
-    // Reset Positioning Devices
-    if(xbC.getBackButtonPressed()){
-      drive.resetGyro();
-      drive.rightMain.setSelectedSensorPosition(0);
-    }
-    //Init turning
-    if(xbC.getStartButtonPressed()){
-      test.start();
-    }
-    if(xbC.getStartButtonReleased()){
-      //go.setDone(true);
-    }
-    // Switch Vision Modes
-    if(xbC.getTriggerAxis(Hand.kLeft)>.5){
-      driveWanted.setBoolean(false);
-      cargoWanted.setBoolean(true);
-      tapeWanted.setBoolean(false); 
-    }
-    if(xbC.getTriggerAxis(Hand.kRight)>.5){
-      driveWanted.setBoolean(false);
-      cargoWanted.setBoolean(false);
-      tapeWanted.setBoolean(true); 
-    }                                                    
-    //Probably Not Going to Have driveWanted as an option during comp
-    //Extra button press not needed
-    if(xbC.getBumperPressed(Hand.kRight)){
-      driveWanted.setBoolean(true);
-      cargoWanted.setBoolean(false);
-      tapeWanted.setBoolean(false); 
-    }
+    
     /*if(xbC.getBumperPressed(Hand.kLeft)){
       if(cargoWanted.getBoolean(false)){
         
@@ -288,7 +233,7 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
     super.testInit();
-    teleOp.start();
+    //teleOp.start();
   }
   @Override
   public void testPeriodic() {
