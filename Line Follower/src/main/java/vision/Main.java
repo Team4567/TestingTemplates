@@ -500,8 +500,8 @@ public final class Main {
       */
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new LineFollow(), pipeline -> {
-                NetworkTableInstance inst= NetworkTableInstance.getDefault();
-                NetworkTable lineOut= inst.getTable("Line Follow");
+
+                NetworkTable lineOut= ntinst.getTable("Line Follow");
                 NetworkTableEntry centerX= lineOut.getEntry("x");
                 NetworkTableEntry centerY= lineOut.getEntry("y");
                 NetworkTableEntry isThere=lineOut.getEntry("isDetected");
