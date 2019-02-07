@@ -25,6 +25,8 @@ import edu.wpi.cscore.UsbCamera;
 import edu.wpi.cscore.VideoMode;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.vision.VisionPipeline;
@@ -236,10 +238,43 @@ public final class Main {
       ntinst.startClientTeam(team);
     }
 
-    NetworkTableEntry e = ntinst.getEntry("NumContours");
-    NetworkTableEntry minHue = ntinst.getEntry("MinHue");
-    NetworkTableEntry maxHue = ntinst.getEntry("MaxHue");
+    NetworkTable nt = ntinst.getTable("TapePipeline");
+    NetworkTableEntry e = nt.getEntry("NumContours");
+    nt.getEntry("MinHue").setDouble( TapePipelineNew.getThresholdHue()[0] );
+    nt.getEntry("MinHue").addListener( event -> { 
+        TapePipelineNew.setThresholdHue( event.value.getDouble(), TapePipelineNew.getThresholdHue()[1]); 
+      }, EntryListenerFlags.kUpdate );
 
+    nt.getEntry("MaxHue").setDouble( TapePipelineNew.getThresholdHue()[1] );
+    nt.getEntry("MaxHue").addListener( event -> { 
+        TapePipelineNew.setThresholdHue( TapePipelineNew.getThresholdHue()[0], event.value.getDouble() ); 
+      }, EntryListenerFlags.kUpdate );
+
+    nt.getEntry("MinSaturation").setDouble( TapePipelineNew.getThresholdSaturation()[0] );
+    nt.getEntry("MinSaturation").addListener( event -> { 
+        TapePipelineNew.setThresholdSaturation( event.value.getDouble(), TapePipelineNew.getThresholdSaturation()[1]); 
+      }, EntryListenerFlags.kUpdate );
+
+    nt.getEntry("MaxSaturation").setDouble( TapePipelineNew.getThresholdSaturation()[1] );
+    nt.getEntry("MaxSaturation").addListener( event -> { 
+        TapePipelineNew.setThresholdSaturation( TapePipelineNew.getThresholdSaturation()[0], event.value.getDouble() ); 
+      }, EntryListenerFlags.kUpdate );
+
+    nt.getEntry("MinLuminance").setDouble( TapePipelineNew.getThresholdLuminance()[0] );
+    nt.getEntry("MinLuminance").addListener( event -> { 
+        TapePipelineNew.setThresholdLuminance( event.value.getDouble(), TapePipelineNew.getThresholdLuminance()[1] ); 
+      }, EntryListenerFlags.kUpdate );
+
+    nt.getEntry("MaxLuminance").setDouble( TapePipelineNew.getThresholdLuminance()[1] );
+    nt.getEntry("MaxLuminance").addListener( event -> { 
+        TapePipelineNew.setThresholdLuminance( TapePipelineNew.getThresholdLuminance()[0], event.value.getDouble() ); 
+      }, EntryListenerFlags.kUpdate );
+
+    nt.getEntry("ContoursMinArea").setDouble( TapePipelineNew.getfilterContoursMinArea() );
+    nt.getEntry("ContoursMinArea").addListener( event -> { 
+        TapePipelineNew.setContoursMinArea( event.value.getDouble() ); 
+      }, EntryListenerFlags.kUpdate );
+  
     // start cameras
     List<VideoSource> cameras = new ArrayList<>();
     for (CameraConfig cameraConfig : cameraConfigs) {
@@ -249,7 +284,8 @@ public final class Main {
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
       VideoMode m = cameras.get(0).getVideoMode();
-      CvSource processed = CameraServer.getInstance().putVideo("Threshold", m.width, m.height);
+      CvSource threshold = CameraServer.getInstance().putVideo("Threshold", m.width, m.height);
+      CvSource output    = CameraServer.getInstance().putVideo("Output", m.width, m.height);
 
       /*
       VisionThread visionThread = new VisionThread(cameras.get(0),
@@ -260,9 +296,10 @@ public final class Main {
       */
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new TapePipelineNew(), pipeline -> {
-                processed.putFrame( pipeline.hslThresholdOutput() );
-                System.out.println("Found contours: " + pipeline.findContoursOutput().size() );
-                e.setDouble( pipeline.findContoursOutput().size() );
+                threshold.putFrame( pipeline.hslThresholdOutput() );
+                output.putFrame( pipeline.output() );
+                // System.out.println("Found contours: " + pipeline.findContoursOutput().size() );
+                e.setDouble( pipeline.filterContoursOutput().size() );
       });
       visionThread.start();
     }

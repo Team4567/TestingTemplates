@@ -8,7 +8,9 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -31,34 +33,44 @@ public class TapePipelineNew implements VisionPipeline {
 	private Mat hslThresholdOutput = new Mat();
 	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
+	private Mat output = new Mat();
 
 	// Dynamic setting of Threshold values;
-	private double[] hslThresholdHue = {55.03597122302158, 81.51515151515152};
-	private double[] hslThresholdSaturation = {133.00359712230215, 255.0};
-	private double[] hslThresholdLuminance = {75.67446043165468, 255.0};
+	private static double[] hslThresholdHue = {0.0, 255.0};
+	private static double[] hslThresholdSaturation = {150.0, 255.0};
+	private static double[] hslThresholdLuminance = {200.0, 255.0};
 
-	public void setThreasholdHue( double min, double max ) {
+	private static double filterContoursMinArea = 42.0;
+
+	public static void setThresholdHue( double min, double max ) {
 		hslThresholdHue[0] = min;
 		hslThresholdHue[1] = max;
 	}
-	public double[] getThresholdHue() {
+	public static double[] getThresholdHue() {
 		return hslThresholdHue;
 	}
 
-	public void setThreasholdSaturation( double min, double max ) {
+	public static void setThresholdSaturation( double min, double max ) {
 		hslThresholdSaturation[0] = min;
 		hslThresholdSaturation[1] = max;
 	}
-	public double[] getThresholdSaturation() {
+	public static double[] getThresholdSaturation() {
 		return hslThresholdSaturation;
 	}
 
-	public void setThreasholdLuminance( double min, double max ) {
+	public static void setThresholdLuminance( double min, double max ) {
 		hslThresholdLuminance[0] = min;
 		hslThresholdLuminance[1] = max;
 	}
-	public double[] getThresholdLuminance() {
+	public static double[] getThresholdLuminance() {
 		return hslThresholdLuminance;
+	}
+
+	public static void setContoursMinArea( double min) {
+		filterContoursMinArea = min;
+	}
+	public static double getfilterContoursMinArea() {
+		return filterContoursMinArea;
 	}
 
 	/**
@@ -67,9 +79,6 @@ public class TapePipelineNew implements VisionPipeline {
 	@Override	public void process(Mat source0) {
 		// Step HSL_Threshold0:
 		Mat hslThresholdInput = source0;
-//		double[] hslThresholdHue = {55.03597122302158, 81.51515151515152};
-//		double[] hslThresholdSaturation = {133.00359712230215, 255.0};
-//		double[] hslThresholdLuminance = {75.67446043165468, 255.0};
 		hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance, hslThresholdOutput);
 
 		// Step Find_Contours0:
@@ -79,7 +88,7 @@ public class TapePipelineNew implements VisionPipeline {
 
 		// Step Filter_Contours0:
 		ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-		double filterContoursMinArea = 42.0;
+//		double filterContoursMinArea = 42.0;
 		double filterContoursMinPerimeter = 0;
 		double filterContoursMinWidth = 0;
 		double filterContoursMaxWidth = 1000;
@@ -92,6 +101,8 @@ public class TapePipelineNew implements VisionPipeline {
 		double filterContoursMaxRatio = 1000;
 		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
 
+		output = new Mat(source0.size(), source0.type(), new Scalar(0,0,0) );
+		renderContours(filterContoursOutput, output);
 	}
 
 	/**
@@ -118,6 +129,9 @@ public class TapePipelineNew implements VisionPipeline {
 		return filterContoursOutput;
 	}
 
+	public Mat output() {
+		return output;
+	}
 
 	/**
 	 * Segment an image based on hue, saturation, and luminance ranges.
@@ -206,8 +220,26 @@ public class TapePipelineNew implements VisionPipeline {
 		}
 	}
 
+	private void renderContours( List<MatOfPoint> inputContours, Mat output ) {
+		// Scalar white = new Scalar(255,255,255);
+		Scalar red = new Scalar(0,0,255);
+		MatOfPoint2f mat2f = new MatOfPoint2f();
 
+		for (int i = 0; i < inputContours.size(); i++) {
+			// Imgproc.drawContours(output, inputContours, i, white, -1 );
 
-
+			/*
+			Rect rect = Imgproc.boundingRect(inputContours.get(i));
+            Imgproc.rectangle( output, rect.tl(), rect.br(), red );
+			*/
+			inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
+			RotatedRect rotatedRect = Imgproc.minAreaRect( mat2f );
+			Point[] vertices = new Point[4];
+			rotatedRect.points(vertices);
+			for( int j=0; j<4; j++ )
+				Imgproc.line( output, vertices[j], vertices[(j+1)%4], red );
+			
+		}
+	}
 }
 
