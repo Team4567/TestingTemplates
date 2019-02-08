@@ -1,3 +1,4 @@
+package frc.robot.subsystems;
 /*----------------------------------------------------------------------------*/
 /* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
@@ -5,7 +6,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-package frc.robot.subsystems;
+
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -53,7 +54,6 @@ public class Drivetrain extends Subsystem {
         leftSlave= new TalonSRX(Constants.leftSlaveMC);
         leftSlave.follow(leftMain);
         leftSlave.setNeutralMode(NeutralMode.Brake);
-        range = new AnalogInput(0);
         gyro= new PigeonIMU(leftSlave);
         ypr= new double[3];
         
@@ -76,9 +76,6 @@ public class Drivetrain extends Subsystem {
     }
     public double getYaw(){
       return ypr[0];
-    }
-    public double rangeFinderDistance(){
-      return ((range.getVoltage()*5000)/123.952);   
     }
     public double encoderDistanceInInches(TalonSRX t){
       return t.getSelectedSensorPosition()*((1/4096)*(Constants.wheelCirc));
@@ -134,7 +131,8 @@ public class Drivetrain extends Subsystem {
         
       }
       rightMain.set(ControlMode.PercentOutput,rightMotors);
-        leftMain.set(ControlMode.PercentOutput,-1*leftMotors);
+        leftMain.set(ControlMode.PercentOutput,leftMotors);
+        System.out.println(rightMotors+ " "+ leftMotors);
         rightSlave.follow(rightMain);
         leftSlave.follow(leftMain);
         

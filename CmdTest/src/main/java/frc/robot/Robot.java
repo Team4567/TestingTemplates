@@ -82,8 +82,8 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     //Subsystems
     drive= new Drivetrain();
-    upper= new Elevator();
-    score= new ScoringMech();
+    //upper= new Elevator();
+    //score= new ScoringMech();
     //Commands
     teleOp= new TeleOpDrive(xbC);
     //turn=new TurnAngle(new SimpleTurnP(.02, .002, .4, .1, 1 ) );
@@ -92,7 +92,7 @@ public class Robot extends TimedRobot {
     //test=new Testing();
     //lineCalc= new LineFollow(0,0);
     //Interfaces/Controllers
-    m_chooser.setDefaultOption("Default Auto, No Movement", new NoMovement());
+    /*m_chooser.setDefaultOption("Default Auto, No Movement", new NoMovement());
     m_chooser.addOption("Start: Left, Target: Cargo", new LeftCargo());
     m_chooser.addOption("Start: Left, Target: Rocket", new LeftRocket());
     m_chooser.addOption("Start: Right, Target: Cargo", new RightCargo());
@@ -100,7 +100,7 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Start: Center, Target: Left-Side Cargo", new CenterLCargo());
     m_chooser.addOption("Start: Center, Target: Left-Side Rocket", new CenterLRocket());
     m_chooser.addOption("Start: Center, Target: Right-side Rocket", new CenterRCargo());
-    m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new CenterRRocket());
+    m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new CenterRRocket());*/
     SmartDashboard.putData("Auto mode", m_chooser);
     //NetworkTables
     inst=NetworkTableInstance.getDefault();
@@ -190,7 +190,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    //teleOp.start();
+    teleOp.start();
   }
 
   /**
@@ -201,7 +201,6 @@ public class Robot extends TimedRobot {
     Scheduler.getInstance().run();
     SmartDashboard.putNumber("Gyro Val", drive.getYaw());
     SmartDashboard.putNumber("Encoder Pos", drive.rightMain.getSelectedSensorPosition());
-    System.out.println(drive.rangeFinderDistance());
     //Init Distance
     
     /*if(xbC.getBumperPressed(Hand.kLeft)){

@@ -16,8 +16,8 @@ public class LeftCargo extends CommandGroup {
    */
   public LeftCargo() {
     requires(Robot.drive);
-    requires(Robot.score);
-    requires(Robot.upper);
+   // requires(Robot.score);
+    //requires(Robot.upper);
     // Add Commands here:
     // e.g. addSequential(new Command1());
     // addSequential(new Command2());

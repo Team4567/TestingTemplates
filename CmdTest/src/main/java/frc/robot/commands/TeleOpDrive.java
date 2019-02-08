@@ -27,7 +27,7 @@ public class TeleOpDrive extends Command {
   public TeleOpDrive(XboxController controller) {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
-    requires(Robot.upper);
+    //requires(Robot.upper);
     xbC=controller;
   }
 
@@ -40,11 +40,11 @@ public class TeleOpDrive extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    if(useLineFollow){
-      Robot.drive.drive(xbC.getY(Hand.kLeft), lineCalc.turn());
-    }else{
+    //if(useLineFollow){
+      //Robot.drive.drive(xbC.getY(Hand.kLeft), lineCalc.turn());
+    //}else{
       Robot.drive.drive(xbC);
-    }
+    //}
     if(xbC.getAButtonPressed()){
       
     }
@@ -52,10 +52,14 @@ public class TeleOpDrive extends Command {
       
     }
     if(xbC.getYButton()){
-    
+      //Robot.drive.leftMain.set(ControlMode.PercentOutput,.5);
+      //Robot.drive.leftSlave.follow(Robot.drive.leftSlave);
+
+      
     }
     if(xbC.getXButton()){
-      
+      //Robot.drive.rightMain.set(ControlMode.PercentOutput,.5);
+      //Robot.drive.rightSlave.follow(Robot.drive.rightSlave);
     }
     if(xbC.getBackButtonPressed()){
      
@@ -79,14 +83,15 @@ public class TeleOpDrive extends Command {
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    return Robot.ds.isOperatorControl();
+    return false;
+    
   }
 
   // Called once after isFinished returns true
   @Override
   protected void end() {
     Robot.drive.stop();
-    Robot.upper.move(0);
+    //Robot.upper.move(0);
   }
 
   // Called when another command which requires one or more of the same
@@ -94,6 +99,6 @@ public class TeleOpDrive extends Command {
   @Override
   protected void interrupted() {
     Robot.drive.stop();
-    Robot.upper.move(0);
+    //Robot.upper.move(0);
   }
 }

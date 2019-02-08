@@ -16,8 +16,8 @@ public class CenterRCargo extends CommandGroup {
    */
   public CenterRCargo() {
     requires(Robot.drive);
-    requires(Robot.score);
-    requires(Robot.upper);
+    //requires(Robot.score);
+    //requires(Robot.upper);
     // Add Commands here:
     // e.g. addSequential(new Command1());
     // addSequential(new Command2());

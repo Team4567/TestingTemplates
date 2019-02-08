@@ -16,8 +16,8 @@ public class NoMovement extends CommandGroup {
    */
   public NoMovement() {
     requires(Robot.drive);
-    requires(Robot.score);
-    requires(Robot.upper);
+   // requires(Robot.score);
+    //requires(Robot.upper);
     //addSequential(new driveDistance(0));
     // Add Commands here:
     // e.g. addSequential(new Command1());
