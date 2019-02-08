@@ -1,19 +1,22 @@
 package frc.robot.pipelines;
 
-import javax.swing.*;
 import java.awt.FlowLayout;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-
-import org.opencv.core.*;
 
 
 class TestTapePipeLine {
@@ -60,7 +63,7 @@ class TestTapePipeLine {
 		Scalar black = new Scalar(0,0,0);
 		Scalar red   = new Scalar(0,0,255);  // BGR - Ugh!
 
-		String path = "C:/Users/James/Documents/GitHub/TestingTemplates/GRIP Files/2019VisionImages/Green/Straight/RocketPanelStraightDark48in.jpg";
+		String path = "C:/Users/Mary/Documents/GitHub/TestingTemplates/GRIP Files/2019VisionImages/Green/Straight/RocketPanelStraightDark48in.jpg";
 		Mat logo = Imgcodecs.imread(path);
 
 		BufferedImage bi1 = Mat2BufferedImage(logo);
@@ -88,6 +91,8 @@ class TestTapePipeLine {
 
 		BufferedImage bi3 = Mat2BufferedImage(contourImg);
 		displayImage( bi3 );
+
+		TargetFinder.findYawToTargetJames(contours, contourImg.width()/2 );
 	}
 
 }

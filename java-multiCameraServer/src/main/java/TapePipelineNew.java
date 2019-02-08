@@ -28,34 +28,13 @@ public class TapePipelineNew implements VisionPipeline {
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
-	public static ArrayList<RotatedRect> lefts = new ArrayList<RotatedRect>();
-	public static ArrayList<RotatedRect> rights = new ArrayList<RotatedRect>();
-	public static ArrayList<Double> midpoints= new ArrayList<Double>();
-	//image size ratioed to 16:9
-	private static final double IMAGE_WIDTH  = 1280.0;
-	private static final double IMAGE_HEIGHT = 720.0;
-			
-	//Lifecam 3000 from datasheet
-	//Datasheet: https://dl2jx7zfbtwvr.cloudfront.net/specsheets/WEBC1010.pdf
-	private static final double DIAGONAL_FOV = Math.toRadians(68.5);
-			
-	//16:9 aspect ratio
-	private static final double HORIZONTAL_ASPECT = 16;
-	private static final double VERTICAL_ASPECT   = 9;
-			
-	//Reasons for using diagonal aspect is to calculate horizontal field of view.
-	private static final double DIAGONAL_ASPECT = Math.hypot(HORIZONTAL_ASPECT, VERTICAL_ASPECT);
-	//Calculations: http://vrguy.blogspot.com/2013/04/converting-diagonal-field-of-view-and.html
-	private static final double HORIZONTAL_FOV = Math.atan(Math.tan(DIAGONAL_FOV/2) * (HORIZONTAL_ASPECT / DIAGONAL_ASPECT)) * 2;
-	private static final double PIXEL_TO_ANGLE = IMAGE_WIDTH/HORIZONTAL_FOV;
-	//Focal Length calculations: https://docs.google.com/presentation/d/1ediRsI-oR3-kwawFJZ34_ZTlQS2SDBLjZasjzZ-eXbQ/pub?start=false&loop=false&slide=id.g12c083cffa_0_165
-	private static final double H_FOCAL_LENGTH = IMAGE_WIDTH / (2*Math.tan((HORIZONTAL_FOV/2)));
-	private static double targetMidpoint=IMAGE_WIDTH/2;
+
 	//Outputs
 	private Mat hslThresholdOutput = new Mat();
 	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
 	private Mat output = new Mat();
+	private double targetYaw = 0.0;
 
 	// Dynamic setting of Threshold values;
 	private static double[] hslThresholdHue = {0.0, 255.0};
@@ -98,7 +77,8 @@ public class TapePipelineNew implements VisionPipeline {
 	/**
 	 * This is the primary method that runs the entire pipeline and updates the outputs.
 	 */
-	@Override	public void process(Mat source0) {
+	@Override	
+	public void process(Mat source0) {
 		// Step HSL_Threshold0:
 		Mat hslThresholdInput = source0;
 		hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance, hslThresholdOutput);
@@ -153,6 +133,10 @@ public class TapePipelineNew implements VisionPipeline {
 
 	public Mat output() {
 		return output;
+	}
+
+	public double getTargetYaw() {
+		return targetYaw;
 	}
 
 	/**
@@ -249,23 +233,8 @@ public class TapePipelineNew implements VisionPipeline {
 		MatOfPoint2f mat2f = new MatOfPoint2f();
 		
 		double frameCenter = output.width() / 2;
-		/*
-		Collections.sort(inputContours, new Comparator<MatOfPoint>() {
-			@Override
-			public int compare(MatOfPoint o1, MatOfPoint o2) {
-				return -( o1.contourArea() - o2.contourArea() );  // Sort Reverse
-			}
-		});
-		*/
 		
 		for (int i = 0; i < inputContours.size(); i++) {
-			// Imgproc.drawContours(output, inputContours, i, white, -1 );
-
-			/*
-			Rect rect = Imgproc.boundingRect(inputContours.get(i));
-            Imgproc.rectangle( output, rect.tl(), rect.br(), red );
-			*/
-
 			inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
 			RotatedRect rotatedRect = Imgproc.minAreaRect( mat2f );
 
@@ -280,50 +249,16 @@ public class TapePipelineNew implements VisionPipeline {
 			p.y += 15;
 			Imgproc.putText( output, "("+Math.floor(rotatedRect.center.x)+","+Math.floor(rotatedRect.center.y)+")", p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
 
-			double yaw = Math.toDegrees(Math.atan( (rotatedRect.center.x - frameCenter) / H_FOCAL_LENGTH ) ); 
+			double yaw = Math.toDegrees(Math.atan( (rotatedRect.center.x - frameCenter) / Camera.H_FOCAL_LENGTH ) ); 
 			p.y += 15;
 			Imgproc.putText( output, "Y: "+Math.floor(yaw), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
-			// Angle's not 1, I need to find it.
-			if(rotatedRect.angle>1){
-				lefts.add( rotatedRect );
-			} else{
-				rights.add( rotatedRect );
-			}
 		}
-		for( int l=0; l < lefts.size(); l++ ){
-			int closestRI=-1;
-			double min=9999999;
-			for( int r=0; r < rights.size(); r++){
-				if( lefts.get(l).center.x < rights.get(r).center.x && rights.get(r).center.x-lefts.get(r).center.x < min){
-					closestRI=r;
-					min= rights.get(r).center.x-lefts.get(r).center.x;
-					
-				}
-			}
-			midpoints.add( rights.get(closestRI).center.x-lefts.get(l).center.x );
-		}
-		int closestMI=-1;
-		for( int m=0; m < midpoints.size(); m++ ){
-			
-			double min=9999999;
-			if(midpoints.get(m)-(IMAGE_WIDTH/2)<min){
-				closestMI=m;
-				min= midpoints.get(m)-(IMAGE_WIDTH/2);
-			}
-		}
-		if(closestMI!=-1){
-			targetMidpoint=midpoints.get(closestMI);
-		}
+
+		double targetX = TargetFinder.findYawToTargetJames(inputContours, frameCenter);
+		Imgproc.line(output, new Point(targetX, 0), new Point(targetX, output.height()), white);
 	}
-	public double getTargetMidpoint(){
-		return targetMidpoint;
-	}
-	public double getTargetYaw(){
-		return targetMidpoint*PIXEL_TO_ANGLE;
-	}
-	public boolean targetFound(){
-		return midpoints.size()>0;
-	}
+}
+
 	/*
 	def findTape(contours, image, centerX, centerY):
     screenHeight, screenWidth, channels = image.shape;
@@ -458,8 +393,3 @@ public class TapePipelineNew implements VisionPipeline {
 
     return image
 */
-
-
-
-}
-
