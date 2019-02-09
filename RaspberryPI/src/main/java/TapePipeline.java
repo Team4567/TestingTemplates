@@ -23,7 +23,7 @@ import edu.wpi.first.vision.VisionPipeline;
 *
 * @author GRIP
 */
-public class TapePipelineNew implements VisionPipeline {
+public class TapePipeline implements VisionPipeline {
 
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);

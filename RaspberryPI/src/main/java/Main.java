@@ -228,39 +228,39 @@ public final class Main {
     NetworkTableEntry eTargetYaw = nt.getEntry("Yaw");
     NetworkTableEntry eTargetLock = nt.getEntry("Lock");
     
-    nt.getEntry("MinHue").setDouble( TapePipelineNew.getThresholdHue()[0] );
+    nt.getEntry("MinHue").setDouble( TapePipeline.getThresholdHue()[0] );
     nt.getEntry("MinHue").addListener( event -> { 
-        TapePipelineNew.setThresholdHue( event.value.getDouble(), TapePipelineNew.getThresholdHue()[1]); 
+        TapePipeline.setThresholdHue( event.value.getDouble(), TapePipeline.getThresholdHue()[1]); 
       }, EntryListenerFlags.kUpdate );
 
-    nt.getEntry("MaxHue").setDouble( TapePipelineNew.getThresholdHue()[1] );
+    nt.getEntry("MaxHue").setDouble( TapePipeline.getThresholdHue()[1] );
     nt.getEntry("MaxHue").addListener( event -> { 
-        TapePipelineNew.setThresholdHue( TapePipelineNew.getThresholdHue()[0], event.value.getDouble() ); 
+        TapePipeline.setThresholdHue( TapePipeline.getThresholdHue()[0], event.value.getDouble() ); 
       }, EntryListenerFlags.kUpdate );
 
-    nt.getEntry("MinSaturation").setDouble( TapePipelineNew.getThresholdSaturation()[0] );
+    nt.getEntry("MinSaturation").setDouble( TapePipeline.getThresholdSaturation()[0] );
     nt.getEntry("MinSaturation").addListener( event -> { 
-        TapePipelineNew.setThresholdSaturation( event.value.getDouble(), TapePipelineNew.getThresholdSaturation()[1]); 
+        TapePipeline.setThresholdSaturation( event.value.getDouble(), TapePipeline.getThresholdSaturation()[1]); 
       }, EntryListenerFlags.kUpdate );
 
-    nt.getEntry("MaxSaturation").setDouble( TapePipelineNew.getThresholdSaturation()[1] );
+    nt.getEntry("MaxSaturation").setDouble( TapePipeline.getThresholdSaturation()[1] );
     nt.getEntry("MaxSaturation").addListener( event -> { 
-        TapePipelineNew.setThresholdSaturation( TapePipelineNew.getThresholdSaturation()[0], event.value.getDouble() ); 
+        TapePipeline.setThresholdSaturation( TapePipeline.getThresholdSaturation()[0], event.value.getDouble() ); 
       }, EntryListenerFlags.kUpdate );
 
-    nt.getEntry("MinLuminance").setDouble( TapePipelineNew.getThresholdLuminance()[0] );
+    nt.getEntry("MinLuminance").setDouble( TapePipeline.getThresholdLuminance()[0] );
     nt.getEntry("MinLuminance").addListener( event -> { 
-        TapePipelineNew.setThresholdLuminance( event.value.getDouble(), TapePipelineNew.getThresholdLuminance()[1] ); 
+        TapePipeline.setThresholdLuminance( event.value.getDouble(), TapePipeline.getThresholdLuminance()[1] ); 
       }, EntryListenerFlags.kUpdate );
 
-    nt.getEntry("MaxLuminance").setDouble( TapePipelineNew.getThresholdLuminance()[1] );
+    nt.getEntry("MaxLuminance").setDouble( TapePipeline.getThresholdLuminance()[1] );
     nt.getEntry("MaxLuminance").addListener( event -> { 
-        TapePipelineNew.setThresholdLuminance( TapePipelineNew.getThresholdLuminance()[0], event.value.getDouble() ); 
+        TapePipeline.setThresholdLuminance( TapePipeline.getThresholdLuminance()[0], event.value.getDouble() ); 
       }, EntryListenerFlags.kUpdate );
 
-    nt.getEntry("ContoursMinArea").setDouble( TapePipelineNew.getfilterContoursMinArea() );
+    nt.getEntry("ContoursMinArea").setDouble( TapePipeline.getfilterContoursMinArea() );
     nt.getEntry("ContoursMinArea").addListener( event -> { 
-        TapePipelineNew.setContoursMinArea( event.value.getDouble() ); 
+        TapePipeline.setContoursMinArea( event.value.getDouble() ); 
       }, EntryListenerFlags.kUpdate );
   
     // start cameras
@@ -283,7 +283,7 @@ public final class Main {
       });
       */
       VisionThread visionThread = new VisionThread(cameras.get(0),
-              new TapePipelineNew(), pipeline -> {
+              new TapePipeline(), pipeline -> {
                 threshold.putFrame( pipeline.hslThresholdOutput() );
                 output.putFrame( pipeline.output() );
                 // System.out.println("Found contours: " + pipeline.findContoursOutput().size() );

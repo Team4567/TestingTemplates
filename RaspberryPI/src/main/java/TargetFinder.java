@@ -91,6 +91,9 @@ class TargetFinder {
         for (int i = 0; i < inputContours.size(); i++) {
             inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
             RotatedRect rotatedRect = Imgproc.minAreaRect( mat2f );
+
+            // Dangerous, don't this, it changes the rectangle verticies!!!!
+            // This is okay only because we don't reuse this list
             rotatedRect.angle = ( rotatedRect.size.width < rotatedRect.size.height ) ? rotatedRect.angle + 90 : rotatedRect.angle;
             rects.add(rotatedRect);
         }

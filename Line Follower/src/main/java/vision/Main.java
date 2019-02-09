@@ -84,6 +84,7 @@ import org.opencv.core.Mat;
 
 public final class Main {
   private static String configFile = "/boot/frc.json";
+  
   private final static Object imgLock = new Object();
   @SuppressWarnings("MemberName")
   public static class CameraConfig {
@@ -217,7 +218,7 @@ public final class Main {
    * Example pipeline.
    **/
     public static class LineFollow implements VisionPipeline{
-
+      private Mat out= new Mat();
       //Outputs
       private Mat hsvThresholdOutput = new Mat();
       private Mat cvErodeOutput = new Mat();
@@ -277,9 +278,12 @@ public final class Main {
         double filterContoursMinRatio = 0.0;
         double filterContoursMaxRatio = 1000.0;
         filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
-    
+        out= new Mat(source0.size(),source0.type(),new Scalar(0,0,0));
+        renderContours(filterContoursOutput, out);
       }
-    
+      public Mat out(){
+        return out;
+      }
       /**
        * This method is a generated getter for the output of a HSV_Threshold.
        * @return Mat output from HSV_Threshold.
@@ -455,7 +459,22 @@ public final class Main {
           output.add(contour);
         }
       }
+      private void renderContours( List<MatOfPoint> inputContours, Mat output ) {
+        // Scalar white = new Scalar(255,255,255);
+        Scalar red   = new Scalar(0,0,255);
+        Scalar white = new Scalar(255,255,255);
+        MatOfPoint2f mat2f = new MatOfPoint2f();
+        
+        for (int i = 0; i < inputContours.size(); i++) {
+          inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
+          RotatedRect rotatedRect = Imgproc.minAreaRect( mat2f );
     
+          Point[] vertices = new Point[4];
+          rotatedRect.points(vertices);
+          for( int j=0; j<4; j++ )
+            Imgproc.line( output, vertices[j], vertices[(j+1)%4], red );
+        }
+      }
     
     
     
@@ -500,24 +519,27 @@ public final class Main {
       */
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new LineFollow(), pipeline -> {
-
+                
+                RotatedRect r= new RotatedRect();
                 NetworkTable lineOut= ntinst.getTable("Line Follow");
                 NetworkTableEntry centerX= lineOut.getEntry("x");
                 NetworkTableEntry centerY= lineOut.getEntry("y");
                 NetworkTableEntry isThere=lineOut.getEntry("isDetected");
                 
-                outputStream.putFrame(pipeline.cvDilateOutput());
+                
                 if (!pipeline.filterContoursOutput().isEmpty()) {
-                  isThere.setBoolean(true);
-                  Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
+                  MatOfPoint2f mat2f= new MatOfPoint2f();
+                  pipeline.filterContoursOutput().get(0).convertTo(mat2f, CvType.CV_32F);
+                  
+                  r = Imgproc.minAreaRect(mat2f);
                   synchronized (imgLock) {
-                      centerX.setDouble( r.x + ( r.width / 2 ) );
-                      centerY.setDouble( r.y + ( r.height / 2 ) );
+                      centerX.setDouble( r.center.x );
+                      centerY.setDouble( r.center.y );
                   }
-                } else {
-                  isThere.setBoolean( false );
-                }
+                } 
+                isThere.setBoolean( pipeline.filterContoursOutput().isEmpty() );
 
+                outputStream.putFrame( pipeline.out() );
         });
       visionThread.start();
     }
