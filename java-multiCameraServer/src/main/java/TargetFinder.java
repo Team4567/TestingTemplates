@@ -11,7 +11,7 @@ import org.opencv.imgproc.Imgproc;
 
 class TargetFinder {
 
-    public static double findYawToTargetJoe(List<MatOfPoint> inputContours, double frameCenter) {
+    public static double findXToTargetCenterJoe(List<MatOfPoint> inputContours ) {
         ArrayList<RotatedRect> lefts = new ArrayList<RotatedRect>();
         ArrayList<RotatedRect> rights = new ArrayList<RotatedRect>();
         ArrayList<Double>      midpoints= new ArrayList<Double>();
@@ -61,16 +61,16 @@ class TargetFinder {
 			targetMidpoint=midpoints.get(closestMI);
 		}
 
-        return targetMidpoint*Camera.PIXEL_TO_ANGLE;
+        return targetMidpoint;
     }
 
-    public static double findYawToTargetJames( List<MatOfPoint> inputContours, double frameCenter ) 
+    // This routine find a target (tape pair) and returns the X to the center
+    // If no complete target is found it returns -1
+    public static double findXToTargetCenterJames( List<MatOfPoint> inputContours ) 
     {
-        double yawToTarget = Double.NaN;
-
         // return nothing if less than 2 contours or more than 8 (too much noise)
         if( inputContours.size() < 2 || inputContours.size() > 8 ) {
-            return yawToTarget;
+            return -1.0;
         }
 
         // Sort from largest to smallest area contour
@@ -95,7 +95,7 @@ class TargetFinder {
             rects.add(rotatedRect);
         }
 
-        double avgX = 0.0;
+        double avgX = -1.0;
         for (RotatedRect rect : rects ) {
             if( rect.angle > 0.0 ) {
                 // We have a right side, look for the closest left side with x less than this x
@@ -127,12 +127,11 @@ class TargetFinder {
                 }
             }
 
-            if( avgX != 0.0 ) {
+            if( avgX != -1.0 ) {
                 break;                
             }
         }
 
-//        return Math.toDegrees( Math.atan( (avgX - frameCenter) / Camera.H_FOCAL_LENGTH ) ); 
         return avgX;
     }
 }

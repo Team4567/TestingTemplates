@@ -224,8 +224,9 @@ public final class Main {
     }
 
     NetworkTable nt = ntinst.getTable("TapePipeline");
-    NetworkTableEntry e = nt.getEntry("NumContours");
-    NetworkTableEntry y= nt.getEntry("Yaw");
+    NetworkTableEntry eNumContours = nt.getEntry("NumContours");
+    NetworkTableEntry eTargetYaw = nt.getEntry("Yaw");
+    NetworkTableEntry eTargetLock = nt.getEntry("Lock");
     
     nt.getEntry("MinHue").setDouble( TapePipelineNew.getThresholdHue()[0] );
     nt.getEntry("MinHue").addListener( event -> { 
@@ -286,8 +287,9 @@ public final class Main {
                 threshold.putFrame( pipeline.hslThresholdOutput() );
                 output.putFrame( pipeline.output() );
                 // System.out.println("Found contours: " + pipeline.findContoursOutput().size() );
-                e.setDouble( pipeline.filterContoursOutput().size() );
-                y.setDouble( pipeline.getTargetYaw() );
+                eNumContours.setDouble( pipeline.filterContoursOutput().size() );
+                eTargetYaw.setDouble( pipeline.getTargetYaw() );
+                eTargetLock.setBoolean( !Double.isNaN( pipeline.getTargetYaw() ) );
       });
       visionThread.start();
     }

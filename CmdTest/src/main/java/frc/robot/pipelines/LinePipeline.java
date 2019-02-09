@@ -15,10 +15,12 @@ import org.opencv.features2d.FeatureDetector;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.*;
 import org.opencv.objdetect.*;
+
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.vision.VisionPipeline;
 import edu.wpi.cscore.CvSink;
 import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
@@ -29,19 +31,23 @@ import edu.wpi.cscore.UsbCamera;
 *
 * @author GRIP
 */
-public class LineFollow {
+public class LinePipeline implements VisionPipeline {
+	/*
 			static UsbCamera cam= CameraServer.getInstance().startAutomaticCapture();
 	
 			static CvSink sink=CameraServer.getInstance().getVideo();
 			static CvSource out=CameraServer.getInstance().putVideo("Line View", 256, 144);
 			static NetworkTableInstance inst=NetworkTableInstance.getDefault();
 			static NetworkTable lineOutput=inst.getTable("Line Output");
+	*/
+
 	//Outputs
 	private static Mat hsvThresholdOutput = new Mat();
 	private static Mat cvErodeOutput = new Mat();
 	private static Mat cvDilateOutput = new Mat();
 	private static ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private static ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
+	private ArrayList<RotatedRect> findRotatedRectsOutput = new ArrayList<RotatedRect>();
 
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -50,13 +56,16 @@ public class LineFollow {
 	/**
 	 * This is the primary method that runs the entire pipeline and updates the outputs.
 	 */
-	public static void process() {
+	public void process(Mat source0) {
+		/*
 				cam.setResolution(256,144);
 				cam.setFPS(30);
 		// Step HSV_Threshold0:
 				Mat input= new Mat();
 				sink.grabFrame(input);
-				Mat hsvThresholdInput = input;
+		*/
+
+		Mat hsvThresholdInput = source0;
 		double[] hsvThresholdHue = {40.46762589928058, 112.42320819112628};
 		double[] hsvThresholdSaturation = {0.0, 28.72013651877133};
 		double[] hsvThresholdValue = {204.09172661870502, 255.0};
@@ -80,7 +89,7 @@ public class LineFollow {
 		Scalar cvDilateBordervalue = new Scalar(-1);
 		cvDilate(cvDilateSrc, cvDilateKernel, cvDilateAnchor, cvDilateIterations, cvDilateBordertype, cvDilateBordervalue, cvDilateOutput);
 		//Outputs found white areas
-				out.putFrame(cvDilateOutput);
+		//				out.putFrame(cvDilateOutput);
 		// Step Find_Contours0:
 		Mat findContoursInput = cvDilateOutput;
 		boolean findContoursExternalOnly = true;
@@ -100,53 +109,32 @@ public class LineFollow {
 		double filterContoursMinRatio = 0;
 		double filterContoursMaxRatio = 1000;
 		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
-				for(int i =0; i<filterContoursOutput.size();i++){
-					NetworkTableEntry x= lineOutput.getEntry("x of "+i);
-					NetworkTableEntry y= lineOutput.getEntry("y of "+i);
-					Rect r= Imgproc.boundingRect(filterContoursOutput.get(i));
-					x.setDouble(r.x);
-					y.setDouble(r.y);
-				}
+
+		findRotatedRects( filterContoursOutput, findRotatedRectsOutput );
 	}
 
-	/**
-	 * This method is a generated getter for the output of a HSV_Threshold.
-	 * @return Mat output from HSV_Threshold.
-	 */
 	public Mat hsvThresholdOutput() {
 		return hsvThresholdOutput;
 	}
 
-	/**
-	 * This method is a generated getter for the output of a CV_erode.
-	 * @return Mat output from CV_erode.
-	 */
 	public Mat cvErodeOutput() {
 		return cvErodeOutput;
 	}
 
-	/**
-	 * This method is a generated getter for the output of a CV_dilate.
-	 * @return Mat output from CV_dilate.
-	 */
 	public Mat cvDilateOutput() {
 		return cvDilateOutput;
 	}
 
-	/**
-	 * This method is a generated getter for the output of a Find_Contours.
-	 * @return ArrayList<MatOfPoint> output from Find_Contours.
-	 */
 	public ArrayList<MatOfPoint> findContoursOutput() {
 		return findContoursOutput;
 	}
 
-	/**
-	 * This method is a generated getter for the output of a Filter_Contours.
-	 * @return ArrayList<MatOfPoint> output from Filter_Contours.
-	 */
 	public ArrayList<MatOfPoint> filterContoursOutput() {
 		return filterContoursOutput;
+	}
+
+	public ArrayList<RotatedRect> findRotatedRectsOutput() {
+		return findRotatedRectsOutput;
 	}
 
 
@@ -177,7 +165,8 @@ public class LineFollow {
 	 * @param dst Output Image.
 	 */
 	private static void cvErode(Mat src, Mat kernel, Point anchor, double iterations,
-		int borderType, Scalar borderValue, Mat dst) {
+		int borderType, Scalar borderValue, Mat dst) 
+	{
 		if (kernel == null) {
 			kernel = new Mat();
 		}
@@ -201,7 +190,8 @@ public class LineFollow {
 	 * @param dst Output Image.
 	 */
 	private static void cvDilate(Mat src, Mat kernel, Point anchor, double iterations,
-	int borderType, Scalar borderValue, Mat dst) {
+		int borderType, Scalar borderValue, Mat dst) 
+	{
 		if (kernel == null) {
 			kernel = new Mat();
 		}
@@ -285,5 +275,14 @@ public class LineFollow {
 		}
 	}
 
+	private void findRotatedRects( List<MatOfPoint> inputContours, List<RotatedRect> outputRotatedRects ) 
+	{
+		MatOfPoint2f mat2f = new MatOfPoint2f();
+		for (int i = 0; i < inputContours.size(); i++) {
+			inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
+			RotatedRect rotatedRect = Imgproc.minAreaRect( mat2f );
+			outputRotatedRects.add(rotatedRect);
+		}
+	}
 }
 

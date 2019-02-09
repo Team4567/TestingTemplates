@@ -1,5 +1,11 @@
 
 class Camera {
+
+	// This is all very interesting but this isn't reality.
+	// I measured the Horizontal and Vertical FOV at 320x240 resolution
+	// I'll keep it here commected out for now, but, we're going with the true measurements
+
+	/*
     	//image size ratioed to 16:9
 	public static final double IMAGE_WIDTH  = 1280.0;
 	public static final double IMAGE_HEIGHT = 720.0;
@@ -20,5 +26,16 @@ class Camera {
 	//Focal Length calculations: https://docs.google.com/presentation/d/1ediRsI-oR3-kwawFJZ34_ZTlQS2SDBLjZasjzZ-eXbQ/pub?start=false&loop=false&slide=id.g12c083cffa_0_165
 	public static final double H_FOCAL_LENGTH = IMAGE_WIDTH / (2*Math.tan((HORIZONTAL_FOV/2)));
 	public static double targetMidpoint=IMAGE_WIDTH/2;
+	*/
 
+	public static final double IMAGE_WIDTH  = 320.0;
+	public static final double HORIZONTAL_FOV = 62.0; // degrees
+
+	// Returns the angle that points to the pixel offset from center
+	// Could be positive or negative for left or right of center
+	// The Horizontal FOV was measured for 320x240
+	// It is approximately correct for other resolutions only
+	public static double yawToHorizPixel( int pixOffet, int width ) {
+		return (pixOffet - width/2) / (width / Camera.HORIZONTAL_FOV);
+	}
 }

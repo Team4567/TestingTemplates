@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.RotatedRect;
 import org.opencv.imgproc.Imgproc;
 import edu.wpi.first.vision.VisionPipeline;
@@ -49,7 +51,6 @@ public class TapePipeline implements VisionPipeline {
 		Mat findContoursInput = cvThresholdOutput;
 		boolean findContoursExternalOnly = false;
 		findContours(findContoursInput, findContoursExternalOnly, findContoursOutput);
-
 	}
 
 	/**
@@ -75,7 +76,6 @@ public class TapePipeline implements VisionPipeline {
 	public ArrayList<MatOfPoint> findContoursOutput() {
 		return findContoursOutput;
 	}
-	
 
 	/**
 	 * Converts an image from one color space to another.
@@ -107,8 +107,7 @@ public class TapePipeline implements VisionPipeline {
 	 * @param maskSize the size of the mask.
 	 * @param output The image in which to store the output.
 	 */
-	private void findContours(Mat input, boolean externalOnly,
-		List<MatOfPoint> contours) {
+	private void findContours(Mat input, boolean externalOnly, List<MatOfPoint> contours) {
 		Mat hierarchy = new Mat();
 		contours.clear();
 		int mode;
@@ -122,9 +121,5 @@ public class TapePipeline implements VisionPipeline {
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
 		
 	}
-
-
-
-
 }
 
