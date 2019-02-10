@@ -225,9 +225,10 @@ public final class Main {
       ntinst.startClientTeam(team);
     }
 
-    NetworkTable nt = ntinst.getTable("TapePipeline");
+    NetworkTable nt = ntinst.getTable("Pipelines");
     NetworkTableEntry eNumContours = nt.getEntry("NumContours");
     NetworkTableEntry eTargetYaw = nt.getEntry("Yaw");
+    NetworkTableEntry eLineAngle = nt.getEntry("LineAngle");
     NetworkTableEntry eTargetLock = nt.getEntry("Lock");
 
     initializeNetworkTables( nt );
@@ -241,13 +242,12 @@ public final class Main {
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
       VideoMode m = cameras.get(0).getVideoMode();
-      CvSource lineOutput = CameraServer.getInstance().putVideo("Line", m.width, m.height);
+//      CvSource lineOutput = CameraServer.getInstance().putVideo("Line", m.width, m.height);
       CvSource output    = CameraServer.getInstance().putVideo("Output", m.width, m.height);
 
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new TapePipeline(), pipeline -> {
 //                threshold.putFrame( pipeline.hslThresholdOutput() );
-                output.putFrame( pipeline.output() );
                 eNumContours.setDouble( pipeline.filterContoursOutput().size() );
 
                 TargetInfo ti = pipeline.getTargetInfo();
@@ -256,16 +256,20 @@ public final class Main {
                   eTargetLock.setBoolean( true );
 
                   // Have a target, now look for the line.
-                  // We only this on a cropped image with the min and max X and lower than Y of target
+                  // We only need to look at a cropped image with the min and max X and lower than Y of target
+                  // Render over the output from the main pipeline.
                   LinePipeline linePipeline = new LinePipeline();
-                  linePipeline.process( pipeline.input(), new Rect( (int)ti.minX, (int)ti.centerY, (int)ti.maxX-(int)ti.minX, pipeline.input().height() - (int)ti.centerY ) );
-                  lineOutput.putFrame( linePipeline.output() );
+                  double height = pipeline.input().height();
+                  linePipeline.process( pipeline.input(), new Rect( (int)ti.minX, (int)height/2, (int)ti.maxX-(int)ti.minX, (int)height/2 ) );
+                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), pipeline.output(), (int)ti.minX, (int)height/2);
+                  eLineAngle.setDouble( linePipeline.getLineAngle() );
                 }
                 else {
                   eTargetYaw.setDouble( Double.NaN );
                   eTargetLock.setBoolean( false );
                 }
-      });
+                output.putFrame( pipeline.output() );
+       });
       visionThread.start();
     }
 
@@ -279,9 +283,11 @@ public final class Main {
     }
   }
 
-  private static void initializeNetworkTables( NetworkTable nt ) 
+  private static void initializeNetworkTables( NetworkTable pTable ) 
   {
       // TapePipeline Filter criteria
+      NetworkTable nt = pTable.getSubTable("TapePipeline");
+
       nt.getEntry("TapeMinHue").setDouble( TapePipeline.getThresholdHue()[0] );
       nt.getEntry("TapeMinHue").addListener( event -> { 
           TapePipeline.setThresholdHue( event.value.getDouble(), TapePipeline.getThresholdHue()[1]); 
@@ -317,7 +323,19 @@ public final class Main {
           TapePipeline.setContoursMinArea( event.value.getDouble() ); 
         }, EntryListenerFlags.kUpdate );
 
-      // LinePipeline Filter criteria
+      nt.getEntry("TapeRotatedRectMinRatio").setDouble( TapePipeline.getRotatedRectRatio()[0] );
+      nt.getEntry("TapeRotatedRectMinRatio").addListener( event -> { 
+          TapePipeline.setRotatedRectRatio( event.value.getDouble(), TapePipeline.getRotatedRectRatio()[1] ); 
+        }, EntryListenerFlags.kUpdate );
+
+      nt.getEntry("TapeRotatedRectMaxRatio").setDouble( TapePipeline.getRotatedRectRatio()[1] );
+      nt.getEntry("TapeRotatedRectMaxRatio").addListener( event -> { 
+          TapePipeline.setRotatedRectRatio( TapePipeline.getRotatedRectRatio()[0], event.value.getDouble() ); 
+        }, EntryListenerFlags.kUpdate );
+          
+        // LinePipeline Filter criteria
+      nt = pTable.getSubTable("LinePipeline");
+
       nt.getEntry("LineMinHue").setDouble( LinePipeline.getThresholdHue()[0] );
       nt.getEntry("LineMinHue").addListener( event -> { 
           LinePipeline.setThresholdHue( event.value.getDouble(), LinePipeline.getThresholdHue()[1]); 

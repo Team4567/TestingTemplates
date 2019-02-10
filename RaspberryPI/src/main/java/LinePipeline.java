@@ -19,9 +19,9 @@ import edu.wpi.first.vision.VisionPipeline;
 public class LinePipeline implements VisionPipeline 
 {
 	// Dynamic setting of Threshold values;
-	private static double[] hsvThresholdHue = {40.0, 112.0};
+	private static double[] hsvThresholdHue = {0.0, 255.0};
 	private static double[] hsvThresholdSaturation = {0.0, 29.0};
-	private static double[] hsvThresholdValue = {204.0, 255.0};
+	private static double[] hsvThresholdValue = {100.0, 255.0};
 
 	private static double filterContoursMinArea = 42.0;
 
@@ -57,11 +57,11 @@ public class LinePipeline implements VisionPipeline
 	}
 	
 	//Outputs
-	private static Mat hsvThresholdOutput = new Mat();
-	private static ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
-	private static ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
+	private Mat hsvThresholdOutput = new Mat();
+	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
+	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
 	private ArrayList<RotatedRect> findRotatedRectsOutput = new ArrayList<RotatedRect>();
-	private static Mat output = new Mat();
+	private double lineAngle = Double.NaN;
 
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -97,9 +97,6 @@ public class LinePipeline implements VisionPipeline
 		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
 
 		findRotatedRects( filterContoursOutput, findRotatedRectsOutput );
-
-		output = source0.clone();
-		renderContours(findRotatedRectsOutput, output);
 	}
 
 	public Mat hsvThresholdOutput() {
@@ -118,8 +115,8 @@ public class LinePipeline implements VisionPipeline
 		return findRotatedRectsOutput;
 	}
 
-	public Mat output() {
-		return output;
+	public double getLineAngle() {
+		return lineAngle;
 	}
 
 	/**
@@ -204,37 +201,51 @@ public class LinePipeline implements VisionPipeline
 
 	private void findRotatedRects( List<MatOfPoint> inputContours, List<RotatedRect> outputRotatedRects ) 
 	{
+		double angle = Double.NaN;
 		MatOfPoint2f mat2f = new MatOfPoint2f();
-		for (int i = 0; i < inputContours.size(); i++) {
+
+		for (int i = 0; i < inputContours.size(); i++) 
+		{
 			inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
 			RotatedRect rotatedRect = Imgproc.minAreaRect( mat2f );
 			outputRotatedRects.add(rotatedRect);
+			angle = ( rotatedRect.size.width < rotatedRect.size.height ) ? rotatedRect.angle + 90 : rotatedRect.angle;
 		}
+
+		// We have a good line only if there is only one found.
+		lineAngle = (inputContours.size() == 1) ? angle : Double.NaN;
 	}
 
-	private void renderContours( List<RotatedRect> rects, Mat output ) {
-		// Scalar white = new Scalar(255,255,255);
+	public void renderContours( List<RotatedRect> rects, Mat output, int offsetX, int offsetY ) 
+	{
 		Scalar red   = new Scalar(0,0,255);
 		Scalar white = new Scalar(255,255,255);
+		double fontScale = (output.width() > 320 ? 1.0 : 0.5);
 		
 		for( RotatedRect rect : rects ) 
 		{
 			Point[] vertices = new Point[4];
 			rect.points(vertices);
-			for( int j=0; j<4; j++ )
-				Imgproc.line( output, vertices[j], vertices[(j+1)%4], red );
+			// add offsets first
+			for( int i=0; i<4; i++ ) {
+				vertices[i].x += offsetX;
+				vertices[i].y += offsetY;
+			}
+
+			for( int i=0; i<4; i++ )
+				Imgproc.line( output, vertices[i], vertices[(i+1)%4], red );
 
 			Point p = rect.center.clone();
+			p.x += offsetX;
+			p.y += offsetY;
+
 			double angle = ( rect.size.width < rect.size.height ) ? rect.angle + 90 : rect.angle;
-			double yaw = (rect.center.x - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV); 
 
 			double dy = (Math.signum(angle) * 15);
 			p.y += dy;
-			Imgproc.putText( output, "/"+Math.floor(angle), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
+			Imgproc.putText( output, "/"+(int)angle, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
 			p.y += dy;
-			Imgproc.putText( output, "("+Math.floor(rect.center.x)+","+Math.floor(rect.center.y)+")", p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
-			p.y += dy;
-			Imgproc.putText( output, "Y: "+Math.floor(yaw), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
+			Imgproc.putText( output, "("+(int)rect.center.x+","+(int)rect.center.y+")", p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
 		}
 	}
 }
