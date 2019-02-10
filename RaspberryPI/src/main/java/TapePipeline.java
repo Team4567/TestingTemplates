@@ -34,8 +34,8 @@ public class TapePipeline implements VisionPipeline {
 	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
 	private Mat output = new Mat();
-	private double targetYaw = Double.NaN;
-	private double targetDistance = Double.NaN;
+
+	private TargetInfo targetInfo = null;  // null when no lock
 
 	// Dynamic setting of Threshold values;
 	private static double[] hslThresholdHue = {80.0, 100.0};
@@ -104,7 +104,8 @@ public class TapePipeline implements VisionPipeline {
 		double filterContoursMaxRatio = 1000;
 		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
 
-		output = Mat.zeros(source0.size(), source0.type() );
+//		output = Mat.zeros(source0.size(), source0.type() );
+		output = source0.clone();
 		renderContours(filterContoursOutput, output);
 	}
 
@@ -136,8 +137,8 @@ public class TapePipeline implements VisionPipeline {
 		return output;
 	}
 
-	public double getTargetYaw() {
-		return targetYaw;
+	public TargetInfo getTargetInfo() {
+		return targetInfo;
 	}
 
 	/**
@@ -255,27 +256,21 @@ public class TapePipeline implements VisionPipeline {
 			Imgproc.putText( output, "Y: "+Math.floor(yaw), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
 		}
 
-		double[] targetInfo = TargetFinder.findTargetLockInfoJames(inputContours);
+		TargetInfo targetInfo = TargetFinder.findTargetLockInfoJames(inputContours, output.width(), output.height() );
 
-		double lineX = 0;
-		targetYaw = Double.NaN;
-		if( targetInfo != null && targetInfo[0] >= 0.0 ) {
-			lineX = targetInfo[0];
-			targetYaw = (targetInfo[0] - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV);
+		if( targetInfo != null ) {  // We have a lock
+			double lineX = targetInfo.centerX;
+			double targetYaw = (targetInfo.centerX - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV);
+
+			Imgproc.putText( output, "Yaw: "+ Math.floor(targetYaw), new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, 0.7, white );
+			Imgproc.line(output, new Point(lineX, 0), new Point(lineX, output.height()), white);
+	
+			Imgproc.putText( output, "Distance: "+ Math.floor(targetInfo.distance), new Point(lineX+3, 20), Core.FONT_HERSHEY_PLAIN, 0.7, white );
+			String info = "("+ Math.floor(targetInfo.centerX) + "," + Math.floor(targetInfo.centerY) + "," + Math.floor(targetInfo.centerHeight ) + ")";
+			Imgproc.putText( output, info, new Point(lineX+3, 30), Core.FONT_HERSHEY_PLAIN, 0.7, white );
 		}
-
-		targetDistance = Double.NaN;
-		if( targetInfo != null ) { // && targetInfo[1] >= 0.0 ) {
-			targetDistance = targetInfo[1];
-		}
-
-		Imgproc.putText( output, "Yaw: "+ Math.floor(targetYaw), new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, 0.7, white );
-		Imgproc.line(output, new Point(lineX, 0), new Point(lineX, output.height()), white);
-
-		Imgproc.putText( output, "Distance: "+ Math.floor(targetDistance), new Point(lineX+3, 20), Core.FONT_HERSHEY_PLAIN, 0.7, white );
-		if( targetInfo != null ) {
-			Imgproc.putText( output, "("+ Math.floor(targetInfo[2]) + "," + Math.floor(targetInfo[3]) + ")", new Point(lineX+3, 30), Core.FONT_HERSHEY_PLAIN, 0.7, white );
-			Imgproc.putText( output, "("+ Math.floor(targetInfo[4]) + "," + Math.floor(targetInfo[5]) + ")", new Point(lineX+3, 40), Core.FONT_HERSHEY_PLAIN, 0.7, white );
+		else {
+			Imgproc.putText( output, "No Target Lock", new Point(3, 20), Core.FONT_HERSHEY_PLAIN, 0.7, white );
 		}
 	}
 }

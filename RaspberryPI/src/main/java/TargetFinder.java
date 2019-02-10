@@ -52,10 +52,10 @@ class TargetFinder {
 		int closestMI=-1;
 		for( int m=0; m < midpoints.size(); m++ ) {
 			double min=9999999;
-			if(midpoints.get(m)-(Camera.IMAGE_WIDTH/2)<min){
-				closestMI=m;
-				min= midpoints.get(m)-(Camera.IMAGE_WIDTH/2);
-			}
+//			if(midpoints.get(m)-(Camera.IMAGE_WIDTH/2)<min){
+//				closestMI=m;
+//				min= midpoints.get(m)-(Camera.IMAGE_WIDTH/2);
+//			}
         }
         
         double targetMidpoint = 0.0;
@@ -68,9 +68,9 @@ class TargetFinder {
 
     // This routine finds a target (tape pair) and returns the X to the center and approx distance
     // If no complete target is found it returns null
-    public static double[] findTargetLockInfoJames( List<MatOfPoint> inputContours ) 
+    public static TargetInfo findTargetLockInfoJames( List<MatOfPoint> inputContours, int frameWidth, int frameHeight ) 
     {
-        double[] ti = null;  // This is null until we lock on to a target
+        TargetInfo ti = null; // This is null until we lock on to a target
 
         // return nothing if less than 2 contours or more than 8 (too much noise)
         if( inputContours.size() < 2 || inputContours.size() > 8 ) {
@@ -87,13 +87,6 @@ class TargetFinder {
             }
         });
     
-        // Calculate Bounding Rectangles for each contour
-        // Because we are processing them in order, rects will also be in descending size order.
-        ArrayList<Rect> rects = new ArrayList<Rect>();
-        for( int i = 0; i < inputContours.size(); i++ ) {
-            rects.add( Imgproc.boundingRect( inputContours.get(i) ) );
-        }
-
         // Calculate rotatedRectangles for each contour
         // Because we are processing them in order, rects will also be in descending size order.
         ArrayList<RotatedRect> rotatedRects = new ArrayList<RotatedRect>();
@@ -103,53 +96,54 @@ class TargetFinder {
             rotatedRects.add( Imgproc.minAreaRect( mat2f ) );
         }
 
-        double avgX = -1.0;
         for( int i=0; i< rotatedRects.size(); i++ ) {
-            RotatedRect rr = rotatedRects.get(i);
+            RotatedRect rrect1 = rotatedRects.get(i);
+            int bestMatchIndex = -1;  // We'll be looking for the target that is the best match, -1, none yet.
 
-            double angle = ( rr.size.width < rr.size.height ) ? rr.angle + 90 : rr.angle;
+            double angle = ( rrect1.size.width < rrect1.size.height ) ? rrect1.angle + 90 : rrect1.angle;
             if( angle > 0.0 ) {
                 // We have a right side, look for the closest left side with x less than this x
                 double maxX = 0.0;
-                for (RotatedRect rect2 : rotatedRects ) {
-                    double angle2 = ( rect2.size.width < rect2.size.height ) ? rect2.angle + 90 : rect2.angle;
-                    if( angle2 < 0.0 && rect2.center.x < rr.center.x && rect2.center.x > maxX ) {
-                        // Found a closer left side
-                        maxX = rect2.center.x;
-                    }
-                }
+                for( int j=0; j<rotatedRects.size(); j++ ) {  // j is the target number that is the next candidate
+                    RotatedRect rrect2 = rotatedRects.get(j);
 
-                if( maxX != 0.0 ) {
-                    // Found other half!
-                    avgX = (rr.center.x + maxX)/2;
+                    double angle2 = ( rrect2.size.width < rrect2.size.height ) ? rrect2.angle + 90 : rrect2.angle;
+                    if( angle2 < 0.0 && rrect2.center.x < rrect1.center.x && rrect2.center.x > maxX ) {
+                        // Found a closer left side
+                        maxX = rrect2.center.x;
+                        bestMatchIndex = j;
+                    }
                 }
             } else if( angle < 0.0 ) {
                 // We have a left side, look for the closest right side with x greater than this x
                 double minX = 9999.0; // wider than any image
-                for (RotatedRect rect2 : rotatedRects ) {
-                    double angle2 = ( rect2.size.width < rect2.size.height ) ? rect2.angle + 90 : rect2.angle;
-                    if( angle2 > 0.0 && rect2.center.x > rr.center.x && rect2.center.x < minX ) {
-                        // Found a closer left side
-                        minX = rect2.center.x;
-                    }
-                }
+                for( int j=0; j<rotatedRects.size(); j++ ) {  // j is the target number that is the next candidate
+                    RotatedRect rrect2 = rotatedRects.get(j);
 
-                if( minX != 9999.0 ) {
-                    // Found other half!
-                    avgX = (rr.center.x + minX)/2;
+                    double angle2 = ( rrect2.size.width < rrect2.size.height ) ? rrect2.angle + 90 : rrect2.angle;
+                    if( angle2 > 0.0 && rrect2.center.x > rrect1.center.x && rrect2.center.x < minX ) {
+                        // Found a closer left side
+                        minX = rrect2.center.x;
+                        bestMatchIndex = j;
+                    }
                 }
             }
 
-            if( avgX != -1.0 ) {
-                // Found match for target i
-                // Use height of bounding rectagle i to calculate distance
-                ti = new double[6];
-                ti[0] = avgX;
-                ti[1] = (TARGET_HEIGHT_INCHES/2.0) / Math.tan( Math.toRadians( (rects.get(i).height * Camera.VERTICAL_FOV)/480.0 ) );
-                ti[2] = rects.get(i).x;
-                ti[3] = rects.get(i).y;
-                ti[4] = rects.get(i).width;
-                ti[5] = rects.get(i).height;
+            if( bestMatchIndex >= 0 ) {  // we found a match for target i!
+
+                double centerX = (rotatedRects.get(i).center.x + rotatedRects.get(bestMatchIndex).center.x) / 2;
+                double centerY = (rotatedRects.get(i).center.y + rotatedRects.get(bestMatchIndex).center.y) / 2;
+
+                // for height we don't want to use rotated rect since the angle throws off the height.
+                // calculate the bounding rectangle on the original contour instead.
+                Rect rect1 = Imgproc.boundingRect( inputContours.get(i) );
+                Rect rect2 = Imgproc.boundingRect( inputContours.get(bestMatchIndex) );
+                double centerHeight = (rect1.height + rect2.height) / 2;
+
+                double distance = Camera.estimateDistance(TARGET_HEIGHT_INCHES, centerHeight, frameHeight );
+                double yaw      = Camera.yawToHorizPixel( centerX, frameWidth );
+
+                ti = new TargetInfo( centerX, centerY, centerHeight, distance, yaw );
                 break;                
             }
         }

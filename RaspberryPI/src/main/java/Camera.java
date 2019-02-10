@@ -28,8 +28,6 @@ class Camera {
 	public static double targetMidpoint=IMAGE_WIDTH/2;
 	*/
 
-	public static final double IMAGE_WIDTH   = 320.0;
-	public static final double IMAGE_HEIGHT  = 240.0;
 	public static final double HORIZONTAL_FOV = 52.7926;  // degrees, measured
 	public static final double VERTICAL_FOV   = 43.9823;  // degrees, measured
 
@@ -37,9 +35,12 @@ class Camera {
 	// Could be positive or negative for left or right of center
 	// The Horizontal FOV was measured for 320x240
 	// It is approximately correct for other resolutions only
-	public static double yawToHorizPixel( int pixOffet, int width ) {
+	public static double yawToHorizPixel( double pixOffet, double width ) {
 		return (pixOffet - width/2) / (width / Camera.HORIZONTAL_FOV);
 	}
 
+	public static double estimateDistance( double knownHeightInches, double heightInPixels, double frameHeightPixels ) {
+		return  (knownHeightInches/2.0) / Math.tan( Math.toRadians( (heightInPixels * Camera.VERTICAL_FOV)/frameHeightPixels/2 ) );
+	}
 	
 }

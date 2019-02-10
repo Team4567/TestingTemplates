@@ -272,7 +272,7 @@ public final class Main {
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
       VideoMode m = cameras.get(0).getVideoMode();
-      CvSource threshold = CameraServer.getInstance().putVideo("Threshold", m.width, m.height);
+//      CvSource threshold = CameraServer.getInstance().putVideo("Threshold", m.width, m.height);
       CvSource output    = CameraServer.getInstance().putVideo("Output", m.width, m.height);
 
       /*
@@ -284,12 +284,20 @@ public final class Main {
       */
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new TapePipeline(), pipeline -> {
-                threshold.putFrame( pipeline.hslThresholdOutput() );
+//                threshold.putFrame( pipeline.hslThresholdOutput() );
                 output.putFrame( pipeline.output() );
                 // System.out.println("Found contours: " + pipeline.findContoursOutput().size() );
                 eNumContours.setDouble( pipeline.filterContoursOutput().size() );
-                eTargetYaw.setDouble( pipeline.getTargetYaw() );
-                eTargetLock.setBoolean( !Double.isNaN( pipeline.getTargetYaw() ) );
+
+                TargetInfo ti = pipeline.getTargetInfo();
+                if( ti != null ) {
+                  eTargetYaw.setDouble( pipeline.getTargetInfo().getYaw() );
+                  eTargetLock.setBoolean( true );
+                }
+                else {
+                  eTargetYaw.setDouble( Double.NaN );
+                  eTargetLock.setBoolean( false );
+                }
       });
       visionThread.start();
     }
