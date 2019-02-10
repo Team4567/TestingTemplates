@@ -8,14 +8,17 @@ class TargetInfo {
     public double centerHeight;         // average Height of two parts of tape target
     public double distance;
     public double yaw;
+    public double minX;                 // Min and Max X are useful for creating a submat for line search.
+    public double maxX;
 
-    TargetInfo( double centerX, double centerY, double centerHeight, double distance, double yaw ) {
+    TargetInfo( double centerX, double centerY, double centerHeight, double distance, double yaw, double minX, double maxX ) {
         this.centerX      = centerX;
         this.centerY      = centerY;
         this.centerHeight = centerHeight;
         this.distance     = distance;
         this.yaw          = yaw;
-
+        this.minX         = minX;
+        this.maxX         = maxX;
     }
 
     public double getCenterX() {
@@ -32,5 +35,11 @@ class TargetInfo {
     }
     public double getYaw() {
         return yaw;
+    }
+    public double getMinX() {
+        return minX;
+    }
+    public double getMaxX() {
+        return maxX;
     }
 }

@@ -30,6 +30,7 @@ public class TapePipeline implements VisionPipeline {
 	}
 
 	//Outputs
+	private Mat input = new Mat();
 	private Mat hslThresholdOutput = new Mat();
 	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
@@ -40,7 +41,7 @@ public class TapePipeline implements VisionPipeline {
 	// Dynamic setting of Threshold values;
 	private static double[] hslThresholdHue = {80.0, 100.0};
 	private static double[] hslThresholdSaturation = {0.0, 135.0};
-	private static double[] hslThresholdLuminance = {100.0, 255.0};
+	private static double[] hslThresholdValue = {100.0, 255.0};
 
 	private static double filterContoursMinArea = 42.0;
 
@@ -60,12 +61,12 @@ public class TapePipeline implements VisionPipeline {
 		return hslThresholdSaturation;
 	}
 
-	public static void setThresholdLuminance( double min, double max ) {
-		hslThresholdLuminance[0] = min;
-		hslThresholdLuminance[1] = max;
+	public static void setThresholdValue( double min, double max ) {
+		hslThresholdValue[0] = min;
+		hslThresholdValue[1] = max;
 	}
-	public static double[] getThresholdLuminance() {
-		return hslThresholdLuminance;
+	public static double[] getThresholdValue() {
+		return hslThresholdValue;
 	}
 
 	public static void setContoursMinArea( double min) {
@@ -80,9 +81,11 @@ public class TapePipeline implements VisionPipeline {
 	 */
 	@Override	
 	public void process(Mat source0) {
+		input = source0;
+
 		// Step HSL_Threshold0:
 		Mat hslThresholdInput = source0;
-		hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance, hslThresholdOutput);
+		hsvThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdValue, hslThresholdOutput);
 
 		// Step Find_Contours0:
 		Mat findContoursInput = hslThresholdOutput;
@@ -109,26 +112,18 @@ public class TapePipeline implements VisionPipeline {
 		renderContours(filterContoursOutput, output);
 	}
 
-	/**
-	 * This method is a generated getter for the output of a HSL_Threshold.
-	 * @return Mat output from HSL_Threshold.
-	 */
+	public Mat input() {
+		return input;
+	}
+
 	public Mat hslThresholdOutput() {
 		return hslThresholdOutput;
 	}
 
-	/**
-	 * This method is a generated getter for the output of a Find_Contours.
-	 * @return ArrayList<MatOfPoint> output from Find_Contours.
-	 */
 	public ArrayList<MatOfPoint> findContoursOutput() {
 		return findContoursOutput;
 	}
 
-	/**
-	 * This method is a generated getter for the output of a Filter_Contours.
-	 * @return ArrayList<MatOfPoint> output from Filter_Contours.
-	 */
 	public ArrayList<MatOfPoint> filterContoursOutput() {
 		return filterContoursOutput;
 	}
@@ -142,19 +137,19 @@ public class TapePipeline implements VisionPipeline {
 	}
 
 	/**
-	 * Segment an image based on hue, saturation, and luminance ranges.
+	 * Segment an image based on hue, saturation, and value ranges.
 	 *
 	 * @param input The image on which to perform the HSL threshold.
 	 * @param hue The min and max hue
 	 * @param sat The min and max saturation
-	 * @param lum The min and max luminance
+	 * @param val The min and max value
 	 * @param output The image in which to store the output.
 	 */
-	private void hslThreshold(Mat input, double[] hue, double[] sat, double[] lum,
-		Mat out) {
-		Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HLS);
-		Core.inRange(out, new Scalar(hue[0], lum[0], sat[0]),
-			new Scalar(hue[1], lum[1], sat[1]), out);
+	private static void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val,
+	    Mat out) {
+		Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HSV);
+		Core.inRange(out, new Scalar(hue[0], sat[0], val[0]),
+			new Scalar(hue[1], sat[1], val[1]), out);
 	}
 
 	/**
@@ -256,7 +251,7 @@ public class TapePipeline implements VisionPipeline {
 			Imgproc.putText( output, "Y: "+Math.floor(yaw), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
 		}
 
-		TargetInfo targetInfo = TargetFinder.findTargetLockInfoJames(inputContours, output.width(), output.height() );
+		targetInfo = TargetFinder.findTargetLockInfoJames(inputContours, output.width(), output.height() );
 
 		if( targetInfo != null ) {  // We have a lock
 			double lineX = targetInfo.centerX;

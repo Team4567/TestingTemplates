@@ -16,67 +16,67 @@ import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.first.vision.VisionPipeline;
 
-public class LinePipeline implements VisionPipeline {
-	/*
-	 * static UsbCamera cam= CameraServer.getInstance().startAutomaticCapture();
-	 * 
-	 * static CvSink sink=CameraServer.getInstance().getVideo(); static CvSource
-	 * out=CameraServer.getInstance().putVideo("Line View", 256, 144); static
-	 * NetworkTableInstance inst=NetworkTableInstance.getDefault(); static
-	 * NetworkTable lineOutput=inst.getTable("Line Output");
-	 */
+public class LinePipeline implements VisionPipeline 
+{
+	// Dynamic setting of Threshold values;
+	private static double[] hsvThresholdHue = {40.0, 112.0};
+	private static double[] hsvThresholdSaturation = {0.0, 29.0};
+	private static double[] hsvThresholdValue = {204.0, 255.0};
 
+	private static double filterContoursMinArea = 42.0;
+
+	public static void setThresholdHue( double min, double max ) {
+		hsvThresholdHue[0] = min;
+		hsvThresholdHue[1] = max;
+	}
+	public static double[] getThresholdHue() {
+		return hsvThresholdHue;
+	}
+
+	public static void setThresholdSaturation( double min, double max ) {
+		hsvThresholdSaturation[0] = min;
+		hsvThresholdSaturation[1] = max;
+	}
+	public static double[] getThresholdSaturation() {
+		return hsvThresholdSaturation;
+	}
+
+	public static void setThresholdValue( double min, double max ) {
+		hsvThresholdValue[0] = min;
+		hsvThresholdValue[1] = max;
+	}
+	public static double[] getThresholdValue() {
+		return hsvThresholdValue;
+	}
+
+	public static void setContoursMinArea( double min) {
+		filterContoursMinArea = min;
+	}
+	public static double getfilterContoursMinArea() {
+		return filterContoursMinArea;
+	}
+	
 	//Outputs
 	private static Mat hsvThresholdOutput = new Mat();
-	private static Mat cvErodeOutput = new Mat();
-	private static Mat cvDilateOutput = new Mat();
 	private static ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private static ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
 	private ArrayList<RotatedRect> findRotatedRectsOutput = new ArrayList<RotatedRect>();
+	private static Mat output = new Mat();
 
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
-	/**
-	 * This is the primary method that runs the entire pipeline and updates the outputs.
-	 */
-	public void process(Mat source0) {
-		/*
-				cam.setResolution(256,144);
-				cam.setFPS(30);
-		// Step HSV_Threshold0:
-				Mat input= new Mat();
-				sink.grabFrame(input);
-		*/
+	public void process( Mat source0, Rect crop ) {
+		Mat subImage = source0.submat(crop);
+		process(subImage);
+	}
 
+	public void process(Mat source0)
+	{
 		Mat hsvThresholdInput = source0;
-		double[] hsvThresholdHue = {40.46762589928058, 112.42320819112628};
-		double[] hsvThresholdSaturation = {0.0, 28.72013651877133};
-		double[] hsvThresholdValue = {204.09172661870502, 255.0};
 		hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue, hsvThresholdOutput);
 
-		// Step CV_erode0:
-		Mat cvErodeSrc = hsvThresholdOutput;
-		Mat cvErodeKernel = new Mat();
-		Point cvErodeAnchor = new Point(-1, -1);
-		double cvErodeIterations = 2.0;
-		int cvErodeBordertype = Core.BORDER_CONSTANT;
-		Scalar cvErodeBordervalue = new Scalar(-1);
-		cvErode(cvErodeSrc, cvErodeKernel, cvErodeAnchor, cvErodeIterations, cvErodeBordertype, cvErodeBordervalue, cvErodeOutput);
-
-		// Step CV_dilate0:
-		Mat cvDilateSrc = cvErodeOutput;
-		Mat cvDilateKernel = new Mat();
-		Point cvDilateAnchor = new Point(-1, -1);
-		double cvDilateIterations = 2.0;
-		int cvDilateBordertype = Core.BORDER_CONSTANT;
-		Scalar cvDilateBordervalue = new Scalar(-1);
-//		cvDilate(cvDilateSrc, cvDilateKernel, cvDilateAnchor, cvDilateIterations, cvDilateBordertype, cvDilateBordervalue, cvDilateOutput);
-		//Outputs found white areas
-		//				out.putFrame(cvDilateOutput);
-		// Step Find_Contours0:
-//		Mat findContoursInput = cvDilateOutput;
 		Mat findContoursInput = hsvThresholdOutput;
 		boolean findContoursExternalOnly = true;
 		findContours(findContoursInput, findContoursExternalOnly, findContoursOutput);
@@ -97,18 +97,13 @@ public class LinePipeline implements VisionPipeline {
 		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
 
 		findRotatedRects( filterContoursOutput, findRotatedRectsOutput );
+
+		output = source0.clone();
+		renderContours(findRotatedRectsOutput, output);
 	}
 
 	public Mat hsvThresholdOutput() {
 		return hsvThresholdOutput;
-	}
-
-	public Mat cvErodeOutput() {
-		return cvErodeOutput;
-	}
-
-	public Mat cvDilateOutput() {
-		return cvDilateOutput;
 	}
 
 	public ArrayList<MatOfPoint> findContoursOutput() {
@@ -123,6 +118,9 @@ public class LinePipeline implements VisionPipeline {
 		return findRotatedRectsOutput;
 	}
 
+	public Mat output() {
+		return output;
+	}
 
 	/**
 	 * Segment an image based on hue, saturation, and value ranges.
@@ -140,63 +138,7 @@ public class LinePipeline implements VisionPipeline {
 			new Scalar(hue[1], sat[1], val[1]), out);
 	}
 
-	/**
-	 * Expands area of lower value in an image.
-	 * @param src the Image to erode.
-	 * @param kernel the kernel for erosion.
-	 * @param anchor the center of the kernel.
-	 * @param iterations the number of times to perform the erosion.
-	 * @param borderType pixel extrapolation method.
-	 * @param borderValue value to be used for a constant border.
-	 * @param dst Output Image.
-	 */
-	private static void cvErode(Mat src, Mat kernel, Point anchor, double iterations,
-		int borderType, Scalar borderValue, Mat dst) 
-	{
-		if (kernel == null) {
-			kernel = new Mat();
-		}
-		if (anchor == null) {
-			anchor = new Point(-1,-1);
-		}
-		if (borderValue == null) {
-			borderValue = new Scalar(-1);
-		}
-		Imgproc.erode(src, dst, kernel, anchor, (int)iterations, borderType, borderValue);
-	}
 
-	/**
-	 * Expands area of higher value in an image.
-	 * @param src the Image to dilate.
-	 * @param kernel the kernel for dilation.
-	 * @param anchor the center of the kernel.
-	 * @param iterations the number of times to perform the dilation.
-	 * @param borderType pixel extrapolation method.
-	 * @param borderValue value to be used for a constant border.
-	 * @param dst Output Image.
-	 */
-	private static void cvDilate(Mat src, Mat kernel, Point anchor, double iterations,
-		int borderType, Scalar borderValue, Mat dst) 
-	{
-		if (kernel == null) {
-			kernel = new Mat();
-		}
-		if (anchor == null) {
-			anchor = new Point(-1,-1);
-		}
-		if (borderValue == null){
-			borderValue = new Scalar(-1);
-		}
-		Imgproc.dilate(src, dst, kernel, anchor, (int)iterations, borderType, borderValue);
-	}
-
-	/**
-	 * Sets the values of pixels in a binary image to their distance to the nearest black pixel.
-	 * @param input The image on which to perform the Distance Transform.
-	 * @param type The Transform.
-	 * @param maskSize the size of the mask.
-	 * @param output The image in which to store the output.
-	 */
 	private static void findContours(Mat input, boolean externalOnly,
 		List<MatOfPoint> contours) {
 		Mat hierarchy = new Mat();
@@ -211,7 +153,6 @@ public class LinePipeline implements VisionPipeline {
 		int method = Imgproc.CHAIN_APPROX_SIMPLE;
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}
-
 
 	/**
 	 * Filters out contours that do not meet certain criteria.
@@ -268,6 +209,32 @@ public class LinePipeline implements VisionPipeline {
 			inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
 			RotatedRect rotatedRect = Imgproc.minAreaRect( mat2f );
 			outputRotatedRects.add(rotatedRect);
+		}
+	}
+
+	private void renderContours( List<RotatedRect> rects, Mat output ) {
+		// Scalar white = new Scalar(255,255,255);
+		Scalar red   = new Scalar(0,0,255);
+		Scalar white = new Scalar(255,255,255);
+		
+		for( RotatedRect rect : rects ) 
+		{
+			Point[] vertices = new Point[4];
+			rect.points(vertices);
+			for( int j=0; j<4; j++ )
+				Imgproc.line( output, vertices[j], vertices[(j+1)%4], red );
+
+			Point p = rect.center.clone();
+			double angle = ( rect.size.width < rect.size.height ) ? rect.angle + 90 : rect.angle;
+			double yaw = (rect.center.x - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV); 
+
+			double dy = (Math.signum(angle) * 15);
+			p.y += dy;
+			Imgproc.putText( output, "/"+Math.floor(angle), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
+			p.y += dy;
+			Imgproc.putText( output, "("+Math.floor(rect.center.x)+","+Math.floor(rect.center.y)+")", p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
+			p.y += dy;
+			Imgproc.putText( output, "Y: "+Math.floor(yaw), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
 		}
 	}
 }

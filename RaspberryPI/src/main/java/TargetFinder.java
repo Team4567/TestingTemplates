@@ -13,59 +13,6 @@ import org.opencv.imgproc.Imgproc;
 class TargetFinder {
     public static final double TARGET_HEIGHT_INCHES = 6.0;
 
-    public static double findXToTargetCenterJoe(List<MatOfPoint> inputContours ) {
-        ArrayList<RotatedRect> lefts = new ArrayList<RotatedRect>();
-        ArrayList<RotatedRect> rights = new ArrayList<RotatedRect>();
-        ArrayList<Double>      midpoints= new ArrayList<Double>();
- 
-		MatOfPoint2f mat2f = new MatOfPoint2f();
-		
-		for (int i = 0; i < inputContours.size(); i++) {
-			inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
-			RotatedRect rotatedRect = Imgproc.minAreaRect( mat2f );
-
-            double angle = ( rotatedRect.size.width < rotatedRect.size.height ) ? rotatedRect.angle + 90 : rotatedRect.angle;
-
-    		if( angle > 0.0 ) {
-                // Positive angle have right side lifted, tilting left
-                // That is the right side of a target
-				rights.add( rotatedRect );
-			} else {
-				lefts.add( rotatedRect );
-			}
-        }
-        
-        // Avoid using l for a variable, looks like a one
-        // Convention is that a single letter should i, j, or k
-        // midway is the avg of the two x's, you want the min avg?
-		for( int l=0; l < lefts.size(); l++ ) {
-			int closestRI=-1;
-			double min=9999999;
-			for( int r=0; r < rights.size(); r++) {
-				if( lefts.get(l).center.x < rights.get(r).center.x && rights.get(r).center.x - lefts.get(r).center.x < min) {
-					closestRI=r;
-					min = rights.get(r).center.x - lefts.get(r).center.x;
-				}
-			}
-			midpoints.add( rights.get(closestRI).center.x-lefts.get(l).center.x );
-		}
-		int closestMI=-1;
-		for( int m=0; m < midpoints.size(); m++ ) {
-			double min=9999999;
-//			if(midpoints.get(m)-(Camera.IMAGE_WIDTH/2)<min){
-//				closestMI=m;
-//				min= midpoints.get(m)-(Camera.IMAGE_WIDTH/2);
-//			}
-        }
-        
-        double targetMidpoint = 0.0;
-		if(closestMI!=-1){
-			targetMidpoint=midpoints.get(closestMI);
-		}
-
-        return targetMidpoint;
-    }
-
     // This routine finds a target (tape pair) and returns the X to the center and approx distance
     // If no complete target is found it returns null
     public static TargetInfo findTargetLockInfoJames( List<MatOfPoint> inputContours, int frameWidth, int frameHeight ) 
@@ -143,7 +90,10 @@ class TargetFinder {
                 double distance = Camera.estimateDistance(TARGET_HEIGHT_INCHES, centerHeight, frameHeight );
                 double yaw      = Camera.yawToHorizPixel( centerX, frameWidth );
 
-                ti = new TargetInfo( centerX, centerY, centerHeight, distance, yaw );
+                double minX = Math.min( rect1.x, rect2.x );
+                double maxX = Math.max( rect1.x+rect1.width, rect2.x+rect2.width );
+
+                ti = new TargetInfo( centerX, centerY, centerHeight, distance, yaw, minX, maxX );
                 break;                
             }
         }
