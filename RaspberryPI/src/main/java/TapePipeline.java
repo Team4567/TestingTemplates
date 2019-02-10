@@ -35,10 +35,11 @@ public class TapePipeline implements VisionPipeline {
 	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
 	private Mat output = new Mat();
 	private double targetYaw = Double.NaN;
+	private double targetDistance = Double.NaN;
 
 	// Dynamic setting of Threshold values;
-	private static double[] hslThresholdHue = {0.0, 255.0};
-	private static double[] hslThresholdSaturation = {150.0, 255.0};
+	private static double[] hslThresholdHue = {80.0, 100.0};
+	private static double[] hslThresholdSaturation = {0.0, 135.0};
 	private static double[] hslThresholdLuminance = {100.0, 255.0};
 
 	private static double filterContoursMinArea = 42.0;
@@ -103,7 +104,7 @@ public class TapePipeline implements VisionPipeline {
 		double filterContoursMaxRatio = 1000;
 		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
 
-		output = new Mat(source0.size(), source0.type(), new Scalar(0,0,0) );
+		output = Mat.zeros(source0.size(), source0.type() );
 		renderContours(filterContoursOutput, output);
 	}
 
@@ -254,15 +255,27 @@ public class TapePipeline implements VisionPipeline {
 			Imgproc.putText( output, "Y: "+Math.floor(yaw), p, Core.FONT_HERSHEY_PLAIN, 0.7, white );
 		}
 
-		double targetX = TargetFinder.findXToTargetCenterJames(inputContours);
-		if( targetX < 0.0 ) {
-			targetYaw = Double.NaN;
-		}
-		else {
-			targetYaw = (targetX - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV); 
+		double[] targetInfo = TargetFinder.findTargetLockInfoJames(inputContours);
+
+		double lineX = 0;
+		targetYaw = Double.NaN;
+		if( targetInfo != null && targetInfo[0] >= 0.0 ) {
+			lineX = targetInfo[0];
+			targetYaw = (targetInfo[0] - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV);
 		}
 
-		Imgproc.putText( output, "Yaw: "+ Math.floor(targetYaw), new Point(targetX+3, 10), Core.FONT_HERSHEY_PLAIN, 0.7, white );
-		Imgproc.line(output, new Point(targetX, 0), new Point(targetX, output.height()), white);
+		targetDistance = Double.NaN;
+		if( targetInfo != null ) { // && targetInfo[1] >= 0.0 ) {
+			targetDistance = targetInfo[1];
+		}
+
+		Imgproc.putText( output, "Yaw: "+ Math.floor(targetYaw), new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, 0.7, white );
+		Imgproc.line(output, new Point(lineX, 0), new Point(lineX, output.height()), white);
+
+		Imgproc.putText( output, "Distance: "+ Math.floor(targetDistance), new Point(lineX+3, 20), Core.FONT_HERSHEY_PLAIN, 0.7, white );
+		if( targetInfo != null ) {
+			Imgproc.putText( output, "("+ Math.floor(targetInfo[2]) + "," + Math.floor(targetInfo[3]) + ")", new Point(lineX+3, 30), Core.FONT_HERSHEY_PLAIN, 0.7, white );
+			Imgproc.putText( output, "("+ Math.floor(targetInfo[4]) + "," + Math.floor(targetInfo[5]) + ")", new Point(lineX+3, 40), Core.FONT_HERSHEY_PLAIN, 0.7, white );
+		}
 	}
 }

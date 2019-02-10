@@ -72,11 +72,12 @@ public class LinePipeline implements VisionPipeline {
 		double cvDilateIterations = 2.0;
 		int cvDilateBordertype = Core.BORDER_CONSTANT;
 		Scalar cvDilateBordervalue = new Scalar(-1);
-		cvDilate(cvDilateSrc, cvDilateKernel, cvDilateAnchor, cvDilateIterations, cvDilateBordertype, cvDilateBordervalue, cvDilateOutput);
+//		cvDilate(cvDilateSrc, cvDilateKernel, cvDilateAnchor, cvDilateIterations, cvDilateBordertype, cvDilateBordervalue, cvDilateOutput);
 		//Outputs found white areas
 		//				out.putFrame(cvDilateOutput);
 		// Step Find_Contours0:
-		Mat findContoursInput = cvDilateOutput;
+//		Mat findContoursInput = cvDilateOutput;
+		Mat findContoursInput = hsvThresholdOutput;
 		boolean findContoursExternalOnly = true;
 		findContours(findContoursInput, findContoursExternalOnly, findContoursOutput);
 

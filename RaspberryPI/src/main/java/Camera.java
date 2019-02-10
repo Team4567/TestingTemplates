@@ -28,8 +28,10 @@ class Camera {
 	public static double targetMidpoint=IMAGE_WIDTH/2;
 	*/
 
-	public static final double IMAGE_WIDTH  = 320.0;
-	public static final double HORIZONTAL_FOV = 62.0; // degrees
+	public static final double IMAGE_WIDTH   = 320.0;
+	public static final double IMAGE_HEIGHT  = 240.0;
+	public static final double HORIZONTAL_FOV = 52.7926;  // degrees, measured
+	public static final double VERTICAL_FOV   = 43.9823;  // degrees, measured
 
 	// Returns the angle that points to the pixel offset from center
 	// Could be positive or negative for left or right of center
@@ -38,4 +40,6 @@ class Camera {
 	public static double yawToHorizPixel( int pixOffet, int width ) {
 		return (pixOffet - width/2) / (width / Camera.HORIZONTAL_FOV);
 	}
+
+	
 }
