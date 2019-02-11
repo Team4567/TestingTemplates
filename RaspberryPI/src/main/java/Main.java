@@ -256,12 +256,14 @@ public final class Main {
                   eTargetLock.setBoolean( true );
 
                   // Have a target, now look for the line.
-                  // We only need to look at a cropped image with the min and max X and lower than Y of target
+                  // We only need to look at the lower half of the screen, crop image 
                   // Render over the output from the main pipeline.
                   LinePipeline linePipeline = new LinePipeline();
-                  double height = pipeline.input().height();
-                  linePipeline.process( pipeline.input(), new Rect( (int)ti.minX, (int)height/2, (int)ti.maxX-(int)ti.minX, (int)height/2 ) );
-                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), pipeline.output(), (int)ti.minX, (int)height/2);
+                  int width = pipeline.input().width();
+                  int height = pipeline.input().height();
+                  linePipeline.process( pipeline.input(), new Rect( 0, (int)height/2, width, height/2 ) );
+//                  lineOutput.putFrame( linePipeline.hsvThresholdOutput() );
+                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), pipeline.output(), 0, height/2 );
                   eLineAngle.setDouble( linePipeline.getLineAngle() );
                 }
                 else {
@@ -370,5 +372,16 @@ public final class Main {
       nt.getEntry("LineContoursMinArea").addListener( event -> { 
           LinePipeline.setContoursMinArea( event.value.getDouble() ); 
         }, EntryListenerFlags.kUpdate );
-    }
+
+      nt.getEntry("LineRotatedRectMinRatio").setDouble( LinePipeline.getRotatedRectRatio()[0] );
+      nt.getEntry("LineRotatedRectMinRatio").addListener( event -> { 
+          LinePipeline.setRotatedRectRatio( event.value.getDouble(), LinePipeline.getRotatedRectRatio()[1] ); 
+        }, EntryListenerFlags.kUpdate );
+
+      nt.getEntry("LineRotatedRectMaxRatio").setDouble( LinePipeline.getRotatedRectRatio()[1] );
+      nt.getEntry("LineRotatedRectMaxRatio").addListener( event -> { 
+          LinePipeline.setRotatedRectRatio( LinePipeline.getRotatedRectRatio()[0], event.value.getDouble() ); 
+        }, EntryListenerFlags.kUpdate );
+            
+      }
 }

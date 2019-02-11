@@ -45,7 +45,7 @@ public class TapePipeline implements VisionPipeline {
 	private static double[] hslThresholdSaturation = {0.0, 135.0};
 	private static double[] hslThresholdValue = {100.0, 255.0};
 
-	private static double filterContoursMinArea = 500.0;
+	private static double filterContoursMinArea = 50.0;
 	private static double[] rectRatio = {0.25, 0.50};
 
 	public static void setThresholdHue( double min, double max ) {
