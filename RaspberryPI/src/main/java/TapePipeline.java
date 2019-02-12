@@ -30,12 +30,11 @@ public class TapePipeline implements VisionPipeline {
 	//Outputs
 	private Mat input = new Mat();
 	private Mat hslThresholdOutput = new Mat();
-	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
-	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
+	private ArrayList<MatOfPoint> findContours = new ArrayList<MatOfPoint>();
+	private ArrayList<MatOfPoint> filteredContours = new ArrayList<MatOfPoint>();
 	private ArrayList<RotatedRect> filteredRotatedRects = new ArrayList<RotatedRect>();
-	private Mat output = new Mat();
 
-	private TargetInfo targetInfo = null;  // null when no lock
+	private TapeInfo tapeInfo = null;  // null when no lock
 
 	// Dynamic setting of Threshold values;
 	private static double[] hslThresholdHue = {80.0, 100.0};
@@ -98,31 +97,28 @@ public class TapePipeline implements VisionPipeline {
 		// Step Find_Contours0:
 		Mat findContoursInput = hslThresholdOutput;
 		boolean findContoursExternalOnly = false;
-		findContours(findContoursInput, findContoursExternalOnly, findContoursOutput);
+		findContours(findContoursInput, findContoursExternalOnly, findContours);
 
 		// Populate RotatedRects from the contours and filter out those that have a bad ratio or too small.
 		MatOfPoint2f mat2f = new MatOfPoint2f();
-		filterContoursOutput.clear();
+		filteredContours.clear();
 		filteredRotatedRects.clear();
-		for( int i = 0; i < findContoursOutput.size(); i++) {
-			findContoursOutput.get(i).convertTo( mat2f, CvType.CV_32F );
+		for( int i = 0; i < findContours.size(); i++) {
+			findContours.get(i).convertTo( mat2f, CvType.CV_32F );
 			RotatedRect rect = Imgproc.minAreaRect( mat2f );
 			double ratio = (rect.size.width < rect.size.height) ? rect.size.width/rect.size.height : rect.size.height/rect.size.width;
 
 			// If ratio is good and big enough, add the Contour and RotatedRect to output
 			if( ratio >= rectRatio[0] && ratio <= rectRatio[1] && (rect.size.width*rect.size.height) > filterContoursMinArea ) {
-				filterContoursOutput.add( findContoursOutput.get(i) );
+				filteredContours.add( findContours.get(i) );
 				filteredRotatedRects.add(rect);
 			}
 		}
 
-		output = source0.clone();
-		targetInfo = TargetFinder.findTargetLockInfo(filterContoursOutput, output.width(), output.height() );
-
-		renderContours( filteredRotatedRects, output);
+		tapeInfo = TapeFinder.findTargetLockInfo(filteredContours, input.width(), input.height() );
 	}
 
-	public Mat input() {
+	public Mat getInput() {
 		return input;
 	}
 
@@ -130,20 +126,20 @@ public class TapePipeline implements VisionPipeline {
 		return hslThresholdOutput;
 	}
 
-	public ArrayList<MatOfPoint> findContoursOutput() {
-		return findContoursOutput;
+	public ArrayList<MatOfPoint> getFindContours() {
+		return findContours;
 	}
 
-	public ArrayList<MatOfPoint> filterContoursOutput() {
-		return filterContoursOutput;
+	public ArrayList<MatOfPoint> getFilteredContours() {
+		return filteredContours;
 	}
 
-	public Mat output() {
-		return output;
+	public ArrayList<RotatedRect> getfilteredRotatedRects() {
+		return filteredRotatedRects;
 	}
 
-	public TargetInfo getTargetInfo() {
-		return targetInfo;
+	public TapeInfo getTapeInfo() {
+		return tapeInfo;
 	}
 
 	/**
@@ -184,11 +180,11 @@ public class TapePipeline implements VisionPipeline {
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}
 
-	private void renderContours( List<RotatedRect> rotatedRects, Mat output ) {
+	public void renderContours( List<RotatedRect> rotatedRects, Mat output, boolean debug ) {
 		// Scalar white = new Scalar(255,255,255);
 		Scalar red   = new Scalar(0,0,255);
 		Scalar white = new Scalar(255,255,255);
-		double fontScale = (output.width() > 320 ? 1.0 : 0.5);
+		double fontScale = (output.width() > 320 ? 1.0 : 0.7);
 		
 		for( RotatedRect rotatedRect : rotatedRects ) {
 			Point[] vertices = new Point[4];
@@ -196,33 +192,38 @@ public class TapePipeline implements VisionPipeline {
 			for( int j=0; j<4; j++ )
 				Imgproc.line( output, vertices[j], vertices[(j+1)%4], red );
 
-			Point p = rotatedRect.center.clone();
-			double angle = ( rotatedRect.size.width < rotatedRect.size.height ) ? rotatedRect.angle + 90 : rotatedRect.angle;
-			double yaw = (rotatedRect.center.x - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV); 
+			if( debug ) {
+				Point p = rotatedRect.center.clone();
+				double angle = ( rotatedRect.size.width < rotatedRect.size.height ) ? rotatedRect.angle + 90 : rotatedRect.angle;
+				double yaw = (rotatedRect.center.x - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV); 
 
-			double dy = 15; // (Math.signum(angle) * 15);
-			p.y += dy;
-			Imgproc.putText( output, "/"+Math.floor(angle), p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
-			p.y += dy;
-			Imgproc.putText( output, "("+Math.floor(rotatedRect.center.x)+","+Math.floor(rotatedRect.center.y)+")", p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
-			p.y += dy;
-			Imgproc.putText( output, "Y: "+Math.floor(yaw), p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+				double dy = 15; // (Math.signum(angle) * 15);
+				p.y += dy;
+				Imgproc.putText( output, "/"+ Math.round(angle*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+				p.y += dy;
+				Imgproc.putText( output, "("+ Math.round(rotatedRect.center.x*10.0)/10.0+","+Math.floor(rotatedRect.center.y)+")", p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+				p.y += dy;
+				Imgproc.putText( output, "Y: "+ Math.round(yaw*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			}
 		}
 
-		if( targetInfo != null )  // We have a lock
+		if( tapeInfo != null )  // We have a lock
 		{ 
-			double lineX = targetInfo.centerX;
-			double targetYaw = (targetInfo.centerX - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV);
+			double lineX = tapeInfo.centerX;
+			double targetYaw = (tapeInfo.centerX - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV);
 
-			Imgproc.putText( output, "Yaw: "+ Math.floor(targetYaw), new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			Imgproc.putText( output, "Yaw: "+ Math.round(targetYaw*10.0)/10.0, new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, white );
 			Imgproc.line(output, new Point(lineX, 0), new Point(lineX, output.height()), white);
 	
-			Imgproc.putText( output, "Distance: "+ Math.floor(targetInfo.distance), new Point(lineX+3, 20), Core.FONT_HERSHEY_PLAIN, fontScale, white );
-			String info = "("+ Math.floor(targetInfo.centerX) + "," + Math.floor(targetInfo.centerY) + "," + Math.floor(targetInfo.centerHeight ) + ")";
-			Imgproc.putText( output, info, new Point(lineX+3, 30), Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			Imgproc.putText( output, "Distance: "+ Math.round(tapeInfo.distance*10.0)/10.0, new Point(lineX+3, 20), Core.FONT_HERSHEY_PLAIN, fontScale, white );
+
+			if( debug ) {
+				String info = "("+ Math.round(tapeInfo.centerX*10.0)/10.0 + "," + Math.round(tapeInfo.centerY*10.0)/10.0 + "," + Math.round(tapeInfo.centerHeight*10.0)/10.0 + ")";
+				Imgproc.putText( output, info, new Point(lineX+3, 30), Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			}
 		}
 		else {
-			Imgproc.putText( output, "No Target Lock", new Point(3, output.height()-10 ), Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			Imgproc.putText( output, "No Target Lock", new Point(3, output.height()-10 ), Core.FONT_HERSHEY_PLAIN, fontScale*1.25, red );
 		}
 	}
 }

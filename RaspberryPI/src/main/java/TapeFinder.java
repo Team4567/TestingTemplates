@@ -10,14 +10,14 @@ import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.imgproc.Imgproc;
 
-class TargetFinder {
+class TapeFinder {
     public static final double TARGET_HEIGHT_INCHES = 6.0;
 
     // This routine finds a target (tape pair) and returns the X to the center and approx distance
     // If no complete target is found it returns null
-    public static TargetInfo findTargetLockInfo( List<MatOfPoint> inputContours, int frameWidth, int frameHeight ) 
+    public static TapeInfo findTargetLockInfo( List<MatOfPoint> inputContours, int frameWidth, int frameHeight ) 
     {
-        TargetInfo ti = null; // This is null until we lock on to a target
+        TapeInfo ti = null; // This is null until we lock on to a target
 
         // return nothing if less than 2 contours or more than 8 (too much noise)
         if( inputContours.size() < 2 || inputContours.size() > 8 ) {
@@ -76,7 +76,7 @@ class TargetFinder {
                 double minX = Math.min( rect1.x, rect2.x );
                 double maxX = Math.max( rect1.x+rect1.width, rect2.x+rect2.width );
 
-                ti = new TargetInfo( centerX, centerY, centerHeight, distance, yaw, minX, maxX );
+                ti = new TapeInfo( centerX, centerY, centerHeight, distance, yaw, minX, maxX );
                 break;                
             }
         }

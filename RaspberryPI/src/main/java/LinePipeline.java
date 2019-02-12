@@ -65,7 +65,7 @@ public class LinePipeline implements VisionPipeline
 
 	// Inputs
 	private Rect crop = null;
-	private TargetInfo ti = null;
+	private TapeInfo ti = null;
 
 	//Outputs
 	private Mat hsvThresholdOutput = new Mat();
@@ -78,7 +78,7 @@ public class LinePipeline implements VisionPipeline
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
-	public void process( Mat source0, Rect crop, TargetInfo ti ) {
+	public void process( Mat source0, Rect crop, TapeInfo ti ) {
 		this.crop = crop;
 		this.ti = ti;
 
@@ -200,7 +200,7 @@ public class LinePipeline implements VisionPipeline
 		lineAngle = (outputRotatedRects.size() == 1) ? angle : Double.NaN;
 	}
 
-	public void renderContours( List<RotatedRect> rects, Mat output, int offsetX, int offsetY ) 
+	public void renderContours( List<RotatedRect> rects, Mat output, int offsetX, int offsetY, boolean debug ) 
 	{
 		Scalar red   = new Scalar(0,0,255);
 		Scalar white = new Scalar(255,255,255);
@@ -220,16 +220,23 @@ public class LinePipeline implements VisionPipeline
 				Imgproc.line( output, vertices[i], vertices[(i+1)%4], red );
 
 			Point p = rect.center.clone();
-			p.x += offsetX;
+			p.x += offsetX - 20.0;  // center text over the center of the line, should calc test length
 			p.y += offsetY;
 
-			double angle = ( rect.size.width < rect.size.height ) ? rect.angle + 90 : rect.angle;
+			double angle = (Math.round( (rect.size.width < rect.size.height ) ? rect.angle + 90 : rect.angle)*10.0)/10.0;
 
-			double dy = (Math.signum(angle) * 15);
+			double dy = 15;
 			p.y -= dy;
-			Imgproc.putText( output, "/"+(int)angle, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
-			p.y += dy;
-			Imgproc.putText( output, "("+(int)rect.center.x+","+(int)rect.center.y+","+(int)rect.size.width+","+(int)rect.size.height+")", p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			Imgproc.putText( output, "/"+angle, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+
+			if( debug ) {
+				p.y += dy;
+				String detail = "(" + (Math.round(rect.center.x)*10.0)/10.0 + ","
+									+ (Math.round(rect.center.y)*10.0)/10.0 + ","
+									+ (Math.round(rect.size.width)*10.0)/10.0 +","
+									+ (Math.round(rect.size.height)*10.0)/10.0 +")";
+				Imgproc.putText( output, detail, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			}
 		}
 	}
 }

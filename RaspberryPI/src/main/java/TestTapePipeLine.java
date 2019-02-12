@@ -76,7 +76,7 @@ class TestTapePipeLine {
 		displayImage( bi2 );
 
 //		ArrayList<MatOfPoint> contours = tp.findContoursOutput();
-		ArrayList<MatOfPoint> contours = tp.filterContoursOutput();
+		ArrayList<MatOfPoint> contours = tp.getFilteredContours();
 
 		Mat contourImg = new Mat(logo.size(), logo.type(), black );
 
@@ -91,7 +91,7 @@ class TestTapePipeLine {
 		BufferedImage bi3 = Mat2BufferedImage(contourImg);
 		displayImage( bi3 );
 
-		TargetFinder.findTargetLockInfo( contours, contourImg.width(), contourImg.height() );
+		TapeFinder.findTargetLockInfo( contours, contourImg.width(), contourImg.height() );
 	}
 
 }

@@ -19,7 +19,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.MjpegServer;
@@ -70,6 +75,7 @@ import edu.wpi.first.vision.VisionThread;
 
 public final class Main {
   private static String configFile = "/boot/frc.json";
+  private static boolean debug = false;
 
 //  @SuppressWarnings("MemberName")
   public static class CameraConfig {
@@ -225,13 +231,25 @@ public final class Main {
       ntinst.startClientTeam(team);
     }
 
-    NetworkTable nt = ntinst.getTable("Pipelines");
-    NetworkTableEntry eNumContours = nt.getEntry("NumContours");
-    NetworkTableEntry eTargetYaw = nt.getEntry("Yaw");
-    NetworkTableEntry eLineAngle = nt.getEntry("LineAngle");
-    NetworkTableEntry eTargetLock = nt.getEntry("Lock");
+    NetworkTableEntry eDebug = ntinst.getEntry("Debug");
+    eDebug.setBoolean(debug);
+    eDebug.addListener( event -> { 
+      debug = event.value.getBoolean(); 
+    }, EntryListenerFlags.kUpdate );
 
-    initializeNetworkTables( nt );
+    NetworkTable nt = ntinst.getTable("TargetInfo");
+
+    // All values will be Double.NaN is not valid
+    NetworkTableEntry eAngleToTape      = nt.getEntry("AngleToTape");         
+    NetworkTableEntry eDistanceToTape   = nt.getEntry("DistanceToTape");
+    NetworkTableEntry eLineAngle        = nt.getEntry("LineAngle");
+    NetworkTableEntry eAngleToPerp      = nt.getEntry("AngleToPerp");     // Perpendicular from hatch wall
+    NetworkTableEntry eDistanceToPerp   = nt.getEntry("DistanceToPerp");  // Perpendicular from hatch wall
+    NetworkTableEntry eAngleToTarget    = nt.getEntry("AngleToTarget");   // Turn to face target
+    NetworkTableEntry eDistanceToTarget = nt.getEntry("DistanceToTarget");
+    NetworkTableEntry eTargetPathValid  = nt.getEntry("TargetPathValid"); // AngleToPerp, DistanceToPerp and AngelToTarget all good.
+
+    initializePiplineParmsNetTable( ntinst );
 
     // start cameras
     List<VideoSource> cameras = new ArrayList<>();
@@ -248,31 +266,44 @@ public final class Main {
 
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new TapePipeline(), pipeline -> {
+                Mat outFrame = pipeline.getInput().clone();
+                pipeline.renderContours( pipeline.getfilteredRotatedRects(), outFrame, debug );
 //                threshold.putFrame( pipeline.hslThresholdOutput() );
-                eNumContours.setDouble( pipeline.filterContoursOutput().size() );
 
-                TargetInfo ti = pipeline.getTargetInfo();
+                TapeInfo ti = pipeline.getTapeInfo();
                 if( ti != null ) {
-                  eTargetYaw.setDouble( pipeline.getTargetInfo().getYaw() );
-                  eTargetLock.setBoolean( true );
+                  eAngleToTape.setDouble( ti.getAngle() );
+                  eDistanceToTape.setDouble( ti.getDistance() );
 
-                  // Have a target, now look for the line.
+                  // Need to fix this - The linePipeline should be smart enough to know where to crop
                   // We only need to look at the lower half of the screen, crop image 
-                  // Render over the output from the main pipeline.
-//                  int width = pipeline.input().width();
-                  int height = pipeline.input().height();
-//                  linePipeline.process( pipeline.input(), new Rect( 0, (int)height/2, width, height/2 ), ti );
-                  linePipeline.process( pipeline.input(), new Rect( (int)ti.minX, (int)height/2, (int)(ti.maxX-ti.minX), height/2 ), ti );
+                  int height = pipeline.getInput().height();
+                  linePipeline.process( pipeline.getInput(), new Rect( (int)ti.minX, (int)height/2, (int)(ti.maxX-ti.minX), height/2 ), ti );
+
 //                  lineOutput.putFrame( linePipeline.hsvThresholdOutput() );
-//                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), pipeline.output(), 0, height/2 );
-                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), pipeline.output(), (int)ti.minX, height/2 );
+                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), outFrame, (int)ti.minX, height/2, debug );
                   eLineAngle.setDouble( linePipeline.getLineAngle() );
+
+                  PathInfo pi = new PathInfo(ti.getDistance(), linePipeline.getLineAngle() );
+                  if( pi.isValidPath() ) {
+                    eAngleToPerp.setDouble( Math.round(pi.getAngleToPerp()*10.0)/10.0 );
+                    eDistanceToPerp.setDouble( Math.round(pi.getDistanceToPerp()*10.0)/10.0 );
+                    eAngleToTarget.setDouble( Math.round(pi.getAngleToTarget()*10.0)/10.0 );
+                    eDistanceToTarget.setDouble( Math.round(pi.getDistanceToTarget()*10.0)/10.0 );
+                    eTargetPathValid.setBoolean( true );
+                  }
+                  renderPathInfo( outFrame, pi );
                 }
                 else {
-                  eTargetYaw.setDouble( Double.NaN );
-                  eTargetLock.setBoolean( false );
+                  eAngleToTape.setDouble( Double.NaN );
+                  eDistanceToTape.setDouble( Double.NaN );
+                  eLineAngle.setDouble( Double.NaN );
+                  eAngleToPerp.setDouble( Double.NaN );
+                  eDistanceToPerp.setDouble( Double.NaN );
+                  eAngleToTarget.setDouble( Double.NaN );
+                  eTargetPathValid.setBoolean( false );
                 }
-                output.putFrame( pipeline.output() );
+                output.putFrame( outFrame );
        });
       visionThread.start();
     }
@@ -287,8 +318,26 @@ public final class Main {
     }
   }
 
-  private static void initializeNetworkTables( NetworkTable pTable ) 
+  private static void renderPathInfo( Mat output, PathInfo pi ) 
   {
+      Scalar color = new Scalar(255,255,255);
+      double fontScale = (output.height() > 320 ? 1.0 : 0.7);
+      double rowHeight = fontScale * 15;
+
+      Point p = new Point( 3, (output.height()/2) - fontScale*15*2 );
+      Imgproc.putText( output, "Ap: " + Math.round(pi.getAngleToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+      p.y += rowHeight;
+      Imgproc.putText( output, "Dp: " + Math.round(pi.getDistanceToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+      p.y += rowHeight;
+      Imgproc.putText( output, "At: " + Math.round(pi.getAngleToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+      p.y += rowHeight;
+      Imgproc.putText( output, "Dt: " + Math.round(pi.getDistanceToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+  }
+
+  private static void initializePiplineParmsNetTable( NetworkTableInstance ntinst ) 
+  {
+      NetworkTable pTable = ntinst.getTable("Pipelines");
+
       // TapePipeline Filter criteria
       NetworkTable nt = pTable.getSubTable("TapePipeline");
 
