@@ -86,6 +86,7 @@ class TapeFinder {
 
     private static int findMatch( RotatedRect rrect1, List<RotatedRect> rotatedRects ) 
     {
+        double yTolerance = 20.0; // matched rect should be about the same height.
         int bestMatchIndex = -1;  // We'll be looking for the target that is the best match, -1, none yet.
 
         double angle = ( rrect1.size.width < rrect1.size.height ) ? rrect1.angle + 90 : rrect1.angle;
@@ -96,7 +97,8 @@ class TapeFinder {
                 RotatedRect rrect2 = rotatedRects.get(j);
 
                 double angle2 = ( rrect2.size.width < rrect2.size.height ) ? rrect2.angle + 90 : rrect2.angle;
-                if( angle2 < 0.0 && rrect2.center.x < rrect1.center.x && rrect2.center.x > maxX ) {
+                if( angle2 < 0.0 && rrect2.center.x < rrect1.center.x && rrect2.center.x > maxX && Math.abs(rrect1.center.y-rrect2.center.y) < yTolerance ) 
+                {
                     // Found a closer left side
                     maxX = rrect2.center.x;
                     bestMatchIndex = j;
@@ -109,7 +111,8 @@ class TapeFinder {
                 RotatedRect rrect2 = rotatedRects.get(j);
 
                 double angle2 = ( rrect2.size.width < rrect2.size.height ) ? rrect2.angle + 90 : rrect2.angle;
-                if( angle2 > 0.0 && rrect2.center.x > rrect1.center.x && rrect2.center.x < minX ) {
+                if( angle2 > 0.0 && rrect2.center.x > rrect1.center.x && rrect2.center.x < minX && Math.abs(rrect1.center.y-rrect2.center.y) < yTolerance ) 
+                {
                     // Found a closer left side
                     minX = rrect2.center.x;
                     bestMatchIndex = j;

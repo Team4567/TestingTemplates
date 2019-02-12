@@ -22,7 +22,6 @@ import com.google.gson.JsonParser;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -278,7 +277,7 @@ public final class Main {
                   // Need to fix this - The linePipeline should be smart enough to know where to crop
                   // We only need to look at the lower half of the screen, crop image 
                   int height = pipeline.getInput().height();
-                  linePipeline.process( pipeline.getInput(), new Rect( (int)ti.minX, (int)height/2, (int)(ti.maxX-ti.minX), height/2 ), ti );
+                  linePipeline.process( pipeline.getInput(), ti );
 
 //                  lineOutput.putFrame( linePipeline.hsvThresholdOutput() );
                   linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), outFrame, (int)ti.minX, height/2, debug );

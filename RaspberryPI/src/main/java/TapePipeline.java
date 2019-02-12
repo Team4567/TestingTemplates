@@ -8,6 +8,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -27,6 +28,8 @@ public class TapePipeline implements VisionPipeline {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
+	// inputs
+	private Rect crop = null;
 	//Outputs
 	private Mat input = new Mat();
 	private Mat hslThresholdOutput = new Mat();
@@ -89,9 +92,11 @@ public class TapePipeline implements VisionPipeline {
 	@Override	
 	public void process(Mat source0) {
 		input = source0;
+		this.crop = new Rect( 0, 0, source0.width(), source0.height()/2 );
+		Mat subImage = source0.submat(crop);
 
 		// Step HSL_Threshold0:
-		Mat hslThresholdInput = source0;
+		Mat hslThresholdInput = subImage;
 		hsvThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdValue, hslThresholdOutput);
 
 		// Step Find_Contours0:

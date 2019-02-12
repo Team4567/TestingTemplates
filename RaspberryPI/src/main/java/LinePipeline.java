@@ -78,8 +78,8 @@ public class LinePipeline implements VisionPipeline
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
-	public void process( Mat source0, Rect crop, TapeInfo ti ) {
-		this.crop = crop;
+	public void process( Mat source0, TapeInfo ti ) {
+		this.crop = new Rect( (int)ti.minX, source0.height()/2, (int)(ti.maxX-ti.minX), source0.height()/2 );
 		this.ti = ti;
 
 		Mat subImage = source0.submat(crop);
