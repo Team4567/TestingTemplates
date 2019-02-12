@@ -5,7 +5,6 @@ import java.util.List;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
@@ -63,7 +62,11 @@ public class LinePipeline implements VisionPipeline
 	public static double[] getRotatedRectRatio() {
 		return rectRatio;
 	}
-	
+
+	// Inputs
+	private Rect crop = null;
+	private TargetInfo ti = null;
+
 	//Outputs
 	private Mat hsvThresholdOutput = new Mat();
 	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
@@ -75,7 +78,10 @@ public class LinePipeline implements VisionPipeline
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
-	public void process( Mat source0, Rect crop ) {
+	public void process( Mat source0, Rect crop, TargetInfo ti ) {
+		this.crop = crop;
+		this.ti = ti;
+
 		Mat subImage = source0.submat(crop);
 		process(subImage);
 	}
@@ -89,23 +95,7 @@ public class LinePipeline implements VisionPipeline
 		boolean findContoursExternalOnly = false;
 		findContours(findContoursInput, findContoursExternalOnly, findContoursOutput);
 
-		// Step Filter_Contours0:
-		ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-//		double filterContoursMinArea = 0;
-		double filterContoursMinPerimeter = 0;
-		double filterContoursMinWidth = 0;
-		double filterContoursMaxWidth = 1000;
-		double filterContoursMinHeight = 0.0;
-		double filterContoursMaxHeight = 1000;
-		double[] filterContoursSolidity = {0, 100};
-		double filterContoursMaxVertices = 1000000;
-		double filterContoursMinVertices = 0;
-		double filterContoursMinRatio = 0;
-		double filterContoursMaxRatio = 1000;
-		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
-
-		findRotatedRects( filterContoursOutput, findRotatedRectsOutput );
-//		findRotatedRects( findContoursOutput, findRotatedRectsOutput );
+		findRotatedRects( findContoursOutput, findRotatedRectsOutput );
 	}
 
 	public Mat hsvThresholdOutput() {
@@ -160,71 +150,50 @@ public class LinePipeline implements VisionPipeline
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}
 
-	/**
-	 * Filters out contours that do not meet certain criteria.
-	 * @param inputContours is the input list of contours
-	 * @param output is the the output list of contours
-	 * @param minArea is the minimum area of a contour that will be kept
-	 * @param minPerimeter is the minimum perimeter of a contour that will be kept
-	 * @param minWidth minimum width of a contour
-	 * @param maxWidth maximum width
-	 * @param minHeight minimum height
-	 * @param maxHeight maximimum height
-	 * @param Solidity the minimum and maximum solidity of a contour
-	 * @param minVertexCount minimum vertex Count of the contours
-	 * @param maxVertexCount maximum vertex Count
-	 * @param minRatio minimum ratio of width to height
-	 * @param maxRatio maximum ratio of width to height
-	 */
-	private static void filterContours(List<MatOfPoint> inputContours, double minArea,
-		double minPerimeter, double minWidth, double maxWidth, double minHeight, double
-		maxHeight, double[] solidity, double maxVertexCount, double minVertexCount, double
-		minRatio, double maxRatio, List<MatOfPoint> output) {
-		final MatOfInt hull = new MatOfInt();
-		output.clear();
-		//operation
-		for (int i = 0; i < inputContours.size(); i++) {
-			final MatOfPoint contour = inputContours.get(i);
-			final Rect bb = Imgproc.boundingRect(contour);
-			if (bb.width < minWidth || bb.width > maxWidth) continue;
-			if (bb.height < minHeight || bb.height > maxHeight) continue;
-			final double area = Imgproc.contourArea(contour);
-			if (area < minArea) continue;
-			if (Imgproc.arcLength(new MatOfPoint2f(contour.toArray()), true) < minPerimeter) continue;
-			Imgproc.convexHull(contour, hull);
-			MatOfPoint mopHull = new MatOfPoint();
-			mopHull.create((int) hull.size().height, 1, CvType.CV_32SC2);
-			for (int j = 0; j < hull.size().height; j++) {
-				int index = (int)hull.get(j, 0)[0];
-				double[] point = new double[] { contour.get(index, 0)[0], contour.get(index, 0)[1]};
-				mopHull.put(j, 0, point);
-			}
-			final double solid = 100 * area / Imgproc.contourArea(mopHull);
-			if (solid < solidity[0] || solid > solidity[1]) continue;
-			if (contour.rows() < minVertexCount || contour.rows() > maxVertexCount)	continue;
-			final double ratio = bb.width / (double)bb.height;
-			if (ratio < minRatio || ratio > maxRatio) continue;
-			output.add(contour);
-		}
-	}
-
 	private void findRotatedRects( List<MatOfPoint> inputContours, List<RotatedRect> outputRotatedRects ) 
 	{
 		double angle = Double.NaN;
 		MatOfPoint2f mat2f = new MatOfPoint2f();
 
+		outputRotatedRects.clear();
+
 		for (int i = 0; i < inputContours.size(); i++) 
 		{
+			// Find MinAreaRect for each contour and consider if it meets criteria
 			inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
 			RotatedRect rect = Imgproc.minAreaRect( mat2f );
 
 			double ratio = (rect.size.width < rect.size.height) ? rect.size.width/rect.size.height : rect.size.height/rect.size.width;
 
 			// If ratio is good add the RotatedRect to output
-			if( ratio >= rectRatio[0] && ratio <= rectRatio[1] ) {
-				outputRotatedRects.add(rect);
-				angle = ( rect.size.width < rect.size.height ) ? rect.angle + 90 : rect.angle;
+			if( ratio < rectRatio[0] && ratio > rectRatio[1] ) {
+				// outside the bounds of the acceptable ratios
+				continue;
 			}
+
+			// If we have a target(we will), throw out contour if at least one vertex.x isn't in between the tapes.
+			if( ti != null ) 
+			{
+				Point[] vertices = new Point[4];
+				rect.points(vertices);
+				int j; // need to check after the loop
+				for( j=0; j<4; j++ ) {
+					double x = vertices[j].x + crop.x;
+					if( x >= ti.minX && x <= ti.maxX )
+						break;
+				}
+
+				if( j == 4 )  // loop stoped because it reached the end? (not because one was found)
+					continue;
+			}
+
+			// Check for minimum size
+			if( rect.size.width * rect.size.height < filterContoursMinArea )
+				continue;  // not big enough
+			
+			// Passed all the test! It is good.
+			outputRotatedRects.add(rect);
+			angle = ( rect.size.width < rect.size.height ) ? rect.angle + 90 : rect.angle;
 		}
 
 		// We have a good line only if there is only one found.
@@ -257,10 +226,10 @@ public class LinePipeline implements VisionPipeline
 			double angle = ( rect.size.width < rect.size.height ) ? rect.angle + 90 : rect.angle;
 
 			double dy = (Math.signum(angle) * 15);
-			p.y += dy;
+			p.y -= dy;
 			Imgproc.putText( output, "/"+(int)angle, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
 			p.y += dy;
-			Imgproc.putText( output, "("+(int)rect.center.x+","+(int)rect.center.y+")", p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			Imgproc.putText( output, "("+(int)rect.center.x+","+(int)rect.center.y+","+(int)rect.size.width+","+(int)rect.size.height+")", p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
 		}
 	}
 }

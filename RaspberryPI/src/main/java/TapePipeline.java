@@ -5,11 +5,9 @@ import java.util.List;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -34,7 +32,6 @@ public class TapePipeline implements VisionPipeline {
 	private Mat hslThresholdOutput = new Mat();
 	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
-	private ArrayList<MatOfPoint> filterContoursOutput2 = new ArrayList<MatOfPoint>();  // ratio applied
 	private ArrayList<RotatedRect> filteredRotatedRects = new ArrayList<RotatedRect>();
 	private Mat output = new Mat();
 
@@ -103,39 +100,24 @@ public class TapePipeline implements VisionPipeline {
 		boolean findContoursExternalOnly = false;
 		findContours(findContoursInput, findContoursExternalOnly, findContoursOutput);
 
-		// Step Filter_Contours0:
-		ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-//		double filterContoursMinArea = 42.0;
-		double filterContoursMinPerimeter = 0;
-		double filterContoursMinWidth = 0;
-		double filterContoursMaxWidth = 1000;
-		double filterContoursMinHeight = 0;
-		double filterContoursMaxHeight = 1000;
-		double[] filterContoursSolidity = {0, 100};
-		double filterContoursMaxVertices = 1000000;
-		double filterContoursMinVertices = 0;
-		double filterContoursMinRatio = 0;
-		double filterContoursMaxRatio = 1000;
-		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
-
-		// Populate RotatedRects from the contours and filter out those that have a bad ratio.
+		// Populate RotatedRects from the contours and filter out those that have a bad ratio or too small.
 		MatOfPoint2f mat2f = new MatOfPoint2f();
-		filterContoursOutput2.clear();
+		filterContoursOutput.clear();
 		filteredRotatedRects.clear();
-		for( int i = 0; i < filterContoursOutput.size(); i++) {
-			filterContoursOutput.get(i).convertTo( mat2f, CvType.CV_32F );
+		for( int i = 0; i < findContoursOutput.size(); i++) {
+			findContoursOutput.get(i).convertTo( mat2f, CvType.CV_32F );
 			RotatedRect rect = Imgproc.minAreaRect( mat2f );
 			double ratio = (rect.size.width < rect.size.height) ? rect.size.width/rect.size.height : rect.size.height/rect.size.width;
 
-			// If ratio is good add the Contour and RotatedRect to output
-			if( ratio >= rectRatio[0] && ratio <= rectRatio[1] ) {
-				filterContoursOutput2.add( filterContoursOutput.get(i) );
+			// If ratio is good and big enough, add the Contour and RotatedRect to output
+			if( ratio >= rectRatio[0] && ratio <= rectRatio[1] && (rect.size.width*rect.size.height) > filterContoursMinArea ) {
+				filterContoursOutput.add( findContoursOutput.get(i) );
 				filteredRotatedRects.add(rect);
 			}
 		}
 
 		output = source0.clone();
-		targetInfo = TargetFinder.findTargetLockInfo(filterContoursOutput2, output.width(), output.height() );
+		targetInfo = TargetFinder.findTargetLockInfo(filterContoursOutput, output.width(), output.height() );
 
 		renderContours( filteredRotatedRects, output);
 	}
@@ -200,55 +182,6 @@ public class TapePipeline implements VisionPipeline {
 		}
 		int method = Imgproc.CHAIN_APPROX_SIMPLE;
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
-	}
-
-
-	/**
-	 * Filters out contours that do not meet certain criteria.
-	 * @param inputContours is the input list of contours
-	 * @param output is the the output list of contours
-	 * @param minArea is the minimum area of a contour that will be kept
-	 * @param minPerimeter is the minimum perimeter of a contour that will be kept
-	 * @param minWidth minimum width of a contour
-	 * @param maxWidth maximum width
-	 * @param minHeight minimum height
-	 * @param maxHeight maximimum height
-	 * @param Solidity the minimum and maximum solidity of a contour
-	 * @param minVertexCount minimum vertex Count of the contours
-	 * @param maxVertexCount maximum vertex Count
-	 * @param minRatio minimum ratio of width to height
-	 * @param maxRatio maximum ratio of width to height
-	 */
-	private void filterContours(List<MatOfPoint> inputContours, double minArea,
-		double minPerimeter, double minWidth, double maxWidth, double minHeight, double
-		maxHeight, double[] solidity, double maxVertexCount, double minVertexCount, double
-		minRatio, double maxRatio, List<MatOfPoint> output) {
-		final MatOfInt hull = new MatOfInt();
-		output.clear();
-		//operation
-		for (int i = 0; i < inputContours.size(); i++) {
-			final MatOfPoint contour = inputContours.get(i);
-			final Rect bb = Imgproc.boundingRect(contour);
-			if (bb.width < minWidth || bb.width > maxWidth) continue;
-			if (bb.height < minHeight || bb.height > maxHeight) continue;
-			final double area = Imgproc.contourArea(contour);
-			if (area < minArea) continue;
-			if (Imgproc.arcLength(new MatOfPoint2f(contour.toArray()), true) < minPerimeter) continue;
-			Imgproc.convexHull(contour, hull);
-			MatOfPoint mopHull = new MatOfPoint();
-			mopHull.create((int) hull.size().height, 1, CvType.CV_32SC2);
-			for (int j = 0; j < hull.size().height; j++) {
-				int index = (int)hull.get(j, 0)[0];
-				double[] point = new double[] { contour.get(index, 0)[0], contour.get(index, 0)[1]};
-				mopHull.put(j, 0, point);
-			}
-			final double solid = 100 * area / Imgproc.contourArea(mopHull);
-			if (solid < solidity[0] || solid > solidity[1]) continue;
-			if (contour.rows() < minVertexCount || contour.rows() > maxVertexCount)	continue;
-			final double ratio = bb.width / (double)bb.height;
-			if (ratio < minRatio || ratio > maxRatio) continue;
-			output.add(contour);
-		}
 	}
 
 	private void renderContours( List<RotatedRect> rotatedRects, Mat output ) {

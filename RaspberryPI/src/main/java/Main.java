@@ -244,6 +244,7 @@ public final class Main {
       VideoMode m = cameras.get(0).getVideoMode();
 //      CvSource lineOutput = CameraServer.getInstance().putVideo("Line", m.width, m.height);
       CvSource output    = CameraServer.getInstance().putVideo("Output", m.width, m.height);
+      LinePipeline linePipeline = new LinePipeline();
 
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new TapePipeline(), pipeline -> {
@@ -258,12 +259,13 @@ public final class Main {
                   // Have a target, now look for the line.
                   // We only need to look at the lower half of the screen, crop image 
                   // Render over the output from the main pipeline.
-                  LinePipeline linePipeline = new LinePipeline();
-                  int width = pipeline.input().width();
+//                  int width = pipeline.input().width();
                   int height = pipeline.input().height();
-                  linePipeline.process( pipeline.input(), new Rect( 0, (int)height/2, width, height/2 ) );
+//                  linePipeline.process( pipeline.input(), new Rect( 0, (int)height/2, width, height/2 ), ti );
+                  linePipeline.process( pipeline.input(), new Rect( (int)ti.minX, (int)height/2, (int)(ti.maxX-ti.minX), height/2 ), ti );
 //                  lineOutput.putFrame( linePipeline.hsvThresholdOutput() );
-                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), pipeline.output(), 0, height/2 );
+//                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), pipeline.output(), 0, height/2 );
+                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), pipeline.output(), (int)ti.minX, height/2 );
                   eLineAngle.setDouble( linePipeline.getLineAngle() );
                 }
                 else {
