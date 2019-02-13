@@ -1,4 +1,4 @@
 package frc.robot.enums;
 public enum ElevatorPos{
-  ballLow,ballMed,ballHigh
+  ballLow,ballMed,ballHigh,cargoShip
 }
