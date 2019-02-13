@@ -40,7 +40,10 @@ public class TapePipeline implements VisionPipeline {
 	private TapeInfo tapeInfo = null;  // null when no lock
 
 	// Dynamic setting of Threshold values;
-	private static double[] hslThresholdHue = {80.0, 100.0};
+	static final Scalar redScalar   = new Scalar(0,0,255);
+	static final Scalar whiteScalar = new Scalar(255,255,255);
+
+	private static double[] hslThresholdHue = {50.0, 100.0};
 	private static double[] hslThresholdSaturation = {0.0, 135.0};
 	private static double[] hslThresholdValue = {100.0, 255.0};
 
@@ -120,7 +123,7 @@ public class TapePipeline implements VisionPipeline {
 			}
 		}
 
-		tapeInfo = TapeFinder.findTargetLockInfo(filteredContours, input.width(), input.height() );
+		tapeInfo = TapeFinder.findTargetLockInfo(filteredContours, input.width(), input.height(), tapeInfo );  // will reuse tapeInfo if not null
 	}
 
 	public Mat getInput() {
@@ -156,12 +159,15 @@ public class TapePipeline implements VisionPipeline {
 	 * @param val The min and max value
 	 * @param output The image in which to store the output.
 	 */
-	private static void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val,
-	    Mat out) {
+	private static void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val, Mat out) 
+	{
+//		Mat out1 = new Mat();
+//		Imgproc.blur(input, out1, new Size(5,5), new Point(-2, -2) );
+
 		Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HSV);
 		Core.inRange(out, new Scalar(hue[0], sat[0], val[0]),
 			new Scalar(hue[1], sat[1], val[1]), out);
-	}
+  	}
 
 	/**
 	 * Sets the values of pixels in a binary image to their distance to the nearest black pixel.
@@ -170,8 +176,8 @@ public class TapePipeline implements VisionPipeline {
 	 * @param maskSize the size of the mask.
 	 * @param output The image in which to store the output.
 	 */
-	private void findContours(Mat input, boolean externalOnly,
-		List<MatOfPoint> contours) {
+	private void findContours(Mat input, boolean externalOnly, List<MatOfPoint> contours) 
+	{
 		Mat hierarchy = new Mat();
 		contours.clear();
 		int mode;
@@ -186,16 +192,13 @@ public class TapePipeline implements VisionPipeline {
 	}
 
 	public void renderContours( List<RotatedRect> rotatedRects, Mat output, boolean debug ) {
-		// Scalar white = new Scalar(255,255,255);
-		Scalar red   = new Scalar(0,0,255);
-		Scalar white = new Scalar(255,255,255);
 		double fontScale = (output.width() > 320 ? 1.0 : 0.7);
 		
 		for( RotatedRect rotatedRect : rotatedRects ) {
 			Point[] vertices = new Point[4];
 			rotatedRect.points(vertices);
 			for( int j=0; j<4; j++ )
-				Imgproc.line( output, vertices[j], vertices[(j+1)%4], red );
+				Imgproc.line( output, vertices[j], vertices[(j+1)%4], redScalar );
 
 			if( debug ) {
 				Point p = rotatedRect.center.clone();
@@ -204,11 +207,11 @@ public class TapePipeline implements VisionPipeline {
 
 				double dy = 15; // (Math.signum(angle) * 15);
 				p.y += dy;
-				Imgproc.putText( output, "/"+ Math.round(angle*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+				Imgproc.putText( output, "/"+ Math.round(angle*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 				p.y += dy;
-				Imgproc.putText( output, "("+ Math.round(rotatedRect.center.x*10.0)/10.0+","+Math.floor(rotatedRect.center.y)+")", p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+				Imgproc.putText( output, "("+ Math.round(rotatedRect.center.x*10.0)/10.0+","+Math.floor(rotatedRect.center.y)+")", p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 				p.y += dy;
-				Imgproc.putText( output, "Y: "+ Math.round(yaw*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+				Imgproc.putText( output, "Y: "+ Math.round(yaw*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 			}
 		}
 
@@ -217,18 +220,18 @@ public class TapePipeline implements VisionPipeline {
 			double lineX = tapeInfo.centerX;
 			double targetYaw = (tapeInfo.centerX - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV);
 
-			Imgproc.putText( output, "Yaw: "+ Math.round(targetYaw*10.0)/10.0, new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, white );
-			Imgproc.line(output, new Point(lineX, 0), new Point(lineX, output.height()), white);
+			Imgproc.putText( output, "Yaw: "+ Math.round(targetYaw*10.0)/10.0, new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+			Imgproc.line(output, new Point(lineX, 0), new Point(lineX, output.height()), whiteScalar);
 	
-			Imgproc.putText( output, "Distance: "+ Math.round(tapeInfo.distance*10.0)/10.0, new Point(lineX+3, 20), Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			Imgproc.putText( output, "Distance: "+ Math.round(tapeInfo.distance*10.0)/10.0, new Point(lineX+3, 20), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 
 			if( debug ) {
 				String info = "("+ Math.round(tapeInfo.centerX*10.0)/10.0 + "," + Math.round(tapeInfo.centerY*10.0)/10.0 + "," + Math.round(tapeInfo.centerHeight*10.0)/10.0 + ")";
-				Imgproc.putText( output, info, new Point(lineX+3, 30), Core.FONT_HERSHEY_PLAIN, fontScale, white );
+				Imgproc.putText( output, info, new Point(lineX+3, 30), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 			}
 		}
 		else {
-			Imgproc.putText( output, "No Target Lock", new Point(3, output.height()-10 ), Core.FONT_HERSHEY_PLAIN, fontScale*1.25, red );
+			Imgproc.putText( output, "No Target Lock", new Point(3, output.height()-10 ), Core.FONT_HERSHEY_PLAIN, fontScale*1.25, redScalar );
 		}
 	}
 }

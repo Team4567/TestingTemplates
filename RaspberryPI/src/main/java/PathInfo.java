@@ -2,10 +2,10 @@
 class PathInfo {
     private static final int DISTANCE_TO_TARGET = 36;
 
-    private double distanceToTape;
-    private double lineAngle;
-    private double a;
-    private double aSign;
+    private double distanceToTape = Double.NaN;
+    private double lineAngle = Double.NaN;
+    private double a = Double.NaN;
+    private double aSign = Double.NaN;
 
     private double angleToPerp = Double.NaN;
     private double distanceToPerp = Double.NaN;
@@ -13,7 +13,10 @@ class PathInfo {
     private double distanceToTarget = Double.NaN;
     private boolean validPath = false;
 
-    PathInfo( double distanceToTape, double lineAngle )
+    PathInfo() {
+    }
+
+    void init( double distanceToTape, double lineAngle )
     {
         this.distanceToTape = distanceToTape;
         this.lineAngle = lineAngle;

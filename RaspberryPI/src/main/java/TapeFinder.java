@@ -15,13 +15,11 @@ class TapeFinder {
 
     // This routine finds a target (tape pair) and returns the X to the center and approx distance
     // If no complete target is found it returns null
-    public static TapeInfo findTargetLockInfo( List<MatOfPoint> inputContours, int frameWidth, int frameHeight ) 
+    public static TapeInfo findTargetLockInfo( List<MatOfPoint> inputContours, int frameWidth, int frameHeight, TapeInfo ti ) 
     {
-        TapeInfo ti = null; // This is null until we lock on to a target
-
         // return nothing if less than 2 contours or more than 8 (too much noise)
         if( inputContours.size() < 2 || inputContours.size() > 8 ) {
-            return ti;
+            return null;
         }
 
         // Sort from largest to smallest area contour
@@ -76,12 +74,17 @@ class TapeFinder {
                 double minX = Math.min( rect1.x, rect2.x );
                 double maxX = Math.max( rect1.x+rect1.width, rect2.x+rect2.width );
 
-                ti = new TapeInfo( centerX, centerY, centerHeight, distance, yaw, minX, maxX );
-                break;                
+                if( ti == null )
+                    ti = new TapeInfo( centerX, centerY, centerHeight, distance, yaw, minX, maxX );
+                else
+                    ti.init(centerX, centerY, centerHeight, distance, yaw, minX, maxX);
+
+                return ti;
             }
         }
 
-        return ti;
+        // no target lock
+        return null;
     }
 
     private static int findMatch( RotatedRect rrect1, List<RotatedRect> rotatedRects ) 
