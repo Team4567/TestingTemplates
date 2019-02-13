@@ -26,11 +26,10 @@ public class Elevator extends Subsystem {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   public Elevator(){
-    t1=new TalonSRX(Constants.elevatorMainMC);
-    t1.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-    //double maxOutChange, double Kp, double maxOutput, double minOutput, double minError
-    // ~184340 is one rotation
-    posCalc= new SimpleMotorP(.02,1,.1,100000);
+    t1=new TalonSRX( Constants.elevatorMainMC );
+    t1.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
+    // ~184340 is one rotation, 5120 allows 5 degrees of error on each side
+    posCalc= new SimpleMotorP( .02, 1, .1, 5120 );
     
   }
   
@@ -38,14 +37,28 @@ public class Elevator extends Subsystem {
   public void move(ElevatorPos pos){
     switch(pos){
       case ballLow:
-        posCalc.setSetpoint( 1 / circ * elevatorGearbox );
+        posCalc.setSetpoint( 27.5 / circ * elevatorGearbox );
       break;
       case ballMed:
-        posCalc.setSetpoint( 2 / circ * elevatorGearbox );
+        posCalc.setSetpoint( 55.5 / circ * elevatorGearbox );
       break;
       case ballHigh:
-        posCalc.setSetpoint( 3 / circ * elevatorGearbox );
+        posCalc.setSetpoint( 83.5 / circ * elevatorGearbox );
       break;
+      case cargoShip:
+        posCalc.setSetpoint( 31.5 / circ * elevatorGearbox );
+      break;
+        /*
+      case hatchLow:
+        posCalc.setSetpoint( 19 / circ * elevatorGearbox );
+      break;
+      case hatchMed:
+        posCalc.setSetpoint( 47 / circ * elevatorGearbox );
+      break;
+      case hatchHigh:
+        posCalc.setSetpoint( 75 / circ * elevatorGearbox );
+      break;
+        */
     }
     t1.set( ControlMode.PercentOutput, posCalc.getOutput( t1.getSelectedSensorPosition() ) );
     
