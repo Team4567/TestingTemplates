@@ -19,24 +19,25 @@ import frc.robot.Constants;
  */
 public class Elevator extends Subsystem {
   
-  public TalonSRX t1,t2;
+  public TalonSRX t1;
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   public Elevator(){
     t1=new TalonSRX(Constants.elevatorMainMC);
     t1.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-    t2=new TalonSRX(Constants.elevatorSlaveMC);
+    
     
   }
   
   
   public void move(double value){
     t1.set(ControlMode.PercentOutput, Math.min(Math.max(value,1),-1));
-    t2.follow(t1);
+    
   }
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.
     // setDefaultCommand(new MySpecialCommand());
+    
   }
 }
