@@ -7,21 +7,17 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.command.Command;
-import frc.robot.Constants;
+import frc.robot.enums.ElevatorPos;
 import frc.robot.Robot;
-
-public class LineScoreMode extends Command {
-  LineFollow follower;
-  public LineScoreMode() {
+public class MoveElev extends Command {
+  private ElevatorPos pos;
+  public MoveElev( ElevatorPos pos ) {
     // Use requires() here to declare subsystem dependencies
     // eg. requires(chassis);
-    requires( Robot.drive );
+    this.pos=pos;
     requires( Robot.upper );
-    requires( Robot.score );
-    follower= new LineFollow( Constants.gyroP );
-  }
+  } 
 
   // Called just before this Command runs the first time
   @Override
@@ -31,25 +27,25 @@ public class LineScoreMode extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    Robot.drive.drive( Robot.xbC.getY( Hand.kLeft ), follower.turn() );
+    Robot.upper.move( pos );
   }
 
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    return Robot.xbC.getStickButtonPressed( Hand.kLeft );
+    return Robot.upper.getOutput() == 0;
   }
 
   // Called once after isFinished returns true
   @Override
   protected void end() {
-    Robot.drive.stop();
+    Robot.upper.stop();
   }
 
   // Called when another command which requires one or more of the same
   // subsystems is scheduled to run
   @Override
   protected void interrupted() {
-    Robot.drive.stop();
+    Robot.upper.stop();
   }
 }

@@ -11,13 +11,17 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
 import frc.robot.Robot;
 import frc.robot.Constants;
 import frc.robot.commands.*;
-
 public class RightRocket extends CommandGroup {
   /**
    * Add your docs here.
    */
   public RightRocket() {
-    requires(Robot.drive);
+    requires( Robot.drive );
+    addSequential( new DriveDistance() );
+    addSequential( new TurnAngle() );
+    addSequential( new VisionMovement() );
+    addSequential( new LineScoreMode() );
+    addSequential( new TeleOpDrive() );
     //requires(Robot.score);
     //requires(Robot.upper);
     // Add Commands here:

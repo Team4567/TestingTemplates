@@ -69,11 +69,6 @@ public class Robot extends TimedRobot {
   public static XboxController xbC= new XboxController(0);
   SendableChooser<CommandGroup> m_chooser = new SendableChooser<>();
   //NetworkTables
-  NetworkTableInstance inst;
-  private static NetworkTable chickenVision;
-  private NetworkTableEntry nmP,nmI,nmD;
-  private NetworkTableEntry driveWanted,cargoWanted,tapeWanted,tapeYaw,cargoYaw;
-
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -102,18 +97,6 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Start: Center, Target: Right-side Rocket", new CenterRCargo());
     m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new CenterRRocket());*/
     SmartDashboard.putData("Auto mode", m_chooser);
-    //NetworkTables
-    inst=NetworkTableInstance.getDefault();
-    
-    
-  
-    
-    chickenVision=inst.getTable("ChickenVision");
-    driveWanted = chickenVision.getEntry("Driver");
-		tapeWanted = chickenVision.getEntry("Tape");
-		cargoWanted = chickenVision.getEntry("Cargo");
-    tapeYaw=chickenVision.getEntry("tapeYaw");
-    cargoYaw=chickenVision.getEntry("cargoYaw");
     
     
   }

@@ -9,13 +9,18 @@ package frc.robot.autonomous;
 import frc.robot.Robot;
 
 import edu.wpi.first.wpilibj.command.CommandGroup;
-
+import frc.robot.commands.*;
 public class LeftRocket extends CommandGroup {
   /**
    * Add your docs here.
    */
   public LeftRocket() {
-    requires(Robot.drive);
+    requires( Robot.drive );
+    addSequential( new DriveDistance() );
+    addSequential( new TurnAngle() );
+    addSequential( new VisionMovement() );
+    addSequential( new LineScoreMode() );
+    addSequential( new TeleOpDrive() );
    // requires(Robot.score);
     //requires(Robot.upper);
     // Add Commands here:

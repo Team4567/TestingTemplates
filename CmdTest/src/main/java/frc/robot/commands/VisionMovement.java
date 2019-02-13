@@ -20,16 +20,19 @@ public class VisionMovement extends CommandGroup {
    */
   private double ang1,d1,ang2,d2;
   public VisionMovement() {
-    requires(Robot.drive);
+    requires( Robot.drive );
     NetworkTableInstance inst= NetworkTableInstance.getDefault();
-    NetworkTable nt= inst.getTable("TargetInfo");
-    NetworkTableEntry eAngleToPerp      = nt.getEntry("AngleToPerp");     // Perpendicular from hatch wall
-    NetworkTableEntry eDistanceToPerp   = nt.getEntry("DistanceToPerp");  // Perpendicular from hatch wall
-    NetworkTableEntry eAngleToTarget    = nt.getEntry("AngleToTarget");   // Turn to face target
-    NetworkTableEntry eDistanceToTarget = nt.getEntry("DistanceToTarget");
-    NetworkTableEntry eTargetPathValid  = nt.getEntry("TargetPathValid");
-   
-    if(eTargetPathValid.getBoolean(false)){
+    NetworkTable nt= inst.getTable( "TargetInfo" );
+    NetworkTableEntry eAngleToPerp      = nt.getEntry( "AngleToPerp" );     // Perpendicular from hatch wall
+    NetworkTableEntry eDistanceToPerp   = nt.getEntry( "DistanceToPerp" );  // Perpendicular from hatch wall
+    NetworkTableEntry eAngleToTarget    = nt.getEntry( "AngleToTarget" );   // Turn to face target
+    NetworkTableEntry eDistanceToTarget = nt.getEntry( "DistanceToTarget" );
+    NetworkTableEntry eTargetPathValid  = nt.getEntry( "TargetPathValid" );
+    ang1=eAngleToPerp.getDouble( 0 );
+    d1=eDistanceToPerp.getDouble( 0 );
+    ang2=eAngleToTarget.getDouble( 0 );
+    d2=eDistanceToTarget.getDouble( 0 );
+    if( eTargetPathValid.getBoolean( false ) ){
       addSequential( new TurnAngle( 1, new SimpleTurnP( .05, Constants.gyroP , .5 , .15 , 1 ) ) );
       
       addSequential( new DriveDistance( 1, new SimpleMotorP( .02, Constants.motorP, .5, Constants.minValY, 200 ) ) );
@@ -56,4 +59,5 @@ public class VisionMovement extends CommandGroup {
     // a CommandGroup containing them would require both the chassis and the
     // arm.
   }
+  
 }
