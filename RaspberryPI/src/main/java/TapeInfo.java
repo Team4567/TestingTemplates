@@ -11,7 +11,13 @@ class TapeInfo {
     public double minX;                 // Min and Max X are useful for creating a submat for line search.
     public double maxX;
 
-    TapeInfo( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX ) {
+    TapeInfo( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX ) 
+    {
+        init( centerX, centerY, centerHeight, distance, angle, minX, maxX );
+    }
+
+    public void init( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX ) 
+    {
         this.centerX      = centerX;
         this.centerY      = centerY;
         this.centerHeight = centerHeight;

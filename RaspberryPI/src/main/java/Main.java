@@ -73,8 +73,10 @@ import edu.wpi.first.vision.VisionThread;
  */
 
 public final class Main {
-  private static String configFile = "/boot/frc.json";
+  private static String  configFile = "/boot/frc.json";
   private static boolean debug = false;
+  private static double  testHeight = 28.5;
+  private static int     frameCount=0;
 
 //  @SuppressWarnings("MemberName")
   public static class CameraConfig {
@@ -236,9 +238,15 @@ public final class Main {
       debug = event.value.getBoolean(); 
     }, EntryListenerFlags.kUpdate );
 
+    NetworkTableEntry eTestHeight = ntinst.getEntry("TestHeight");
+    eTestHeight.setDouble( testHeight );
+    eTestHeight.addListener( event -> { 
+      testHeight = event.value.getDouble(); 
+    }, EntryListenerFlags.kUpdate );
+
     NetworkTable nt = ntinst.getTable("TargetInfo");
 
-    // All values will be Double.NaN is not valid
+    // All values will be Double.NaN if not valid
     NetworkTableEntry eAngleToTape      = nt.getEntry("AngleToTape");         
     NetworkTableEntry eDistanceToTape   = nt.getEntry("DistanceToTape");
     NetworkTableEntry eLineAngle        = nt.getEntry("LineAngle");
@@ -247,6 +255,8 @@ public final class Main {
     NetworkTableEntry eAngleToTarget    = nt.getEntry("AngleToTarget");   // Turn to face target
     NetworkTableEntry eDistanceToTarget = nt.getEntry("DistanceToTarget");
     NetworkTableEntry eTargetPathValid  = nt.getEntry("TargetPathValid"); // AngleToPerp, DistanceToPerp and AngelToTarget all good.
+    NetworkTableEntry eNewDistance      = nt.getEntry("NewDistance");
+    NetworkTableEntry eNewHeight        = nt.getEntry("NewHeight");
 
     initializePiplineParmsNetTable( ntinst );
 
@@ -259,39 +269,40 @@ public final class Main {
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
       VideoMode m = cameras.get(0).getVideoMode();
-//      CvSource lineOutput = CameraServer.getInstance().putVideo("Line", m.width, m.height);
-      CvSource output    = CameraServer.getInstance().putVideo("Output", m.width, m.height);
+//      CvSource debugOut = CameraServer.getInstance().putVideo("Debug", m.width, m.height);
+      CvSource output   = CameraServer.getInstance().putVideo("Output", m.width, m.height);
       LinePipeline linePipeline = new LinePipeline();
+      PathInfo pathInfo = new PathInfo();
 
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new TapePipeline(), pipeline -> {
-                Mat outFrame = pipeline.getInput().clone();
-                pipeline.renderContours( pipeline.getfilteredRotatedRects(), outFrame, debug );
-//                threshold.putFrame( pipeline.hslThresholdOutput() );
+                Mat inFrame = pipeline.getInput();
+//                debugOut.putFrame( pipeline.hslThresholdOutput() );
 
-                TapeInfo ti = pipeline.getTapeInfo();
-                if( ti != null ) {
-                  eAngleToTape.setDouble( ti.getAngle() );
-                  eDistanceToTape.setDouble( ti.getDistance() );
+                TapeInfo tapeInfo = pipeline.getTapeInfo();
+                if( tapeInfo != null ) {
+                  eAngleToTape.setDouble( Math.round(tapeInfo.getAngle()*10.0)/10.0 );
+                  eDistanceToTape.setDouble( Math.round(tapeInfo.getDistance()*10.0)/10.0 );
 
-                  // Need to fix this - The linePipeline should be smart enough to know where to crop
-                  // We only need to look at the lower half of the screen, crop image 
-                  int height = pipeline.getInput().height();
-                  linePipeline.process( pipeline.getInput(), ti );
+                  linePipeline.process( inFrame, tapeInfo );
 
-//                  lineOutput.putFrame( linePipeline.hsvThresholdOutput() );
-                  linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), outFrame, (int)ti.minX, height/2, debug );
-                  eLineAngle.setDouble( linePipeline.getLineAngle() );
+//                  debugOut.putFrame( linePipeline.hsvThresholdOutput() );
+                  eLineAngle.setDouble( Math.round(linePipeline.getLineAngle()*10.0)/10.0 );
 
-                  PathInfo pi = new PathInfo(ti.getDistance(), linePipeline.getLineAngle() );
-                  if( pi.isValidPath() ) {
-                    eAngleToPerp.setDouble( Math.round(pi.getAngleToPerp()*10.0)/10.0 );
-                    eDistanceToPerp.setDouble( Math.round(pi.getDistanceToPerp()*10.0)/10.0 );
-                    eAngleToTarget.setDouble( Math.round(pi.getAngleToTarget()*10.0)/10.0 );
-                    eDistanceToTarget.setDouble( Math.round(pi.getDistanceToTarget()*10.0)/10.0 );
+                  pathInfo.init( tapeInfo.getDistance(), linePipeline.getLineAngle() ); 
+                  if( pathInfo.isValidPath() ) {
+                    double heightInPixels = Math.abs(tapeInfo.centerY - linePipeline.getLineMinY());
+                    double newDistance = Camera.estimateDistance(testHeight, heightInPixels, pipeline.getInput().height() );
+ 
+                    eNewHeight.setDouble(linePipeline.getLineMinY());
+                    eNewDistance.setDouble(newDistance);
+
+                    eAngleToPerp.setDouble( Math.round(pathInfo.getAngleToPerp()*10.0)/10.0 );
+                    eDistanceToPerp.setDouble( Math.round(pathInfo.getDistanceToPerp()*10.0)/10.0 );
+                    eAngleToTarget.setDouble( Math.round(pathInfo.getAngleToTarget()*10.0)/10.0 );
+                    eDistanceToTarget.setDouble( Math.round(pathInfo.getDistanceToTarget()*10.0)/10.0 );
                     eTargetPathValid.setBoolean( true );
                   }
-                  renderPathInfo( outFrame, pi );
                 }
                 else {
                   eAngleToTape.setDouble( Double.NaN );
@@ -302,7 +313,16 @@ public final class Main {
                   eAngleToTarget.setDouble( Double.NaN );
                   eTargetPathValid.setBoolean( false );
                 }
-                output.putFrame( outFrame );
+
+                pipeline.renderContours( pipeline.getfilteredRotatedRects(), inFrame, debug );
+                linePipeline.renderContours(linePipeline.findRotatedRectsOutput(), inFrame, linePipeline.getCrop().x, linePipeline.getCrop().y, debug );
+                if( pathInfo.isValidPath() ) 
+                  renderPathInfo( inFrame, pathInfo );
+                  
+                output.putFrame( inFrame );
+
+                if( (frameCount % 30) == 0 )
+                  System.gc();
        });
       visionThread.start();
     }
