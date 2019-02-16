@@ -16,6 +16,7 @@ class TapeInfo {
         init( centerX, centerY, centerHeight, distance, angle, minX, maxX );
     }
 
+    // Allows for reuse of the object to save a "new"
     public void init( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX ) 
     {
         this.centerX      = centerX;

@@ -44,7 +44,7 @@ public class TapePipeline implements VisionPipeline {
 	static final Scalar whiteScalar = new Scalar(255,255,255);
 
 	private static double[] hslThresholdHue = {50.0, 100.0};
-	private static double[] hslThresholdSaturation = {0.0, 135.0};
+	private static double[] hslThresholdSaturation = {100.0, 170.0};
 	private static double[] hslThresholdValue = {100.0, 255.0};
 
 	private static double filterContoursMinArea = 50.0;
@@ -208,8 +208,18 @@ public class TapePipeline implements VisionPipeline {
 				double dy = 15; // (Math.signum(angle) * 15);
 				p.y += dy;
 				Imgproc.putText( output, "/"+ Math.round(angle*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+
 				p.y += dy;
-				Imgproc.putText( output, "("+ Math.round(rotatedRect.center.x*10.0)/10.0+","+Math.floor(rotatedRect.center.y)+")", p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+				String t = "("+ Math.round(rotatedRect.center.x*10.0)/10.0 + ", "
+							  + Math.round(rotatedRect.center.y*10.0)/10.0 + ")";
+				Imgproc.putText( output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+
+				p.y += dy;
+				t = "("+ rotatedRect.boundingRect().width + ", "
+					   + rotatedRect.boundingRect().height + ")";
+
+				Imgproc.putText( output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+
 				p.y += dy;
 				Imgproc.putText( output, "Y: "+ Math.round(yaw*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 			}
@@ -223,11 +233,11 @@ public class TapePipeline implements VisionPipeline {
 			Imgproc.putText( output, "Yaw: "+ Math.round(targetYaw*10.0)/10.0, new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 			Imgproc.line(output, new Point(lineX, 0), new Point(lineX, output.height()), whiteScalar);
 	
-			Imgproc.putText( output, "Distance: "+ Math.round(tapeInfo.distance*10.0)/10.0, new Point(lineX+3, 20), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+			Imgproc.putText( output, "Distance: "+ Math.round(tapeInfo.distance*10.0)/10.0, new Point(lineX+3, 25), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 
 			if( debug ) {
 				String info = "("+ Math.round(tapeInfo.centerX*10.0)/10.0 + "," + Math.round(tapeInfo.centerY*10.0)/10.0 + "," + Math.round(tapeInfo.centerHeight*10.0)/10.0 + ")";
-				Imgproc.putText( output, info, new Point(lineX+3, 30), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+				Imgproc.putText( output, info, new Point(lineX+3, 40), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 			}
 		}
 		else {

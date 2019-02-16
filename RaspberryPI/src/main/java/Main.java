@@ -260,21 +260,33 @@ public final class Main {
 
     initializePiplineParmsNetTable( ntinst );
 
-    // start cameras
+    // start cameras - Look for Logitech for processing
     List<VideoSource> cameras = new ArrayList<>();
     for (CameraConfig cameraConfig : cameraConfigs) {
       cameras.add(startCamera(cameraConfig));
     }
 
     // start image processing on camera 0 if present
-    if (cameras.size() >= 1) {
-      VideoMode m = cameras.get(0).getVideoMode();
+    if (cameras.size() >= 1) 
+    {
+      VideoSource targetingSource = null;
+      for( VideoSource camera : cameras ) {
+        if( camera.getName().equals("Logitech") ) {
+          targetingSource = camera;
+          break;
+        }
+      }
+
+      if( targetingSource == null )
+        targetingSource = cameras.get(0);
+
+      VideoMode m = targetingSource.getVideoMode();
 //      CvSource debugOut = CameraServer.getInstance().putVideo("Debug", m.width, m.height);
       CvSource output   = CameraServer.getInstance().putVideo("Output", m.width, m.height);
       LinePipeline linePipeline = new LinePipeline();
       PathInfo pathInfo = new PathInfo();
 
-      VisionThread visionThread = new VisionThread(cameras.get(0),
+            VisionThread visionThread = new VisionThread(targetingSource,
               new TapePipeline(), pipeline -> {
                 Mat inFrame = pipeline.getInput();
 //                debugOut.putFrame( pipeline.hslThresholdOutput() );

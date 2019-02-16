@@ -67,7 +67,7 @@ public class LinePipeline implements VisionPipeline
 	}
 
 	// Inputs
-	private Rect crop = null;
+	private Rect crop = new Rect();
 	private TapeInfo ti = null;
 
 	//Outputs
