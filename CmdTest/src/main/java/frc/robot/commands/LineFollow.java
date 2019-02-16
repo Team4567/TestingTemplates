@@ -17,20 +17,15 @@ import frc.robot.Robot;
 public class LineFollow {
   double yOut,xOut=0;
   double yPrevOut, xPrevOut=0;
-  double kPY,kPX;
+  double kP;
   NetworkTableInstance inst= NetworkTableInstance.getDefault();
   NetworkTable lineFollower= inst.getTable( "Line Follow" );
   NetworkTableEntry xEntry= lineFollower.getEntry( "x" );
-  NetworkTableEntry yEntry=lineFollower.getEntry( "y" );
-  public LineFollow( double kPY, double kPX ) {
-    
-    
-    this.kPY=kPY;
-    this.kPX=kPX;
-   
+  public LineFollow( double kP ) {
+    this.kP=kP;
   }
   public double turn(){
-    xOut=( xEntry.getDouble(0) - ( Constants.camW/2 ) )*kPX;
+    xOut=( xEntry.getDouble(0) - ( Constants.camW/2 ) ) * kP;
     double direction= Math.signum( xEntry.getDouble(0) - ( Constants.camW/2 ) );
     if( Math.abs( xPrevOut-xOut ) >.02 ){
       xOut=xPrevOut+Math.signum( direction );

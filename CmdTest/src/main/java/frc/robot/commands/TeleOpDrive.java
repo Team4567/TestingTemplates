@@ -14,15 +14,17 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Robot;
-
+import frc.robot.enums.ElevatorPos;
+import frc.robot.Constants;
 /**
  * Driving Controls for TeleOp
  */
 public class TeleOpDrive extends Command {
   XboxController xbC;
-  int level=1;
+  int level=1,prevLevel;
   int encoderLevel=0;
-  LineFollow lineCalc= new LineFollow(0,0);
+  LineFollow lineCalc= new LineFollow( Constants.gyroP );
+  ElevatorPos pos;
   public boolean useLineFollow=false;
   public TeleOpDrive(XboxController controller) {
     // Use requires() here to declare subsystem dependencies
@@ -45,18 +47,42 @@ public class TeleOpDrive extends Command {
     //}else{
       Robot.drive.drive(xbC);
     //}
-    if(xbC.getAButtonPressed()){
+    if( xbC.getAButtonPressed() ){
+      level--;
+    }
+    if( xbC.getYButtonPressed() ){
+      level++;
+    }
+    if( xbC.getBButtonPressed() ){
+      prevLevel=level;
       
     }
-    if(xbC.getBButtonPressed()){
-      
+    if( xbC.getBButton() ){
+      level=71;
     }
-    if(xbC.getYButton()){
-      //Robot.drive.leftMain.set(ControlMode.PercentOutput,.5);
-      //Robot.drive.leftSlave.follow(Robot.drive.leftSlave);
-
-      
+    if( xbC.getBButtonReleased() ){
+      level=prevLevel;
     }
+    switch( level ){
+      case 0:
+        level=1;
+        pos=ElevatorPos.ballLow;
+      break;
+      case 1:
+        pos=ElevatorPos.ballLow;
+      break;
+      case 2:
+        pos=ElevatorPos.ballMed;
+      break;
+      case 3:
+        pos=ElevatorPos.ballHigh;
+      break;
+      case 71:
+        pos=ElevatorPos.cargoShip;
+    }
+    Robot.upper.move(pos);
+    
+    
     if(xbC.getXButton()){
       //Robot.drive.rightMain.set(ControlMode.PercentOutput,.5);
       //Robot.drive.rightSlave.follow(Robot.drive.rightSlave);

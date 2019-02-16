@@ -26,11 +26,7 @@ public class SimpleMotorP implements MotorCalculator {
         init( maxOutChange, Kp, maxOutput, minOutput, minError );
     }
 
-    public SimpleMotorP( double targetValue, double maxOutChange, double Kp, double maxOutput, 
-                                        double minOutput, double minError ) {
-        init( maxOutChange, Kp, maxOutput, minOutput, minError );
-        setSetpoint( targetValue );
-    }
+   
 
     private void init( double maxAccel, double Kp, double maxOutput, double minOutput, double minError ) {
         this.targetValue = 0.0;
@@ -42,7 +38,7 @@ public class SimpleMotorP implements MotorCalculator {
         this.previousOutput = 0.0;
     }
 
-    public void setSetpoint(double set) {
+    public void setSetpoint(double set){
         targetValue=set;
     }
 
@@ -79,7 +75,7 @@ public class SimpleMotorP implements MotorCalculator {
         // It is never called unless run explicitly, usually in the debugger.
 
         // Target 20000 ticks, max output change of 0.1, Kp, Max Output 0.5, 100 ticks for just under 1/2 inch
-        SimpleMotorP c = new SimpleMotorP( 20000, 0.10, 0.0004, 0.5, 0.05, 100 );
+        //SimpleMotorP c = new SimpleMotorP( 20000, 0.10, 0.0004, 0.5, 0.05, 100 );
 
         int maxRuns = 100;
         double currentPosition = 0;
@@ -87,7 +83,7 @@ public class SimpleMotorP implements MotorCalculator {
 
         // done only when position is within 100 AND output has settled on zero.
         while( (Math.abs(20000-currentPosition) > 100 || output != 0.0) && maxRuns-- > 0 ) {  
-            output = c.getOutput( currentPosition );
+            //output = c.getOutput( currentPosition );
 
             System.out.println("CurrentPosition: " + currentPosition + " Output: " + output );
 

@@ -9,8 +9,9 @@ public class Constants {
     public static final int elevatorMainMC=5;
     public static final int elevatorSlaveMC=6;
 
-    public static final int scoreInSplit=0;
-    public static final int scoreFlipSplit=0;
+    public static final int scoreLMC=7;
+    public static final int scoreRMC=8;
+    public static final int flippyMC=9;
 
     public static final double wheelCirc=1.5625*12;
     public static final double wheelDiameter=wheelCirc/Math.PI;

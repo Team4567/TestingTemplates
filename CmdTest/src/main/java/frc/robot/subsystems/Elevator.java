@@ -13,30 +13,72 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import frc.robot.Constants;
-
+import frc.robot.commands.*;
+import frc.robot.enums.*;
 /**
  * Add your docs here.
  */
 public class Elevator extends Subsystem {
-  
-  public TalonSRX t1,t2;
+  private MotorCalculator posCalc;
+  private double diameter=0;
+  private double circ= Math.PI*diameter;
+  private double elevatorGearbox=184320;
+  private double initHeightOffGround=0;
+  public TalonSRX t1;
+  private ElevatorPos pos;
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   public Elevator(){
-    t1=new TalonSRX(Constants.elevatorMainMC);
-    t1.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-    t2=new TalonSRX(Constants.elevatorSlaveMC);
+    t1=new TalonSRX( Constants.elevatorMainMC );
+    t1.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
+    // ~184340 is one rotation, 5120 allows 5 degrees of error on each side
+    posCalc= new SimpleMotorP( .02, 0.00000054, 1, .1, 5120 );
     
   }
+  public double getOutput(){
+    return (pos==ElevatorPos.undecided) ? 1 : posCalc.getOutput( t1.getSelectedSensorPosition() );
+  }
   
-  
-  public void move(double value){
-    t1.set(ControlMode.PercentOutput, Math.min(Math.max(value,1),-1));
-    t2.follow(t1);
+  public void move(ElevatorPos pos){
+    this.pos=pos;
+    switch(pos){
+      case undecided:
+        pos=ElevatorPos.ballLow;
+        posCalc.setSetpoint( ( 27.5 - initHeightOffGround ) / circ * elevatorGearbox );
+      case ballLow:
+        posCalc.setSetpoint( ( 27.5 - initHeightOffGround ) / circ * elevatorGearbox );
+      break;
+      case ballMed:
+        posCalc.setSetpoint( ( 55.5 - initHeightOffGround ) / circ * elevatorGearbox );
+      break;
+      case ballHigh:
+        posCalc.setSetpoint( (83.5-initHeightOffGround) / circ * elevatorGearbox );
+      break;
+      case cargoShip:
+        posCalc.setSetpoint( (31.5-initHeightOffGround) / circ * elevatorGearbox );
+      break;
+        /*
+      case hatchLow:
+        posCalc.setSetpoint( 19 / circ * elevatorGearbox );
+      break;
+      case hatchMed:
+        posCalc.setSetpoint( 47 / circ * elevatorGearbox );
+      break;
+      case hatchHigh:
+        posCalc.setSetpoint( 75 / circ * elevatorGearbox );
+      break;
+        */
+    }
+    t1.set( ControlMode.PercentOutput, posCalc.getOutput( t1.getSelectedSensorPosition() ) );
+    
+  }
+  public void stop(){
+    t1.set( ControlMode.PercentOutput, 0);
   }
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.
     // setDefaultCommand(new MySpecialCommand());
+    
   }
 }
