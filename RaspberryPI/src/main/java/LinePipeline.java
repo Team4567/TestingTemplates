@@ -17,8 +17,8 @@ import edu.wpi.first.vision.VisionPipeline;
 
 public class LinePipeline implements VisionPipeline 
 {
-	static final Scalar red   = new Scalar(0,0,255);
-	static final Scalar white = new Scalar(255,255,255);
+	private static final Scalar red   = new Scalar(0,0,255);
+	private static final Scalar white = new Scalar(255,255,255);
 
 	// Dynamic setting of Threshold values;
 	private static double[] hsvThresholdHue = {0.0, 255.0};
@@ -28,41 +28,41 @@ public class LinePipeline implements VisionPipeline
 	private static double filterContoursMinArea = 50.0;
 	private static double[] rectRatio = {0.0, 0.15};
 
-	public static void setThresholdHue( double min, double max ) {
+	static void setThresholdHue( double min, double max ) {
 		hsvThresholdHue[0] = min;
 		hsvThresholdHue[1] = max;
 	}
-	public static double[] getThresholdHue() {
+	static double[] getThresholdHue() {
 		return hsvThresholdHue;
 	}
 
-	public static void setThresholdSaturation( double min, double max ) {
+	static void setThresholdSaturation( double min, double max ) {
 		hsvThresholdSaturation[0] = min;
 		hsvThresholdSaturation[1] = max;
 	}
-	public static double[] getThresholdSaturation() {
+	static double[] getThresholdSaturation() {
 		return hsvThresholdSaturation;
 	}
 
-	public static void setThresholdValue( double min, double max ) {
+	static void setThresholdValue( double min, double max ) {
 		hsvThresholdValue[0] = min;
 		hsvThresholdValue[1] = max;
 	}
-	public static double[] getThresholdValue() {
+	static double[] getThresholdValue() {
 		return hsvThresholdValue;
 	}
 
-	public static void setContoursMinArea( double min) {
+	static void setContoursMinArea( double min) {
 		filterContoursMinArea = min;
 	}
-	public static double getfilterContoursMinArea() {
+	static double getfilterContoursMinArea() {
 		return filterContoursMinArea;
 	}
-	public static void setRotatedRectRatio( double min, double max ) {
+	static void setRotatedRectRatio( double min, double max ) {
 		rectRatio[0] = min;
 		rectRatio[1] = max;
 	}
-	public static double[] getRotatedRectRatio() {
+	static double[] getRotatedRectRatio() {
 		return rectRatio;
 	}
 
@@ -72,9 +72,9 @@ public class LinePipeline implements VisionPipeline
 
 	//Outputs
 	private Mat hsvThresholdOutput = new Mat();
-	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
-	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
-	private ArrayList<RotatedRect> findRotatedRectsOutput = new ArrayList<RotatedRect>();
+	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<>();
+	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<>();
+	private ArrayList<RotatedRect> findRotatedRectsOutput = new ArrayList<>();
 	private double lineAngle = Double.NaN;
 	private double lineMinY = Double.NaN;
 
@@ -82,7 +82,7 @@ public class LinePipeline implements VisionPipeline
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
-	public void process( Mat source0, TapeInfo ti ) {
+	void process( Mat source0, TapeInfo ti ) {
 		double targetWidth = ti.maxX - ti.minX;
 		double minX = Math.max( ti.minX-targetWidth/2, 0.0 );
 		double maxX = Math.min( ti.maxX+targetWidth/2, source0.width() );
@@ -95,45 +95,38 @@ public class LinePipeline implements VisionPipeline
 		process(subImage);
 	}
 
+	@Override
 	public void process(Mat source0)
 	{
-		Mat hsvThresholdInput = source0;
-		hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue, hsvThresholdOutput);
-
-		Mat findContoursInput = hsvThresholdOutput;
-		boolean findContoursExternalOnly = false;
-		findContours(findContoursInput, findContoursExternalOnly, findContoursOutput);
-
+		hsvThreshold(source0, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue, hsvThresholdOutput);
+		findContours(hsvThresholdOutput, false, findContoursOutput);
 		findRotatedRects( findContoursOutput, findRotatedRectsOutput );
 	}
 
-	public Mat hsvThresholdOutput() {
+	Mat hsvThresholdOutput() {
 		return hsvThresholdOutput;
 	}
-
-	public ArrayList<MatOfPoint> findContoursOutput() {
+	ArrayList<MatOfPoint> findContoursOutput() {
 		return findContoursOutput;
 	}
-
-	public ArrayList<MatOfPoint> filterContoursOutput() {
+	ArrayList<MatOfPoint> filterContoursOutput() {
 		return filterContoursOutput;
 	}
 
-	public ArrayList<RotatedRect> findRotatedRectsOutput() {
+	ArrayList<RotatedRect> findRotatedRectsOutput() {
 		return findRotatedRectsOutput;
 	}
-
-	public double getLineAngle() {
-		return lineAngle;
+	Rect getCrop() {
+		return crop;
 	}
 
-	public double getLineMinY() {
+	double getLineAngle() {
+		return lineAngle;
+	}
+	double getLineMinY() {
 		return lineMinY;
 	}
 
-	public Rect getCrop() {
-		return crop;
-	}
 
 	/**
 	 * Segment an image based on hue, saturation, and value ranges.
@@ -142,7 +135,7 @@ public class LinePipeline implements VisionPipeline
 	 * @param hue The min and max hue
 	 * @param sat The min and max saturation
 	 * @param val The min and max value
-	 * @param output The image in which to store the output.
+	 * @param out The image in which to store the output.
 	 */
 	private static void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val, Mat out) 
 	{
@@ -156,13 +149,8 @@ public class LinePipeline implements VisionPipeline
 	{
 		Mat hierarchy = new Mat();
 		contours.clear();
-		int mode;
-		if (externalOnly) {
-			mode = Imgproc.RETR_EXTERNAL;
-		}
-		else {
-			mode = Imgproc.RETR_LIST;
-		}
+
+		int mode = ( externalOnly ? Imgproc.RETR_EXTERNAL : Imgproc.RETR_LIST );
 		int method = Imgproc.CHAIN_APPROX_SIMPLE;
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}
@@ -173,38 +161,37 @@ public class LinePipeline implements VisionPipeline
 
 		outputRotatedRects.clear();
 
-		for (int i = 0; i < inputContours.size(); i++) 
+		for (MatOfPoint inputContour : inputContours)
 		{
 			// Find MinAreaRect for each contour and consider if it meets criteria
-			inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
-			RotatedRect rect = Imgproc.minAreaRect( mat2f );
+			inputContour.convertTo(mat2f, CvType.CV_32F);
+			RotatedRect rect = Imgproc.minAreaRect(mat2f);
 
-			double ratio = (rect.size.width < rect.size.height) ? rect.size.width/rect.size.height : rect.size.height/rect.size.width;
+			double ratio = (rect.size.width < rect.size.height) ? rect.size.width / rect.size.height : rect.size.height / rect.size.width;
 
 			// If ratio is good add the RotatedRect to output
-			if( ratio < rectRatio[0] && ratio > rectRatio[1] ) {
+			if (ratio < rectRatio[0] && ratio > rectRatio[1]) {
 				// outside the bounds of the acceptable ratios
 				continue;
 			}
 
 			// Check for minimum size
-			if( rect.size.width * rect.size.height < filterContoursMinArea )
+			if (rect.size.width * rect.size.height < filterContoursMinArea)
 				continue;  // not big enough
-		
+
 			// If we have a target(we will), throw out contour if at least one vertex.x isn't in between the tapes.
-			if( ti != null ) 
-			{
+			if (ti != null) {
 				Point[] vertices = new Point[4];
 				rect.points(vertices);
 				int j; // need to check after the loop
-				for( j=0; j<4; j++ ) {
+				for (j = 0; j < 4; j++) {
 					double x = vertices[j].x + crop.x;
-					if( x >= ti.minX && x <= ti.maxX ) {
+					if (x >= ti.minX && x <= ti.maxX) {
 						break;
 					}
 				}
 
-				if( j == 4 )  // loop stoped because it reached the end? (not because one was found)
+				if (j == 4)  // loop stoped because it reached the end? (not because one was found)
 					continue;
 			}
 
@@ -236,7 +223,7 @@ public class LinePipeline implements VisionPipeline
 		}
 	}
 
-	public void renderContours( List<RotatedRect> rects, Mat output, int offsetX, int offsetY, boolean debug ) 
+	void renderContours( List<RotatedRect> rects, Mat output, int offsetX, int offsetY, boolean debug )
 	{
 		double fontScale = (output.width() > 320 ? 1.0 : 0.7);
 		

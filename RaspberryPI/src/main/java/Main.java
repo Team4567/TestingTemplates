@@ -19,6 +19,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.wpi.first.networktables.*;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -31,10 +32,6 @@ import edu.wpi.cscore.UsbCamera;
 import edu.wpi.cscore.VideoMode;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.networktables.EntryListenerFlags;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.vision.VisionThread;
 
 /*
@@ -80,15 +77,15 @@ public final class Main {
 
 //  @SuppressWarnings("MemberName")
   public static class CameraConfig {
-    public String name;
-    public String path;
-    public JsonObject config;
-    public JsonElement streamConfig;
+    String name;
+    String path;
+    JsonObject config;
+    JsonElement streamConfig;
   }
 
-  public static int team;
-  public static boolean server;
-  public static List<CameraConfig> cameraConfigs = new ArrayList<>();
+  private static int team;
+  private static boolean server;
+  private static List<CameraConfig> cameraConfigs = new ArrayList<>();
 
   private Main() {
   }
@@ -96,14 +93,14 @@ public final class Main {
   /**
    * Report parse error.
    */
-  public static void parseError(String str) {
+  private static void parseError(String str) {
     System.err.println("config error in '" + configFile + "': " + str);
   }
 
   /**
    * Read single camera configuration.
    */
-  public static boolean readCameraConfig(JsonObject config) {
+  private static boolean readCameraConfig(JsonObject config) {
     CameraConfig cam = new CameraConfig();
 
     // name
@@ -135,7 +132,7 @@ public final class Main {
    * Read configuration file.
    */
 //  @SuppressWarnings("PMD.CyclomaticComplexity")
-  public static boolean readConfig() {
+  private static boolean readConfig() {
     // parse file
     JsonElement top;
     try {
@@ -191,7 +188,7 @@ public final class Main {
   /**
    * Start running the camera.
    */
-  public static VideoSource startCamera(CameraConfig config) {
+  private static VideoSource startCamera(CameraConfig config) {
     System.out.println("Starting camera '" + config.name + "' on " + config.path);
     CameraServer inst = CameraServer.getInstance();
     UsbCamera camera = new UsbCamera(config.name, config.path);
@@ -234,15 +231,11 @@ public final class Main {
 
     NetworkTableEntry eDebug = ntinst.getEntry("Debug");
     eDebug.setBoolean(debug);
-    eDebug.addListener( event -> { 
-      debug = event.value.getBoolean(); 
-    }, EntryListenerFlags.kUpdate );
+    eDebug.addListener( event -> { debug = event.value.getBoolean(); }, EntryListenerFlags.kUpdate );
 
     NetworkTableEntry eTestHeight = ntinst.getEntry("TestHeight");
     eTestHeight.setDouble( testHeight );
-    eTestHeight.addListener( event -> { 
-      testHeight = event.value.getDouble(); 
-    }, EntryListenerFlags.kUpdate );
+    eTestHeight.addListener( event -> { testHeight = event.value.getDouble(); }, EntryListenerFlags.kUpdate );
 
     NetworkTable nt = ntinst.getTable("TargetInfo");
 
@@ -301,9 +294,9 @@ public final class Main {
 //                  debugOut.putFrame( linePipeline.hsvThresholdOutput() );
                   eLineAngle.setDouble( Math.round(linePipeline.getLineAngle()*10.0)/10.0 );
 
-                  pathInfo.init( tapeInfo.getDistance(), linePipeline.getLineAngle() ); 
+                  pathInfo.calculate( tapeInfo.getDistance(), linePipeline.getLineAngle() );
                   if( pathInfo.isValidPath() ) {
-                    double heightInPixels = Math.abs(tapeInfo.centerY - linePipeline.getLineMinY());
+                    int heightInPixels = (int)Math.round( Math.abs(tapeInfo.getCenterY() - linePipeline.getLineMinY()) );
                     double newDistance = Camera.estimateDistance(testHeight, heightInPixels, pipeline.getInput().height() );
  
                     eNewHeight.setDouble(linePipeline.getLineMinY());
@@ -355,7 +348,7 @@ public final class Main {
       double fontScale = (output.height() > 320 ? 1.0 : 0.7);
       double rowHeight = fontScale * 15;
 
-      Point p = new Point( 3, (output.height()/2) - fontScale*15*2 );
+      Point p = new Point( 3, (output.height()/2.0) - fontScale*15*2 );
       Imgproc.putText( output, "Ap: " + Math.round(pi.getAngleToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
       p.y += rowHeight;
       Imgproc.putText( output, "Dp: " + Math.round(pi.getDistanceToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );

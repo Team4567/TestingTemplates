@@ -1,6 +1,5 @@
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+//import java.util.Comparator;
 import java.util.List;
 
 import org.opencv.core.CvType;
@@ -10,12 +9,13 @@ import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.imgproc.Imgproc;
 
-class TapeFinder {
-    public static final double TARGET_HEIGHT_INCHES = 6.0;
+class TapeFinder
+{
+    private static final double TAPE_HEIGHT_INCHES = 5.75;
 
     // This routine finds a target (tape pair) and returns the X to the center and approx distance
     // If no complete target is found it returns null
-    public static TapeInfo findTargetLockInfo( List<MatOfPoint> inputContours, int frameWidth, int frameHeight, TapeInfo ti ) 
+    static TapeInfo findTapeLockInfo(List<MatOfPoint> inputContours, int frameWidth, int frameHeight, TapeInfo ti )
     {
         // return nothing if less than 2 contours or more than 8 (too much noise)
         if( inputContours.size() < 2 || inputContours.size() > 8 ) {
@@ -23,22 +23,26 @@ class TapeFinder {
         }
 
         // Sort from largest to smallest area contour
-        Collections.sort(inputContours, new Comparator<MatOfPoint>() {
+        /*
+        inputContours.sort(new Comparator<>() {
             @Override
             public int compare( MatOfPoint o1, MatOfPoint o2 ) {
-                int area1 = (int)Math.floor( Imgproc.contourArea(o1) );
-                int area2 = (int)Math.floor( Imgproc.contourArea(o2) );
+                int area1 = (int)Math.round( Imgproc.contourArea(o1) );
+                int area2 = (int)Math.round( Imgproc.contourArea(o2) );
                 return -( area1 - area2 );  // Sort Reverse
             }
         });
-    
+        */
+        inputContours.sort( (o1, o2) -> -( (int)Math.round( Imgproc.contourArea(o1) )
+                - (int)Math.round( Imgproc.contourArea(o2) ) ) );
+
         // Calculate rotatedRectangles for each contour
         // Because we are processing them in order, rects will also be in descending size order.
-        ArrayList<RotatedRect> rotatedRects = new ArrayList<RotatedRect>();
+        ArrayList<RotatedRect> rotatedRects = new ArrayList<>();
         MatOfPoint2f mat2f = new MatOfPoint2f();
-        for( int i = 0; i < inputContours.size(); i++ ) {
-            inputContours.get(i).convertTo( mat2f, CvType.CV_32F );
-            rotatedRects.add( Imgproc.minAreaRect( mat2f ) );
+        for (MatOfPoint inputContour : inputContours) {
+            inputContour.convertTo(mat2f, CvType.CV_32F);
+            rotatedRects.add(Imgproc.minAreaRect(mat2f));
         }
 
         // Found a bug that makes this quite a bit more complicated.
@@ -66,18 +70,18 @@ class TapeFinder {
                 // calculate the bounding rectangle on the original contour instead.
                 Rect rect1 = Imgproc.boundingRect( inputContours.get(bestMatchIndex1) );
                 Rect rect2 = Imgproc.boundingRect( inputContours.get(bestMatchIndex2) );
-                double centerHeight = (rect1.height + rect2.height) / 2;
+                int avgHeight = (int)( (rect1.height + rect2.height) / 2.0 );
 
-                double distance = Camera.estimateDistance(TARGET_HEIGHT_INCHES, centerHeight, frameHeight );
-                double yaw      = Camera.yawToHorizPixel( centerX, frameWidth );
+                double distance = Camera.estimateDistance(TAPE_HEIGHT_INCHES, avgHeight, frameHeight );
+                double yaw      = Camera.yawToHorizontalPixel( centerX, frameWidth );
 
                 double minX = Math.min( rect1.x, rect2.x );
                 double maxX = Math.max( rect1.x+rect1.width, rect2.x+rect2.width );
 
                 if( ti == null )
-                    ti = new TapeInfo( centerX, centerY, centerHeight, distance, yaw, minX, maxX );
+                    ti = new TapeInfo( centerX, centerY, avgHeight, distance, yaw, minX, maxX );
                 else
-                    ti.init(centerX, centerY, centerHeight, distance, yaw, minX, maxX);
+                    ti.init(centerX, centerY, avgHeight, distance, yaw, minX, maxX);
 
                 return ti;
             }

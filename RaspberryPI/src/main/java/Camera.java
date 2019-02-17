@@ -14,11 +14,11 @@ class Camera {
 		hfov.put( 800, 55.9186 );
 	}
 
-	public static double getHFOV( int width ) {
+	static double getHFOV( int width ) {
 		return hfov.get(width) != null ? hfov.get(width) : hfov.get(320);
 	}
 
-	public static double getVFOV( int height ) {
+	static double getVFOV( int height ) {
 		return vfov.get(height) != null ? vfov.get(height) : vfov.get(240);
 	}
 
@@ -26,11 +26,11 @@ class Camera {
 	// Could be positive or negative for left or right of center
 	// The Horizontal FOV was measured for 320x240
 	// It is approximately correct for other resolutions only
-	public static double yawToHorizPixel( double pixOffet, int width ) {
-		return (pixOffet - width/2) / (width / getHFOV(width) );
+	static double yawToHorizontalPixel(double pixOffset, int width ) {
+		return (pixOffset - width/2.0) / (width / getHFOV(width) );
 	}
 
-	public static double estimateDistance( double knownHeightInches, int heightInPixels, int frameHeightPixels ) {
+	static double estimateDistance( double knownHeightInches, int heightInPixels, int frameHeightPixels ) {
 		return  (knownHeightInches/2.0) / Math.tan( Math.toRadians( (heightInPixels * getVFOV(frameHeightPixels)/frameHeightPixels/2.0 ) ) );
 	}
 	

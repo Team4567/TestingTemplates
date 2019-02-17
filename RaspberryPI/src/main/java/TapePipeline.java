@@ -22,27 +22,26 @@ import edu.wpi.first.vision.VisionPipeline;
 *
 * @author GRIP
 */
-public class TapePipeline implements VisionPipeline {
-
+public class TapePipeline implements VisionPipeline
+{
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
 	// inputs
-	private Rect crop = null;
+	private static final Scalar redScalar   = new Scalar(0,0,255);
+	private static final Scalar whiteScalar = new Scalar(255,255,255);
+
 	//Outputs
 	private Mat input = new Mat();
 	private Mat hslThresholdOutput = new Mat();
-	private ArrayList<MatOfPoint> findContours = new ArrayList<MatOfPoint>();
-	private ArrayList<MatOfPoint> filteredContours = new ArrayList<MatOfPoint>();
-	private ArrayList<RotatedRect> filteredRotatedRects = new ArrayList<RotatedRect>();
+	private ArrayList<MatOfPoint> findContours = new ArrayList<>();
+	private ArrayList<MatOfPoint> filteredContours = new ArrayList<>();
+	private ArrayList<RotatedRect> filteredRotatedRects = new ArrayList<>();
 
 	private TapeInfo tapeInfo = null;  // null when no lock
 
 	// Dynamic setting of Threshold values;
-	static final Scalar redScalar   = new Scalar(0,0,255);
-	static final Scalar whiteScalar = new Scalar(255,255,255);
-
 	private static double[] hslThresholdHue = {50.0, 100.0};
 	private static double[] hslThresholdSaturation = {100.0, 170.0};
 	private static double[] hslThresholdValue = {100.0, 255.0};
@@ -50,42 +49,42 @@ public class TapePipeline implements VisionPipeline {
 	private static double filterContoursMinArea = 50.0;
 	private static double[] rectRatio = {0.25, 0.50};
 
-	public static void setThresholdHue( double min, double max ) {
+	static void setThresholdHue( double min, double max ) {
 		hslThresholdHue[0] = min;
 		hslThresholdHue[1] = max;
 	}
-	public static double[] getThresholdHue() {
+	static double[] getThresholdHue() {
 		return hslThresholdHue;
 	}
 
-	public static void setThresholdSaturation( double min, double max ) {
+	static void setThresholdSaturation( double min, double max ) {
 		hslThresholdSaturation[0] = min;
 		hslThresholdSaturation[1] = max;
 	}
-	public static double[] getThresholdSaturation() {
+	static double[] getThresholdSaturation() {
 		return hslThresholdSaturation;
 	}
 
-	public static void setThresholdValue( double min, double max ) {
+	static void setThresholdValue( double min, double max ) {
 		hslThresholdValue[0] = min;
 		hslThresholdValue[1] = max;
 	}
-	public static double[] getThresholdValue() {
+	static double[] getThresholdValue() {
 		return hslThresholdValue;
 	}
 
-	public static void setContoursMinArea( double min) {
+	static void setContoursMinArea( double min) {
 		filterContoursMinArea = min;
 	}
-	public static double getfilterContoursMinArea() {
+	static double getfilterContoursMinArea() {
 		return filterContoursMinArea;
 	}
 
-	public static void setRotatedRectRatio( double min, double max ) {
+	static void setRotatedRectRatio( double min, double max ) {
 		rectRatio[0] = min;
 		rectRatio[1] = max;
 	}
-	public static double[] getRotatedRectRatio() {
+	static double[] getRotatedRectRatio() {
 		return rectRatio;
 	}
 
@@ -95,58 +94,48 @@ public class TapePipeline implements VisionPipeline {
 	@Override	
 	public void process(Mat source0) {
 		input = source0;
-		this.crop = new Rect( 0, 0, source0.width(), source0.height()/2 );
+		Rect crop = new Rect( 0, 0, source0.width(), source0.height()/2 );  // Upper half of screen only
 		Mat subImage = source0.submat(crop);
 
-		// Step HSL_Threshold0:
-		Mat hslThresholdInput = subImage;
-		hsvThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdValue, hslThresholdOutput);
-
-		// Step Find_Contours0:
-		Mat findContoursInput = hslThresholdOutput;
-		boolean findContoursExternalOnly = false;
-		findContours(findContoursInput, findContoursExternalOnly, findContours);
+		hsvThreshold(subImage, hslThresholdHue, hslThresholdSaturation, hslThresholdValue, hslThresholdOutput);
+		findContours(hslThresholdOutput, false, findContours);
 
 		// Populate RotatedRects from the contours and filter out those that have a bad ratio or too small.
 		MatOfPoint2f mat2f = new MatOfPoint2f();
 		filteredContours.clear();
 		filteredRotatedRects.clear();
-		for( int i = 0; i < findContours.size(); i++) {
-			findContours.get(i).convertTo( mat2f, CvType.CV_32F );
-			RotatedRect rect = Imgproc.minAreaRect( mat2f );
-			double ratio = (rect.size.width < rect.size.height) ? rect.size.width/rect.size.height : rect.size.height/rect.size.width;
+		for (MatOfPoint contour : findContours) {
+			contour.convertTo(mat2f, CvType.CV_32F);
+			RotatedRect rect = Imgproc.minAreaRect(mat2f);
+			double ratio = (rect.size.width < rect.size.height) ? rect.size.width / rect.size.height : rect.size.height / rect.size.width;
 
 			// If ratio is good and big enough, add the Contour and RotatedRect to output
-			if( ratio >= rectRatio[0] && ratio <= rectRatio[1] && (rect.size.width*rect.size.height) > filterContoursMinArea ) {
-				filteredContours.add( findContours.get(i) );
+			if (ratio >= rectRatio[0] && ratio <= rectRatio[1] && (rect.size.width * rect.size.height) > filterContoursMinArea) {
+				filteredContours.add(contour);
 				filteredRotatedRects.add(rect);
 			}
 		}
 
-		tapeInfo = TapeFinder.findTargetLockInfo(filteredContours, input.width(), input.height(), tapeInfo );  // will reuse tapeInfo if not null
+		tapeInfo = TapeFinder.findTapeLockInfo(filteredContours, input.width(), input.height(), tapeInfo );  // will reuse tapeInfo if not null
 	}
 
-	public Mat getInput() {
+	Mat getInput() {
 		return input;
 	}
-
-	public Mat hslThresholdOutput() {
+	Mat hslThresholdOutput() {
 		return hslThresholdOutput;
 	}
-
-	public ArrayList<MatOfPoint> getFindContours() {
+	ArrayList<MatOfPoint> getFindContours() {
 		return findContours;
 	}
-
-	public ArrayList<MatOfPoint> getFilteredContours() {
+	ArrayList<MatOfPoint> getFilteredContours() {
 		return filteredContours;
 	}
-
-	public ArrayList<RotatedRect> getfilteredRotatedRects() {
+	ArrayList<RotatedRect> getfilteredRotatedRects() {
 		return filteredRotatedRects;
 	}
 
-	public TapeInfo getTapeInfo() {
+	TapeInfo getTapeInfo() {
 		return tapeInfo;
 	}
 
@@ -157,13 +146,10 @@ public class TapePipeline implements VisionPipeline {
 	 * @param hue The min and max hue
 	 * @param sat The min and max saturation
 	 * @param val The min and max value
-	 * @param output The image in which to store the output.
+	 * @param out The image in which to store the output.
 	 */
 	private static void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val, Mat out) 
 	{
-//		Mat out1 = new Mat();
-//		Imgproc.blur(input, out1, new Size(5,5), new Point(-2, -2) );
-
 		Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HSV);
 		Core.inRange(out, new Scalar(hue[0], sat[0], val[0]),
 			new Scalar(hue[1], sat[1], val[1]), out);
@@ -172,26 +158,21 @@ public class TapePipeline implements VisionPipeline {
 	/**
 	 * Sets the values of pixels in a binary image to their distance to the nearest black pixel.
 	 * @param input The image on which to perform the Distance Transform.
-	 * @param type The Transform.
-	 * @param maskSize the size of the mask.
-	 * @param output The image in which to store the output.
+	 * @param externalOnly Look for external contours only.
+	 * @param contours the List of contours to populate
 	 */
 	private void findContours(Mat input, boolean externalOnly, List<MatOfPoint> contours) 
 	{
 		Mat hierarchy = new Mat();
 		contours.clear();
-		int mode;
-		if (externalOnly) {
-			mode = Imgproc.RETR_EXTERNAL;
-		}
-		else {
-			mode = Imgproc.RETR_LIST;
-		}
+
+		int mode = (externalOnly ? Imgproc.RETR_EXTERNAL : Imgproc.RETR_LIST );
 		int method = Imgproc.CHAIN_APPROX_SIMPLE;
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}
 
-	public void renderContours( List<RotatedRect> rotatedRects, Mat output, boolean debug ) {
+	void renderContours( List<RotatedRect> rotatedRects, Mat output, boolean debug )
+	{
 		double fontScale = (output.width() > 320 ? 1.0 : 0.7);
 		
 		for( RotatedRect rotatedRect : rotatedRects ) {
@@ -203,9 +184,9 @@ public class TapePipeline implements VisionPipeline {
 			if( debug ) {
 				Point p = rotatedRect.center.clone();
 				double angle = ( rotatedRect.size.width < rotatedRect.size.height ) ? rotatedRect.angle + 90 : rotatedRect.angle;
-				double yaw = (rotatedRect.center.x - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV); 
+				double yaw = (rotatedRect.center.x - output.width()/2.0) / (output.width() / Camera.getHFOV(output.width()) );
 
-				double dy = 15; // (Math.signum(angle) * 15);
+				double dy = 15;
 				p.y += dy;
 				Imgproc.putText( output, "/"+ Math.round(angle*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 
@@ -227,16 +208,19 @@ public class TapePipeline implements VisionPipeline {
 
 		if( tapeInfo != null )  // We have a lock
 		{ 
-			double lineX = tapeInfo.centerX;
-			double targetYaw = (tapeInfo.centerX - output.width()/2) / (output.width() / Camera.HORIZONTAL_FOV);
+			double lineX = tapeInfo.getCenterX();
+			double targetYaw = (tapeInfo.getCenterX() - output.width()/2.0) / (output.width() / Camera.getHFOV(output.width()));
 
 			Imgproc.putText( output, "Yaw: "+ Math.round(targetYaw*10.0)/10.0, new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 			Imgproc.line(output, new Point(lineX, 0), new Point(lineX, output.height()), whiteScalar);
 	
-			Imgproc.putText( output, "Distance: "+ Math.round(tapeInfo.distance*10.0)/10.0, new Point(lineX+3, 25), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+			Imgproc.putText( output, "Distance: "+ Math.round(tapeInfo.getDistance()*10.0)/10.0,
+							new Point(lineX+3, 25), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 
 			if( debug ) {
-				String info = "("+ Math.round(tapeInfo.centerX*10.0)/10.0 + "," + Math.round(tapeInfo.centerY*10.0)/10.0 + "," + Math.round(tapeInfo.centerHeight*10.0)/10.0 + ")";
+				String info = "(" + Math.round(tapeInfo.getCenterX()*10.0)/10.0 + ","
+						          + Math.round(tapeInfo.getCenterY()*10.0)/10.0 + ","
+						          + Math.round(tapeInfo.getCenterHeight()*10.0)/10.0 + ")";
 				Imgproc.putText( output, info, new Point(lineX+3, 40), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 			}
 		}

@@ -1,11 +1,10 @@
 
-class PathInfo {
+class PathInfo
+{
     private static final int DISTANCE_TO_TARGET = 36;
 
     private double distanceToTape = Double.NaN;
     private double lineAngle = Double.NaN;
-    private double a = Double.NaN;
-    private double aSign = Double.NaN;
 
     private double angleToPerp = Double.NaN;
     private double distanceToPerp = Double.NaN;
@@ -16,12 +15,13 @@ class PathInfo {
     PathInfo() {
     }
 
-    void init( double distanceToTape, double lineAngle )
+    void calculate( double distanceToTape, double lineAngle )
     {
         this.distanceToTape = distanceToTape;
         this.lineAngle = lineAngle;
-        this.a = 90 - Math.abs(lineAngle);
-        this.aSign = Math.signum(lineAngle);
+
+        double a = 90 - Math.abs(lineAngle);
+        double aSign = Math.signum(lineAngle);
 
         try {
             distanceToPerp = Math.sqrt( (DISTANCE_TO_TARGET*DISTANCE_TO_TARGET) + distanceToTape*distanceToTape 
@@ -36,31 +36,31 @@ class PathInfo {
 
             validPath = true;
         } catch (Exception e) {
-            // lots of things can go wrong with the match.
+            // lots of things can go wrong with the math.
             // If an exception is thrown just set validPath to false;
             validPath = false;
         }    
     }
 
-    public double detDistanceToTape() {
+    double getDistanceToTape() {
         return distanceToTape;
     }
-    public double getLineAngle() {
+    double getLineAngle() {
         return lineAngle;
     }
-    public double getAngleToPerp() {
+    double getAngleToPerp() {
         return angleToPerp;
     }
-    public double getDistanceToPerp() {
+    double getDistanceToPerp() {
         return distanceToPerp;
     }
-    public double getAngleToTarget() {
+    double getAngleToTarget() {
         return angleToTarget;
     }
-    public double getDistanceToTarget() {
+    double getDistanceToTarget() {
         return distanceToTarget;
     }
-    public boolean isValidPath() {
+    boolean isValidPath() {
         return validPath;
     }
 }

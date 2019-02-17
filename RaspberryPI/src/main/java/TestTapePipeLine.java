@@ -91,7 +91,7 @@ class TestTapePipeLine {
 		BufferedImage bi3 = Mat2BufferedImage(contourImg);
 		displayImage( bi3 );
 
-		TapeFinder.findTargetLockInfo( contours, contourImg.width(), contourImg.height(), null );
+		TapeFinder.findTapeLockInfo( contours, contourImg.width(), contourImg.height(), null );
 	}
 
 }
