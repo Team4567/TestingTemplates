@@ -8,7 +8,7 @@ class Camera {
 	static {
 		// FOV Measurements at difference resolutions
 		vfov.put( 240, 43.9823 );
-		vfov.put( 600, 40.2884 );
+		vfov.put( 600, 39.39205 );
 
 		hfov.put( 320, 52.7926 );
 		hfov.put( 800, 55.9186 );

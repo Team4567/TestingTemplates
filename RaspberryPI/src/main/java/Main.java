@@ -356,6 +356,14 @@ public final class Main {
       Imgproc.putText( output, "At: " + Math.round(pi.getAngleToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
       p.y += rowHeight;
       Imgproc.putText( output, "Dt: " + Math.round(pi.getDistanceToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+
+      if( debug ) {
+        p.y += rowHeight;
+        Imgproc.putText( output, "DT: " + Math.round(pi.getDistanceToTape()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+        p.y += rowHeight;
+        Imgproc.putText( output, "LA: " + Math.round(pi.getLineAngle()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+    
+      }
   }
 
   private static void initializePiplineParmsNetTable( NetworkTableInstance ntinst ) 

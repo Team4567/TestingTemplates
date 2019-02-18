@@ -10,14 +10,16 @@ class TapeInfo
     private double angle;
     private double minX;                 // Min and Max X are useful for creating a submat for line search.
     private double maxX;
+    private double frameWidth;
+    private double frameHeight;
 
-    TapeInfo( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX ) 
+    TapeInfo( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight )
     {
-        init( centerX, centerY, centerHeight, distance, angle, minX, maxX );
+        init( centerX, centerY, centerHeight, distance, angle, minX, maxX, frameWidth, frameHeight );
     }
 
     // Allows for reuse of the object to save a "new"
-    void init( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX )
+    void init( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight )
     {
         this.centerX      = centerX;
         this.centerY      = centerY;
@@ -26,6 +28,8 @@ class TapeInfo
         this.angle        = angle;
         this.minX         = minX;
         this.maxX         = maxX;
+        this.frameWidth   = frameWidth;
+        this.frameHeight  = frameHeight;
     }
 
     double getCenterX() {
@@ -49,4 +53,6 @@ class TapeInfo
     double getMaxX() {
         return maxX;
     }
+    double getFrameWidth() { return frameWidth; }
+    double getFrameHeight() { return frameHeight; }
 }

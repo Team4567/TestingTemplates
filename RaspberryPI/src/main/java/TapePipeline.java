@@ -43,11 +43,11 @@ public class TapePipeline implements VisionPipeline
 
 	// Dynamic setting of Threshold values;
 	private static double[] hslThresholdHue = {50.0, 100.0};
-	private static double[] hslThresholdSaturation = {100.0, 170.0};
-	private static double[] hslThresholdValue = {100.0, 255.0};
+	private static double[] hslThresholdSaturation = {0.0, 170.0};
+	private static double[] hslThresholdValue = {150.0, 255.0};
 
-	private static double filterContoursMinArea = 50.0;
-	private static double[] rectRatio = {0.25, 0.50};
+	private static double filterContoursMinArea = 500.0;
+	private static double[] rectRatio = {0.3, 0.4};
 
 	static void setThresholdHue( double min, double max ) {
 		hslThresholdHue[0] = min;
@@ -222,6 +222,9 @@ public class TapePipeline implements VisionPipeline
 						          + Math.round(tapeInfo.getCenterY()*10.0)/10.0 + ","
 						          + Math.round(tapeInfo.getCenterHeight()*10.0)/10.0 + ")";
 				Imgproc.putText( output, info, new Point(lineX+3, 40), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+				info = "(" + Math.round(tapeInfo.getFrameWidth()*10.0)/10.0 + ","
+						+ Math.round(tapeInfo.getFrameHeight()*10.0)/10.0 + ")";
+				Imgproc.putText( output, info, new Point(lineX+3, 55), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
 			}
 		}
 		else {

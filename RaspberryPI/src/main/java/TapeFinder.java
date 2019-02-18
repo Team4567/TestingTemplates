@@ -68,9 +68,11 @@ class TapeFinder
 
                 // for height we don't want to use rotated rect since the angle throws off the height.
                 // calculate the bounding rectangle on the original contour instead.
-                Rect rect1 = Imgproc.boundingRect( inputContours.get(bestMatchIndex1) );
-                Rect rect2 = Imgproc.boundingRect( inputContours.get(bestMatchIndex2) );
-                int avgHeight = (int)( (rect1.height + rect2.height) / 2.0 );
+//                Rect rect1 = Imgproc.boundingRect( inputContours.get(bestMatchIndex1) );
+//                Rect rect2 = Imgproc.boundingRect( inputContours.get(bestMatchIndex2) );
+                Rect rect1 = rotatedRects.get(bestMatchIndex1).boundingRect();
+                Rect rect2 = rotatedRects.get(bestMatchIndex2).boundingRect();
+                int avgHeight = (int)Math.round( (rect1.height + rect2.height) / 2.0 );
 
                 double distance = Camera.estimateDistance(TAPE_HEIGHT_INCHES, avgHeight, frameHeight );
                 double yaw      = Camera.yawToHorizontalPixel( centerX, frameWidth );
@@ -79,9 +81,9 @@ class TapeFinder
                 double maxX = Math.max( rect1.x+rect1.width, rect2.x+rect2.width );
 
                 if( ti == null )
-                    ti = new TapeInfo( centerX, centerY, avgHeight, distance, yaw, minX, maxX );
+                    ti = new TapeInfo( centerX, centerY, avgHeight, distance, yaw, minX, maxX, frameWidth, frameHeight );
                 else
-                    ti.init(centerX, centerY, avgHeight, distance, yaw, minX, maxX);
+                    ti.init(centerX, centerY, avgHeight, distance, yaw, minX, maxX, frameWidth, frameHeight );
 
                 return ti;
             }

@@ -20,21 +20,30 @@ class PathInfo
         this.distanceToTape = distanceToTape;
         this.lineAngle = lineAngle;
 
-        double a = 90 - Math.abs(lineAngle);
-        double aSign = Math.signum(lineAngle);
+        double a = 90 - Math.abs(lineAngle);  // Correct for screen aspect
 
         try {
+            // Angle needs to be correct for looking down at an angle
+            double downAngle = Math.atan(19.0 / distanceToTape);  // in radians
+            a = a / Math.cos(downAngle);
+
+            double aSign = Math.signum(lineAngle);
+
             distanceToPerp = Math.sqrt( (DISTANCE_TO_TARGET*DISTANCE_TO_TARGET) + distanceToTape*distanceToTape 
-                                        - ( 2 * DISTANCE_TO_TARGET * distanceToTape * Math.cos(a) ) );
-            
-            angleToPerp = aSign * Math.acos( ( DISTANCE_TO_TARGET*DISTANCE_TO_TARGET - (distanceToTape*distanceToTape) - (distanceToPerp*distanceToPerp) )
-                                             / ( 2 * distanceToTape * distanceToPerp ) );
-            
-            angleToTarget = -aSign * (a + angleToPerp);
+                                        - ( 2 * DISTANCE_TO_TARGET * distanceToTape * Math.cos( Math.toRadians(a) ) ) );
+
+            double angle = Math.toDegrees( Math.acos( ( DISTANCE_TO_TARGET*DISTANCE_TO_TARGET
+                                                        - (distanceToTape*distanceToTape)
+                                                        - (distanceToPerp*distanceToPerp) )
+                                                      / ( -2.0 * distanceToTape * distanceToPerp ) ) );
+            angleToPerp = aSign * angle;
+            angleToTarget = -aSign * (a + angle);
             
             distanceToTarget = DISTANCE_TO_TARGET;
 
             validPath = true;
+
+            System.out.println("DT: " + distanceToTape + " LA: "+lineAngle+" DP: "+distanceToPerp+" a: " + a );
         } catch (Exception e) {
             // lots of things can go wrong with the math.
             // If an exception is thrown just set validPath to false;

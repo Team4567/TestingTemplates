@@ -23,10 +23,10 @@ public class LinePipeline implements VisionPipeline
 	// Dynamic setting of Threshold values;
 	private static double[] hsvThresholdHue = {0.0, 255.0};
 	private static double[] hsvThresholdSaturation = {0.0, 29.0};
-	private static double[] hsvThresholdValue = {100.0, 255.0};
+	private static double[] hsvThresholdValue = {150.0, 255.0};
 
-	private static double filterContoursMinArea = 50.0;
-	private static double[] rectRatio = {0.0, 0.15};
+	private static double filterContoursMinArea = 500.0;
+	private static double[] rectRatio = {0.1, 0.30};
 
 	static void setThresholdHue( double min, double max ) {
 		hsvThresholdHue[0] = min;
@@ -83,9 +83,9 @@ public class LinePipeline implements VisionPipeline
 	}
 
 	void process( Mat source0, TapeInfo ti ) {
-		double targetWidth = ti.maxX - ti.minX;
-		double minX = Math.max( ti.minX-targetWidth/2, 0.0 );
-		double maxX = Math.min( ti.maxX+targetWidth/2, source0.width() );
+		double targetWidth = ti.getMaxX() - ti.getMinX();
+		double minX = Math.max( ti.getMinX()-targetWidth/2, 0.0 );
+		double maxX = Math.min( ti.getMaxX()+targetWidth/2, source0.width() );
 		double width = maxX - minX;
 
 		this.crop = new Rect( (int)minX, source0.height()/2, (int)width, source0.height()/2 );
@@ -186,7 +186,7 @@ public class LinePipeline implements VisionPipeline
 				int j; // need to check after the loop
 				for (j = 0; j < 4; j++) {
 					double x = vertices[j].x + crop.x;
-					if (x >= ti.minX && x <= ti.maxX) {
+					if (x >= ti.getMinX() && x <= ti.getMaxX()) {
 						break;
 					}
 				}
