@@ -18,6 +18,7 @@ import edu.wpi.first.vision.VisionPipeline;
 public class LinePipeline implements VisionPipeline 
 {
 	private static final Scalar red   = new Scalar(0,0,255);
+	private static final Scalar black = new Scalar(0,0,0);
 	private static final Scalar white = new Scalar(255,255,255);
 
 	// Dynamic setting of Threshold values;
@@ -25,7 +26,7 @@ public class LinePipeline implements VisionPipeline
 	private static double[] hsvThresholdSaturation = {0.0, 29.0};
 	private static double[] hsvThresholdValue = {150.0, 255.0};
 
-	private static double filterContoursMinArea = 500.0;
+	private static double filterContoursMinArea = 200.0;
 	private static double[] rectRatio = {0.1, 0.30};
 
 	static void setThresholdHue( double min, double max ) {
@@ -225,7 +226,7 @@ public class LinePipeline implements VisionPipeline
 
 	void renderContours( List<RotatedRect> rects, Mat output, int offsetX, int offsetY, boolean debug )
 	{
-		double fontScale = (output.width() > 320 ? 1.0 : 0.7);
+		double fontScale = (output.width() > 352 ? 1.0 : 0.7);
 		
 		for( RotatedRect rect : rects ) 
 		{
@@ -248,7 +249,8 @@ public class LinePipeline implements VisionPipeline
 
 			double dy = 15;
 			p.y -= dy;
-			Imgproc.putText( output, "/"+angle, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+			Imgproc.putText( output, "/"+angle, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
+			Imgproc.putText( output, "/"+angle, p, Core.FONT_HERSHEY_PLAIN, fontScale, white, 1 );
 
 			if( debug ) {
 				p.y += dy;
@@ -256,7 +258,8 @@ public class LinePipeline implements VisionPipeline
 									+ (Math.round(rect.center.y+offsetY)*10.0)/10.0 + ","
 									+ (Math.round(rect.size.width)*10.0)/10.0 +","
 									+ (Math.round(rect.size.height)*10.0)/10.0 +")";
-				Imgproc.putText( output, detail, p, Core.FONT_HERSHEY_PLAIN, fontScale, white );
+				Imgproc.putText( output, detail, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
+				Imgproc.putText( output, detail, p, Core.FONT_HERSHEY_PLAIN, fontScale, white, 1 );
 			}
 		}
 	}

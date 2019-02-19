@@ -72,7 +72,7 @@ import edu.wpi.first.vision.VisionThread;
 public final class Main {
   private static String  configFile = "/boot/frc.json";
   private static boolean debug = false;
-  private static double  testHeight = 28.5;
+  private static boolean calculatePath = false;
   private static int     frameCount=0;
 
 //  @SuppressWarnings("MemberName")
@@ -233,9 +233,9 @@ public final class Main {
     eDebug.setBoolean(debug);
     eDebug.addListener( event -> { debug = event.value.getBoolean(); }, EntryListenerFlags.kUpdate );
 
-    NetworkTableEntry eTestHeight = ntinst.getEntry("TestHeight");
-    eTestHeight.setDouble( testHeight );
-    eTestHeight.addListener( event -> { testHeight = event.value.getDouble(); }, EntryListenerFlags.kUpdate );
+    NetworkTableEntry eCalculatePath = ntinst.getEntry("CalculatePath");
+    eCalculatePath.setBoolean( calculatePath );
+    eCalculatePath.addListener( event -> { calculatePath = event.value.getBoolean(); }, EntryListenerFlags.kUpdate );
 
     NetworkTable nt = ntinst.getTable("TargetInfo");
 
@@ -248,8 +248,6 @@ public final class Main {
     NetworkTableEntry eAngleToTarget    = nt.getEntry("AngleToTarget");   // Turn to face target
     NetworkTableEntry eDistanceToTarget = nt.getEntry("DistanceToTarget");
     NetworkTableEntry eTargetPathValid  = nt.getEntry("TargetPathValid"); // AngleToPerp, DistanceToPerp and AngelToTarget all good.
-    NetworkTableEntry eNewDistance      = nt.getEntry("NewDistance");
-    NetworkTableEntry eNewHeight        = nt.getEntry("NewHeight");
 
     initializePiplineParmsNetTable( ntinst );
 
@@ -286,27 +284,35 @@ public final class Main {
 
                 TapeInfo tapeInfo = pipeline.getTapeInfo();
                 if( tapeInfo != null ) {
-                  eAngleToTape.setDouble( Math.round(tapeInfo.getAngle()*10.0)/10.0 );
-                  eDistanceToTape.setDouble( Math.round(tapeInfo.getDistance()*10.0)/10.0 );
+                  eAngleToTape.setDouble( tapeInfo.getAngle() );
+                  eDistanceToTape.setDouble( tapeInfo.getDistance() );
 
                   linePipeline.process( inFrame, tapeInfo );
 
 //                  debugOut.putFrame( linePipeline.hsvThresholdOutput() );
-                  eLineAngle.setDouble( Math.round(linePipeline.getLineAngle()*10.0)/10.0 );
+                  eLineAngle.setDouble( linePipeline.getLineAngle() );
 
-                  pathInfo.calculate( tapeInfo.getDistance(), linePipeline.getLineAngle() );
+                  if( calculatePath && !Double.isNaN( linePipeline.getLineAngle() ) )
+                    pathInfo.calculate( tapeInfo.getDistance(), linePipeline.getLineAngle() );
+                  else
+                    pathInfo.invalidate();
+
                   if( pathInfo.isValidPath() ) {
-                    int heightInPixels = (int)Math.round( Math.abs(tapeInfo.getCenterY() - linePipeline.getLineMinY()) );
-                    double newDistance = Camera.estimateDistance(testHeight, heightInPixels, pipeline.getInput().height() );
- 
-                    eNewHeight.setDouble(linePipeline.getLineMinY());
-                    eNewDistance.setDouble(newDistance);
-
-                    eAngleToPerp.setDouble( Math.round(pathInfo.getAngleToPerp()*10.0)/10.0 );
-                    eDistanceToPerp.setDouble( Math.round(pathInfo.getDistanceToPerp()*10.0)/10.0 );
-                    eAngleToTarget.setDouble( Math.round(pathInfo.getAngleToTarget()*10.0)/10.0 );
-                    eDistanceToTarget.setDouble( Math.round(pathInfo.getDistanceToTarget()*10.0)/10.0 );
+                    eAngleToPerp.setDouble( pathInfo.getAngleToPerp() );
+                    eDistanceToPerp.setDouble( pathInfo.getDistanceToPerp() );
+                    eAngleToTarget.setDouble( pathInfo.getAngleToTarget() );
+                    eDistanceToTarget.setDouble( pathInfo.getDistanceToTarget() );
                     eTargetPathValid.setBoolean( true );
+                  }
+                  else {
+                    // Only zero it out if it has a path.
+                    if( eTargetPathValid.getBoolean(false) ) {
+                      eAngleToPerp.setDouble( Double.NaN );
+                      eDistanceToPerp.setDouble( Double.NaN );
+                      eAngleToTarget.setDouble( Double.NaN );
+                      eDistanceToTarget.setDouble( Double.NaN );
+                      eTargetPathValid.setBoolean( false );
+                    }
                   }
                 }
                 else {
@@ -344,25 +350,37 @@ public final class Main {
 
   private static void renderPathInfo( Mat output, PathInfo pi ) 
   {
-      Scalar color = new Scalar(255,255,255);
+      final Scalar foreground = new Scalar(255,255,255);
+      final Scalar black = new Scalar(0,0,0);
       double fontScale = (output.height() > 320 ? 1.0 : 0.7);
       double rowHeight = fontScale * 15;
 
       Point p = new Point( 3, (output.height()/2.0) - fontScale*15*2 );
-      Imgproc.putText( output, "Ap: " + Math.round(pi.getAngleToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+      Imgproc.putText( output, "Ap: " + Math.round(pi.getAngleToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3 );
+      Imgproc.putText( output, "Ap: " + Math.round(pi.getAngleToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, foreground, 1 );
       p.y += rowHeight;
-      Imgproc.putText( output, "Dp: " + Math.round(pi.getDistanceToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+      Imgproc.putText( output, "Dp: " + Math.round(pi.getDistanceToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
+      Imgproc.putText( output, "Dp: " + Math.round(pi.getDistanceToPerp()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, foreground, 1 );
       p.y += rowHeight;
-      Imgproc.putText( output, "At: " + Math.round(pi.getAngleToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+      Imgproc.putText( output, "At: " + Math.round(pi.getAngleToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
+      Imgproc.putText( output, "At: " + Math.round(pi.getAngleToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, foreground, 1);
       p.y += rowHeight;
-      Imgproc.putText( output, "Dt: " + Math.round(pi.getDistanceToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
+      Imgproc.putText( output, "Dt: " + Math.round(pi.getDistanceToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
+      Imgproc.putText( output, "Dt: " + Math.round(pi.getDistanceToTarget()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, foreground, 1);
 
       if( debug ) {
-        p.y += rowHeight;
-        Imgproc.putText( output, "DT: " + Math.round(pi.getDistanceToTape()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
-        p.y += rowHeight;
-        Imgproc.putText( output, "LA: " + Math.round(pi.getLineAngle()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, color );
-    
+          p.y += rowHeight;
+          Imgproc.putText( output, "DistTarget: " + Math.round(pi.getDistanceToTape()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
+          Imgproc.putText( output, "DistTarget: " + Math.round(pi.getDistanceToTape()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, foreground, 1);
+          p.y += rowHeight;
+          Imgproc.putText( output, "LineAngle: " + Math.round(pi.getLineAngle()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
+          Imgproc.putText( output, "LineAngle: " + Math.round(pi.getLineAngle()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, foreground, 1);
+          p.y += rowHeight;
+          Imgproc.putText( output, "AngleDown: " + Math.round(pi.getDownAngle()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
+          Imgproc.putText( output, "AngleDown: " + Math.round(pi.getDownAngle()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, foreground, 1);
+          p.y += rowHeight;
+          Imgproc.putText( output, "AdjustAngle: " + Math.round(pi.getAdjustedAngle()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
+          Imgproc.putText( output, "AdjustAngle: " + Math.round(pi.getAdjustedAngle()*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, foreground, 1);
       }
   }
 

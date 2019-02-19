@@ -23,16 +23,6 @@ class TapeFinder
         }
 
         // Sort from largest to smallest area contour
-        /*
-        inputContours.sort(new Comparator<>() {
-            @Override
-            public int compare( MatOfPoint o1, MatOfPoint o2 ) {
-                int area1 = (int)Math.round( Imgproc.contourArea(o1) );
-                int area2 = (int)Math.round( Imgproc.contourArea(o2) );
-                return -( area1 - area2 );  // Sort Reverse
-            }
-        });
-        */
         inputContours.sort( (o1, o2) -> -( (int)Math.round( Imgproc.contourArea(o1) )
                 - (int)Math.round( Imgproc.contourArea(o2) ) ) );
 
@@ -66,10 +56,6 @@ class TapeFinder
                 double centerX = (rotatedRects.get(bestMatchIndex1).center.x + rotatedRects.get(bestMatchIndex2).center.x) / 2;
                 double centerY = (rotatedRects.get(bestMatchIndex1).center.y + rotatedRects.get(bestMatchIndex2).center.y) / 2;
 
-                // for height we don't want to use rotated rect since the angle throws off the height.
-                // calculate the bounding rectangle on the original contour instead.
-//                Rect rect1 = Imgproc.boundingRect( inputContours.get(bestMatchIndex1) );
-//                Rect rect2 = Imgproc.boundingRect( inputContours.get(bestMatchIndex2) );
                 Rect rect1 = rotatedRects.get(bestMatchIndex1).boundingRect();
                 Rect rect2 = rotatedRects.get(bestMatchIndex2).boundingRect();
                 int avgHeight = (int)Math.round( (rect1.height + rect2.height) / 2.0 );

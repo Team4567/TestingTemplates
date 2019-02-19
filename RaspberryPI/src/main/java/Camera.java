@@ -7,11 +7,13 @@ class Camera {
 
 	static {
 		// FOV Measurements at difference resolutions
-		vfov.put( 240, 43.9823 );
-		vfov.put( 600, 39.39205 );
+		vfov.put( 240, 37.2671 );
+		vfov.put( 288, 37.3614 );
+		vfov.put( 600, 39.4171 );
 
-		hfov.put( 320, 52.7926 );
-		hfov.put( 800, 55.9186 );
+		hfov.put( 320, 58.8701 );
+		hfov.put( 352, 59.6177 );
+		hfov.put( 800, 59.2790 );
 	}
 
 	static double getHFOV( int width ) {
@@ -24,14 +26,13 @@ class Camera {
 
 	// Returns the angle that points to the pixel offset from center
 	// Could be positive or negative for left or right of center
-	// The Horizontal FOV was measured for 320x240
-	// It is approximately correct for other resolutions only
+	// This is approximate so rounded to tenths.
 	static double yawToHorizontalPixel(double pixOffset, int width ) {
-		return (pixOffset - width/2.0) / (width / getHFOV(width) );
+		return Math.round( (pixOffset - width/2.0) / (width / getHFOV(width) ) * 10.0 ) / 10.0;
 	}
 
+	// This is approximate so rounded to tenths.
 	static double estimateDistance( double knownHeightInches, int heightInPixels, int frameHeightPixels ) {
-		return  (knownHeightInches/2.0) / Math.tan( Math.toRadians( (heightInPixels * getVFOV(frameHeightPixels)/frameHeightPixels/2.0 ) ) );
+		return  Math.round( (knownHeightInches/2.0) / Math.tan( Math.toRadians( (heightInPixels * getVFOV(frameHeightPixels)/frameHeightPixels/2.0 ) ) ) * 10.0 ) / 10.0;
 	}
-	
 }

@@ -31,6 +31,7 @@ public class TapePipeline implements VisionPipeline
 	// inputs
 	private static final Scalar redScalar   = new Scalar(0,0,255);
 	private static final Scalar whiteScalar = new Scalar(255,255,255);
+	private static final Scalar blackScalar = new Scalar(0,0,0);
 
 	//Outputs
 	private Mat input = new Mat();
@@ -46,8 +47,8 @@ public class TapePipeline implements VisionPipeline
 	private static double[] hslThresholdSaturation = {0.0, 170.0};
 	private static double[] hslThresholdValue = {150.0, 255.0};
 
-	private static double filterContoursMinArea = 500.0;
-	private static double[] rectRatio = {0.3, 0.4};
+	private static double filterContoursMinArea = 200.0;
+	private static double[] rectRatio = {0.3, 0.5};
 
 	static void setThresholdHue( double min, double max ) {
 		hslThresholdHue[0] = min;
@@ -173,13 +174,13 @@ public class TapePipeline implements VisionPipeline
 
 	void renderContours( List<RotatedRect> rotatedRects, Mat output, boolean debug )
 	{
-		double fontScale = (output.width() > 320 ? 1.0 : 0.7);
+		double fontScale = (output.width() > 352 ? 1.0 : 0.7);
 		
 		for( RotatedRect rotatedRect : rotatedRects ) {
 			Point[] vertices = new Point[4];
 			rotatedRect.points(vertices);
 			for( int j=0; j<4; j++ )
-				Imgproc.line( output, vertices[j], vertices[(j+1)%4], redScalar );
+				Imgproc.line( output, vertices[j], vertices[(j+1)%4], redScalar, 2 );
 
 			if( debug ) {
 				Point p = rotatedRect.center.clone();
@@ -188,47 +189,59 @@ public class TapePipeline implements VisionPipeline
 
 				double dy = 15;
 				p.y += dy;
-				Imgproc.putText( output, "/"+ Math.round(angle*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+				Imgproc.putText( output, "/"+ Math.round(angle*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3 );
+				Imgproc.putText( output, "/"+ Math.round(angle*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1 );
 
 				p.y += dy;
 				String t = "("+ Math.round(rotatedRect.center.x*10.0)/10.0 + ", "
 							  + Math.round(rotatedRect.center.y*10.0)/10.0 + ")";
-				Imgproc.putText( output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+				Imgproc.putText( output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3 );
+				Imgproc.putText( output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1 );
 
 				p.y += dy;
 				t = "("+ rotatedRect.boundingRect().width + ", "
 					   + rotatedRect.boundingRect().height + ")";
 
-				Imgproc.putText( output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+				Imgproc.putText( output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3 );
+				Imgproc.putText( output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1 );
 
 				p.y += dy;
-				Imgproc.putText( output, "Y: "+ Math.round(yaw*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+				Imgproc.putText( output, "Y: "+ Math.round(yaw*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3 );
+				Imgproc.putText( output, "Y: "+ Math.round(yaw*10.0)/10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1 );
 			}
 		}
 
 		if( tapeInfo != null )  // We have a lock
 		{ 
 			double lineX = tapeInfo.getCenterX();
-			double targetYaw = (tapeInfo.getCenterX() - output.width()/2.0) / (output.width() / Camera.getHFOV(output.width()));
+//			double targetYaw = (tapeInfo.getCenterX() - output.width()/2.0) / (output.width() / Camera.getHFOV(output.width()));
+			double targetYaw = tapeInfo.getAngle();
 
-			Imgproc.putText( output, "Yaw: "+ Math.round(targetYaw*10.0)/10.0, new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+			Imgproc.putText( output, "Yaw: "+ targetYaw, new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3 );
+			Imgproc.putText( output, "Yaw: "+ targetYaw, new Point(lineX+3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1 );
 			Imgproc.line(output, new Point(lineX, 0), new Point(lineX, output.height()), whiteScalar);
 	
-			Imgproc.putText( output, "Distance: "+ Math.round(tapeInfo.getDistance()*10.0)/10.0,
-							new Point(lineX+3, 25), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+			Imgproc.putText( output, "Distance: "+ tapeInfo.getDistance(),
+							new Point(lineX+3, 25), Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3 );
+			Imgproc.putText( output, "Distance: "+ tapeInfo.getDistance(),
+							new Point(lineX+3, 25), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1 );
 
 			if( debug ) {
 				String info = "(" + Math.round(tapeInfo.getCenterX()*10.0)/10.0 + ","
 						          + Math.round(tapeInfo.getCenterY()*10.0)/10.0 + ","
 						          + Math.round(tapeInfo.getCenterHeight()*10.0)/10.0 + ")";
-				Imgproc.putText( output, info, new Point(lineX+3, 40), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+				Imgproc.putText( output, info, new Point(lineX+3, 40), Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3 );
+				Imgproc.putText( output, info, new Point(lineX+3, 40), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1 );
+
 				info = "(" + Math.round(tapeInfo.getFrameWidth()*10.0)/10.0 + ","
 						+ Math.round(tapeInfo.getFrameHeight()*10.0)/10.0 + ")";
-				Imgproc.putText( output, info, new Point(lineX+3, 55), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar );
+				Imgproc.putText( output, info, new Point(lineX+3, 55), Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3 );
+				Imgproc.putText( output, info, new Point(lineX+3, 55), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1 );
 			}
 		}
 		else {
-			Imgproc.putText( output, "No Target Lock", new Point(3, output.height()-10 ), Core.FONT_HERSHEY_PLAIN, fontScale*1.25, redScalar );
+			Imgproc.putText( output, "No Target Lock", new Point(3, output.height()-10 ), Core.FONT_HERSHEY_PLAIN, fontScale*1.25, blackScalar, 3 );
+			Imgproc.putText( output, "No Target Lock", new Point(3, output.height()-10 ), Core.FONT_HERSHEY_PLAIN, fontScale*1.25, redScalar, 1 );
 		}
 	}
 }
