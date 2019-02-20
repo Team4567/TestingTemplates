@@ -15,16 +15,16 @@ class TapeFinder
 
     // This routine finds a target (tape pair) and returns the X to the center and approx distance
     // If no complete target is found it returns null
-    static TapeInfo findTapeLockInfo(List<MatOfPoint> inputContours, int frameWidth, int frameHeight, TapeInfo ti )
+    static TapeInfo findTapeLockInfo(List<MatOfPoint> inputContours, int frameWidth, int frameHeight, TapeInfo ti)
     {
         // return nothing if less than 2 contours or more than 8 (too much noise)
-        if( inputContours.size() < 2 || inputContours.size() > 8 ) {
+        if (inputContours.size() < 2 || inputContours.size() > 8) {
             return null;
         }
 
         // Sort from largest to smallest area contour
-        inputContours.sort( (o1, o2) -> -( (int)Math.round( Imgproc.contourArea(o1) )
-                - (int)Math.round( Imgproc.contourArea(o2) ) ) );
+        inputContours.sort((o1, o2) -> -((int) Math.round(Imgproc.contourArea(o1))
+                - (int) Math.round(Imgproc.contourArea(o2))));
 
         // Calculate rotatedRectangles for each contour
         // Because we are processing them in order, rects will also be in descending size order.
@@ -42,12 +42,12 @@ class TapeFinder
         // Once we find the bestMatch we then look for the best match for that side.
         // We'd hope to get back the one we started with but we'll take the closest even if not.
 
-        for( int i=0; i< rotatedRects.size(); i++ ) {
+        for (int i = 0; i < rotatedRects.size(); i++) {
 
-            int bestMatchIndex1 = findMatch( rotatedRects.get(i), rotatedRects );
-            if( bestMatchIndex1 >= 0 ) {  // we found a match for target i!
-                int bestMatchIndex2 = findMatch( rotatedRects.get(bestMatchIndex1), rotatedRects );
-                if( bestMatchIndex2 <= 0 ) {
+            int bestMatchIndex1 = findMatch(rotatedRects.get(i), rotatedRects);
+            if (bestMatchIndex1 >= 0) {  // we found a match for target i!
+                int bestMatchIndex2 = findMatch(rotatedRects.get(bestMatchIndex1), rotatedRects);
+                if (bestMatchIndex2 <= 0) {
                     // Something really bad going on here. We know there is a match, we started with it.
                     // We'll just punt on this rect.
                     continue;
@@ -58,18 +58,18 @@ class TapeFinder
 
                 Rect rect1 = rotatedRects.get(bestMatchIndex1).boundingRect();
                 Rect rect2 = rotatedRects.get(bestMatchIndex2).boundingRect();
-                int avgHeight = (int)Math.round( (rect1.height + rect2.height) / 2.0 );
+                int avgHeight = (int) Math.round((rect1.height + rect2.height) / 2.0);
 
-                double distance = Camera.estimateDistance(TAPE_HEIGHT_INCHES, avgHeight, frameHeight );
-                double yaw      = Camera.yawToHorizontalPixel( centerX, frameWidth );
+                double distance = Camera.estimateDistance(TAPE_HEIGHT_INCHES, avgHeight, frameHeight);
+                double yaw = Camera.yawToHorizontalPixel(centerX, frameWidth);
 
-                double minX = Math.min( rect1.x, rect2.x );
-                double maxX = Math.max( rect1.x+rect1.width, rect2.x+rect2.width );
+                double minX = Math.min(rect1.x, rect2.x);
+                double maxX = Math.max(rect1.x + rect1.width, rect2.x + rect2.width);
 
-                if( ti == null )
-                    ti = new TapeInfo( centerX, centerY, avgHeight, distance, yaw, minX, maxX, frameWidth, frameHeight );
+                if (ti == null)
+                    ti = new TapeInfo(centerX, centerY, avgHeight, distance, yaw, minX, maxX, frameWidth, frameHeight);
                 else
-                    ti.init(centerX, centerY, avgHeight, distance, yaw, minX, maxX, frameWidth, frameHeight );
+                    ti.init(centerX, centerY, avgHeight, distance, yaw, minX, maxX, frameWidth, frameHeight);
 
                 return ti;
             }
@@ -79,35 +79,33 @@ class TapeFinder
         return null;
     }
 
-    private static int findMatch( RotatedRect rrect1, List<RotatedRect> rotatedRects ) 
+    private static int findMatch(RotatedRect rrect1, List<RotatedRect> rotatedRects)
     {
         double yTolerance = 20.0; // matched rect should be about the same height.
         int bestMatchIndex = -1;  // We'll be looking for the target that is the best match, -1, none yet.
 
-        double angle = ( rrect1.size.width < rrect1.size.height ) ? rrect1.angle + 90 : rrect1.angle;
-        if( angle > 0.0 ) {
+        double angle = (rrect1.size.width < rrect1.size.height) ? rrect1.angle + 90 : rrect1.angle;
+        if (angle > 0.0) {
             // We have a right side, look for the closest left side with x less than this x
             double maxX = 0.0;
-            for( int j=0; j<rotatedRects.size(); j++ ) {  // j is the target number that is the next candidate
+            for (int j = 0; j < rotatedRects.size(); j++) {  // j is the target number that is the next candidate
                 RotatedRect rrect2 = rotatedRects.get(j);
 
-                double angle2 = ( rrect2.size.width < rrect2.size.height ) ? rrect2.angle + 90 : rrect2.angle;
-                if( angle2 < 0.0 && rrect2.center.x < rrect1.center.x && rrect2.center.x > maxX && Math.abs(rrect1.center.y-rrect2.center.y) < yTolerance ) 
-                {
+                double angle2 = (rrect2.size.width < rrect2.size.height) ? rrect2.angle + 90 : rrect2.angle;
+                if (angle2 < 0.0 && rrect2.center.x < rrect1.center.x && rrect2.center.x > maxX && Math.abs(rrect1.center.y - rrect2.center.y) < yTolerance) {
                     // Found a closer left side
                     maxX = rrect2.center.x;
                     bestMatchIndex = j;
                 }
             }
-        } else if( angle < 0.0 ) {
+        } else if (angle < 0.0) {
             // We have a left side, look for the closest right side with x greater than this x
             double minX = 9999.0; // wider than any image
-            for( int j=0; j<rotatedRects.size(); j++ ) {  // j is the target number that is the next candidate
+            for (int j = 0; j < rotatedRects.size(); j++) {  // j is the target number that is the next candidate
                 RotatedRect rrect2 = rotatedRects.get(j);
 
-                double angle2 = ( rrect2.size.width < rrect2.size.height ) ? rrect2.angle + 90 : rrect2.angle;
-                if( angle2 > 0.0 && rrect2.center.x > rrect1.center.x && rrect2.center.x < minX && Math.abs(rrect1.center.y-rrect2.center.y) < yTolerance ) 
-                {
+                double angle2 = (rrect2.size.width < rrect2.size.height) ? rrect2.angle + 90 : rrect2.angle;
+                if (angle2 > 0.0 && rrect2.center.x > rrect1.center.x && rrect2.center.x < minX && Math.abs(rrect1.center.y - rrect2.center.y) < yTolerance) {
                     // Found a closer left side
                     minX = rrect2.center.x;
                     bestMatchIndex = j;

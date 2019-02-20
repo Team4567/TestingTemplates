@@ -16,74 +16,95 @@ class PathInfo
 
     private boolean validPath = false;
 
-    PathInfo() {
+    PathInfo()
+    {
     }
 
-    void calculate( double distanceToTape, double lineAngle )
+    void calculate(double distanceToTape, double lineAngle)
     {
         this.distanceToTape = distanceToTape;
         this.lineAngle = lineAngle;
 
         try {
             double aSign = Math.signum(lineAngle);
-            double aR = Math.toRadians( Math.abs(lineAngle) );  // Raw Angle in radians
+            double aR = Math.toRadians(Math.abs(lineAngle));  // Raw Angle in radians
 
             // Angle needs to be correct for looking down at it
             double downAngleR = Math.atan(19.0 / distanceToTape);  // in radians
-            double adjustedAngleR = Math.atan( Math.tan(aR) / Math.sin(downAngleR) ); // Adjusted Angle in radians
+            double adjustedAngleR = Math.atan(Math.tan(aR) / Math.sin(downAngleR)); // Adjusted Angle in radians
 
-            distanceToPerp = Math.round( Math.sqrt( (DISTANCE_TO_TARGET*DISTANCE_TO_TARGET) + distanceToTape*distanceToTape 
-                                        - ( 2 * DISTANCE_TO_TARGET * distanceToTape * Math.cos( Math.PI/2 - adjustedAngleR ) ) ) * 10.0 ) / 10.0;
+            distanceToPerp = Math.round(Math.sqrt((DISTANCE_TO_TARGET * DISTANCE_TO_TARGET) + distanceToTape * distanceToTape
+                    - (2 * DISTANCE_TO_TARGET * distanceToTape * Math.cos(Math.PI / 2 - adjustedAngleR))) * 10.0) / 10.0;
 
-            double angle = Math.toDegrees( Math.acos( ( DISTANCE_TO_TARGET*DISTANCE_TO_TARGET
-                                                        - (distanceToTape*distanceToTape)
-                                                        - (distanceToPerp*distanceToPerp) )
-                                                      / ( -2.0 * distanceToTape * distanceToPerp ) ) );
+            double angle = Math.toDegrees(Math.acos((DISTANCE_TO_TARGET * DISTANCE_TO_TARGET
+                    - (distanceToTape * distanceToTape)
+                    - (distanceToPerp * distanceToPerp))
+                    / (-2.0 * distanceToTape * distanceToPerp)));
 
-            angleToPerp = aSign * Math.round( angle * 10.0 ) / 10.0;
-            angleToTarget = -aSign * Math.round( ( Math.toDegrees(Math.PI/2 - adjustedAngleR) + angle) * 10.0 ) / 10.0;
-            
+            angleToPerp = aSign * Math.round(angle * 10.0) / 10.0;
+            angleToTarget = -aSign * Math.round((Math.toDegrees(Math.PI / 2 - adjustedAngleR) + angle) * 10.0) / 10.0;
+
             distanceToTarget = DISTANCE_TO_TARGET;
 
-            downAngle = Math.round( Math.toDegrees(downAngleR) * 10.0 ) / 10.0;
-            adjustedAngle = Math.round( Math.toDegrees(adjustedAngleR) * 10.0) / 10.0;
+            downAngle = Math.round(Math.toDegrees(downAngleR) * 10.0) / 10.0;
+            adjustedAngle = Math.round(Math.toDegrees(adjustedAngleR) * 10.0) / 10.0;
             validPath = true;
 
         } catch (Exception e) {
             // lots of things can go wrong with the math.
             // If an exception is thrown just set validPath to false;
             validPath = false;
-        }    
+        }
     }
 
-    double getAngleToPerp() {
+    double getAngleToPerp()
+    {
         return angleToPerp;
     }
-    double getDistanceToPerp() {
+
+    double getDistanceToPerp()
+    {
         return distanceToPerp;
     }
-    double getAngleToTarget() {
+
+    double getAngleToTarget()
+    {
         return angleToTarget;
     }
-    double getDistanceToTarget() {
+
+    double getDistanceToTarget()
+    {
         return distanceToTarget;
     }
 
     // Debug
-    double getDistanceToTape() {
+    double getDistanceToTape()
+    {
         return distanceToTape;
     }
-    double getLineAngle() {
+
+    double getLineAngle()
+    {
         return lineAngle;
     }
-    double getDownAngle() { return downAngle; }
-    double getAdjustedAngle() { return adjustedAngle; }
 
-    boolean isValidPath() {
+    double getDownAngle()
+    {
+        return downAngle;
+    }
+
+    double getAdjustedAngle()
+    {
+        return adjustedAngle;
+    }
+
+    boolean isValidPath()
+    {
         return validPath;
     }
 
-    void invalidate() {
+    void invalidate()
+    {
         validPath = false;
     }
 }

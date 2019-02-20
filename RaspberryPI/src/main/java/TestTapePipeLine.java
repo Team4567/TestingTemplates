@@ -24,7 +24,7 @@ class TestTapePipeLine {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
-    public static BufferedImage Mat2BufferedImage(Mat m) {
+    private static BufferedImage Mat2BufferedImage(Mat m) {
 		// Fastest code
 		// output can be assigned either to a BufferedImage or to an Image
 	
@@ -42,7 +42,7 @@ class TestTapePipeLine {
 		return image;
 	}
 
-	public static void displayImage(Image img2) {
+	private static void displayImage(Image img2) {
 
 		//BufferedImage img=ImageIO.read(new File("/HelloOpenCV/lena.png"));
 		ImageIcon icon=new ImageIcon(img2);

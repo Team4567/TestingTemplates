@@ -13,46 +13,67 @@ class TapeInfo
     private double frameWidth;
     private double frameHeight;
 
-    TapeInfo( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight )
+    TapeInfo(double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight)
     {
-        init( centerX, centerY, centerHeight, distance, angle, minX, maxX, frameWidth, frameHeight );
+        init(centerX, centerY, centerHeight, distance, angle, minX, maxX, frameWidth, frameHeight);
     }
 
     // Allows for reuse of the object to save a "new"
-    void init( double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight )
+    void init(double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight)
     {
-        this.centerX      = centerX;
-        this.centerY      = centerY;
+        this.centerX = centerX;
+        this.centerY = centerY;
         this.centerHeight = centerHeight;
-        this.distance     = distance;
-        this.angle        = angle;
-        this.minX         = minX;
-        this.maxX         = maxX;
-        this.frameWidth   = frameWidth;
-        this.frameHeight  = frameHeight;
+        this.distance = distance;
+        this.angle = angle;
+        this.minX = minX;
+        this.maxX = maxX;
+        this.frameWidth = frameWidth;
+        this.frameHeight = frameHeight;
     }
 
-    double getCenterX() {
+    double getCenterX()
+    {
         return centerX;
     }
-    double getCenterY() {
+
+    double getCenterY()
+    {
         return centerY;
     }
-    double getCenterHeight() {
+
+    double getCenterHeight()
+    {
         return centerHeight;
     }
-    double getDistance() {
+
+    double getDistance()
+    {
         return distance;
     }
-    double getAngle() {
+
+    double getAngle()
+    {
         return angle;
     }
-    double getMinX() {
+
+    double getMinX()
+    {
         return minX;
     }
-    double getMaxX() {
+
+    double getMaxX()
+    {
         return maxX;
     }
-    double getFrameWidth() { return frameWidth; }
-    double getFrameHeight() { return frameHeight; }
+
+    double getFrameWidth()
+    {
+        return frameWidth;
+    }
+
+    double getFrameHeight()
+    {
+        return frameHeight;
+    }
 }
