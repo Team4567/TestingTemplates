@@ -34,12 +34,12 @@ class TapePipeline implements VisionPipeline
     private TapeInfo tapeInfo = null;  // null when no lock
 
     // Dynamic setting of Threshold values;
-    private static double[] hslThresholdHue = {50.0, 100.0};
+    private static double[] hslThresholdHue = {50.0, 110.0};
     private static double[] hslThresholdSaturation = {0.0, 170.0};
     private static double[] hslThresholdValue = {150.0, 255.0};
 
     private static double rotatedRectMinArea = 200.0;
-    private static double[] rectRatio = {0.3, 0.5};
+    private static double[] rectRatio = {0.25, 0.5};
 
     static void setThresholdHue(double min, double max)
     {
@@ -197,7 +197,7 @@ class TapePipeline implements VisionPipeline
             if (debug) {
                 Point p = rotatedRect.center.clone();
                 double angle = Math.round( ((rotatedRect.size.width < rotatedRect.size.height) ? rotatedRect.angle + 90 : rotatedRect.angle ) * 10.0 ) / 10.0;
-                double yaw = Math.round( (rotatedRect.center.x - output.width() / 2.0) / (output.width() / Camera.getHFOV(output.width())) * 10.0) / 10.0;
+                double yaw = Camera.yawToHorizontalPixel( rotatedRect.center.x,output.width() );
                 int area = (int)Math.round(rotatedRect.size.width * rotatedRect.size.height);
 
                 double dy = 15;

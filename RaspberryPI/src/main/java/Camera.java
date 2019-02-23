@@ -8,15 +8,15 @@ class Camera
     static {
         // FOV Measurements at difference resolutions
         vfov.put(240, 37.2671);
-        vfov.put(288, 37.3614);
+        vfov.put(288, 37.3019);
         vfov.put(600, 39.4171);
 
         hfov.put(320, 58.8701);
-        hfov.put(352, 59.6177);
+        hfov.put(352, 53.6508);
         hfov.put(800, 59.2790);
     }
 
-    static double getHFOV(int width)
+    private static double getHFOV(int width)
     {
         return hfov.get(width) != null ? hfov.get(width) : hfov.get(320);
     }

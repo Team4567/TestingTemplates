@@ -301,8 +301,9 @@ final class Main
 
                     eLineAngle.setDouble(linePipeline.getLineAngle());
 
-                    if (calculatePath && !Double.isNaN(linePipeline.getLineAngle()))
+                    if (calculatePath && !Double.isNaN(linePipeline.getLineAngle())) {
                         pathInfo.calculate(tapeInfo.getDistance(), linePipeline.getLineAngle());
+                    }
                     else
                         pathInfo.invalidate();
 

@@ -13,13 +13,13 @@ class TapeInfo
     private double frameWidth;
     private double frameHeight;
 
-    TapeInfo(double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight)
+    TapeInfo(double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight )
     {
-        init(centerX, centerY, centerHeight, distance, angle, minX, maxX, frameWidth, frameHeight);
+        init(centerX, centerY, centerHeight, distance, angle, minX, maxX, frameWidth, frameHeight );
     }
 
     // Allows for reuse of the object to save a "new"
-    void init(double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight)
+    void init(double centerX, double centerY, double centerHeight, double distance, double angle, double minX, double maxX, double frameWidth, double frameHeight )
     {
         this.centerX = centerX;
         this.centerY = centerY;

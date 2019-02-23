@@ -23,8 +23,8 @@ class LinePipeline implements VisionPipeline
 
     // Dynamic setting of Threshold values;
     private static double[] hsvThresholdHue = {0.0, 255.0};
-    private static double[] hsvThresholdSaturation = {0.0, 29.0};
-    private static double[] hsvThresholdValue = {150.0, 255.0};
+    private static double[] hsvThresholdSaturation = {0.0, 20.0};
+    private static double[] hsvThresholdValue = {200.0, 255.0};
 
     private static double filterContoursMinArea = 200.0;
     private static double[] rectRatio = {0.1, 0.30};
