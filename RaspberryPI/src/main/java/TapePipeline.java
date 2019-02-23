@@ -2,15 +2,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.RotatedRect;
-import org.opencv.core.Scalar;
+import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.first.vision.VisionPipeline;
@@ -37,7 +29,6 @@ class TapePipeline implements VisionPipeline
     private Mat input = new Mat();
     private Mat hslThresholdOutput = new Mat();
     private ArrayList<MatOfPoint> findContours = new ArrayList<>();
-    private ArrayList<MatOfPoint> filteredContours = new ArrayList<>();
     private ArrayList<RotatedRect> filteredRotatedRects = new ArrayList<>();
 
     private TapeInfo tapeInfo = null;  // null when no lock
@@ -47,7 +38,7 @@ class TapePipeline implements VisionPipeline
     private static double[] hslThresholdSaturation = {0.0, 170.0};
     private static double[] hslThresholdValue = {150.0, 255.0};
 
-    private static double filterContoursMinArea = 200.0;
+    private static double rotatedRectMinArea = 200.0;
     private static double[] rectRatio = {0.3, 0.5};
 
     static void setThresholdHue(double min, double max)
@@ -83,14 +74,14 @@ class TapePipeline implements VisionPipeline
         return hslThresholdValue;
     }
 
-    static void setContoursMinArea(double min)
+    static void setRotatedRectMinArea(double min)
     {
-        filterContoursMinArea = min;
+        rotatedRectMinArea = min;
     }
 
-    static double getfilterContoursMinArea()
+    static double getRotatedRectMinArea()
     {
-        return filterContoursMinArea;
+        return rotatedRectMinArea;
     }
 
     static void setRotatedRectRatio(double min, double max)
@@ -111,15 +102,14 @@ class TapePipeline implements VisionPipeline
     public void process(Mat source0)
     {
         input = source0;
-        Rect crop = new Rect(0, 0, source0.width(), source0.height() / 2);  // Upper half of screen only
-        Mat subImage = source0.submat(crop);
+        Rect crop = new Rect(0, 0, input.width(), input.height() / 2);  // Upper half of screen only
+        Mat subImage = input.submat(crop);
 
         hsvThreshold(subImage, hslThresholdHue, hslThresholdSaturation, hslThresholdValue, hslThresholdOutput);
         findContours(hslThresholdOutput, false, findContours);
 
         // Populate RotatedRects from the contours and filter out those that have a bad ratio or too small.
         MatOfPoint2f mat2f = new MatOfPoint2f();
-        filteredContours.clear();
         filteredRotatedRects.clear();
         for (MatOfPoint contour : findContours) {
             contour.convertTo(mat2f, CvType.CV_32F);
@@ -127,13 +117,12 @@ class TapePipeline implements VisionPipeline
             double ratio = (rect.size.width < rect.size.height) ? rect.size.width / rect.size.height : rect.size.height / rect.size.width;
 
             // If ratio is good and big enough, add the Contour and RotatedRect to output
-            if (ratio >= rectRatio[0] && ratio <= rectRatio[1] && (rect.size.width * rect.size.height) > filterContoursMinArea) {
-                filteredContours.add(contour);
+            if (ratio >= rectRatio[0] && ratio <= rectRatio[1] && (rect.size.width * rect.size.height) > rotatedRectMinArea) {
                 filteredRotatedRects.add(rect);
             }
         }
 
-        tapeInfo = TapeFinder.findTapeLockInfo(filteredContours, input.width(), input.height(), tapeInfo);  // will reuse tapeInfo if not null
+        tapeInfo = TapeFinder.findTapeLockInfo(filteredRotatedRects, input.width(), input.height(), tapeInfo);  // will reuse tapeInfo if not null
     }
 
     Mat getInput()
@@ -149,11 +138,6 @@ class TapePipeline implements VisionPipeline
     ArrayList<MatOfPoint> getFindContours()
     {
         return findContours;
-    }
-
-    ArrayList<MatOfPoint> getFilteredContours()
-    {
-        return filteredContours;
     }
 
     ArrayList<RotatedRect> getfilteredRotatedRects()
@@ -212,37 +196,43 @@ class TapePipeline implements VisionPipeline
 
             if (debug) {
                 Point p = rotatedRect.center.clone();
-                double angle = (rotatedRect.size.width < rotatedRect.size.height) ? rotatedRect.angle + 90 : rotatedRect.angle;
-                double yaw = (rotatedRect.center.x - output.width() / 2.0) / (output.width() / Camera.getHFOV(output.width()));
+                double angle = Math.round( ((rotatedRect.size.width < rotatedRect.size.height) ? rotatedRect.angle + 90 : rotatedRect.angle ) * 10.0 ) / 10.0;
+                double yaw = Math.round( (rotatedRect.center.x - output.width() / 2.0) / (output.width() / Camera.getHFOV(output.width())) * 10.0) / 10.0;
+                int area = (int)Math.round(rotatedRect.size.width * rotatedRect.size.height);
 
                 double dy = 15;
                 p.y += dy;
-                Imgproc.putText(output, "/" + Math.round(angle * 10.0) / 10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
-                Imgproc.putText(output, "/" + Math.round(angle * 10.0) / 10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
+                Imgproc.putText(output, "/" + angle, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
+                Imgproc.putText(output, "/" + angle, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
 
                 p.y += dy;
-                String t = "(" + Math.round(rotatedRect.center.x * 10.0) / 10.0 + ", "
-                        + Math.round(rotatedRect.center.y * 10.0) / 10.0 + ")";
+                String t = "C(" + Math.round(rotatedRect.center.x) + ", "
+                        + Math.round(rotatedRect.center.y) + ")";
                 Imgproc.putText(output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
                 Imgproc.putText(output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
 
                 p.y += dy;
-                t = "(" + rotatedRect.boundingRect().width + ", "
+                t = "B(" + rotatedRect.boundingRect().width + ", "
                         + rotatedRect.boundingRect().height + ")";
 
                 Imgproc.putText(output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
                 Imgproc.putText(output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
 
                 p.y += dy;
-                Imgproc.putText(output, "Y: " + Math.round(yaw * 10.0) / 10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
-                Imgproc.putText(output, "Y: " + Math.round(yaw * 10.0) / 10.0, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
+                t = "A: " + area;
+
+                Imgproc.putText(output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
+                Imgproc.putText(output, t, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
+
+                p.y += dy;
+                Imgproc.putText(output, "Y: " + yaw, p, Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
+                Imgproc.putText(output, "Y: " + yaw, p, Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
             }
         }
 
         if (tapeInfo != null)  // We have a lock
         {
             double lineX = tapeInfo.getCenterX();
-//			double targetYaw = (tapeInfo.getCenterX() - output.width()/2.0) / (output.width() / Camera.getHFOV(output.width()));
             double targetYaw = tapeInfo.getAngle();
 
             Imgproc.putText(output, "Yaw: " + targetYaw, new Point(lineX + 3, 10), Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
@@ -255,14 +245,14 @@ class TapePipeline implements VisionPipeline
                     new Point(lineX + 3, 25), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
 
             if (debug) {
-                String info = "(" + Math.round(tapeInfo.getCenterX() * 10.0) / 10.0 + ","
-                        + Math.round(tapeInfo.getCenterY() * 10.0) / 10.0 + ","
-                        + Math.round(tapeInfo.getCenterHeight() * 10.0) / 10.0 + ")";
+                String info = "(" + Math.round(tapeInfo.getCenterX()) + ","
+                        + Math.round(tapeInfo.getCenterY()) + ","
+                        + Math.round(tapeInfo.getCenterHeight()) + ")";
                 Imgproc.putText(output, info, new Point(lineX + 3, 40), Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
                 Imgproc.putText(output, info, new Point(lineX + 3, 40), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
 
-                info = "(" + Math.round(tapeInfo.getFrameWidth() * 10.0) / 10.0 + ","
-                        + Math.round(tapeInfo.getFrameHeight() * 10.0) / 10.0 + ")";
+                info = "(" + Math.round(tapeInfo.getFrameWidth()) + ","
+                        + Math.round(tapeInfo.getFrameHeight()) + ")";
                 Imgproc.putText(output, info, new Point(lineX + 3, 55), Core.FONT_HERSHEY_PLAIN, fontScale, blackScalar, 3);
                 Imgproc.putText(output, info, new Point(lineX + 3, 55), Core.FONT_HERSHEY_PLAIN, fontScale, whiteScalar, 1);
             }

@@ -280,10 +280,10 @@ class LinePipeline implements VisionPipeline
 
             if (debug) {
                 p.y += dy;
-                String detail = "(" + (Math.round(rect.center.x + offsetX) * 10.0) / 10.0 + ","
-                        + (Math.round(rect.center.y + offsetY) * 10.0) / 10.0 + ","
-                        + (Math.round(rect.size.width) * 10.0) / 10.0 + ","
-                        + (Math.round(rect.size.height) * 10.0) / 10.0 + ")";
+                String detail = "(" + (int)Math.round(rect.center.x + offsetX) + ","
+                        + (int)Math.round(rect.center.y + offsetY) + ","
+                        + (int)rect.size.width + ","
+                        + (int)rect.size.height + ")";
                 Imgproc.putText(output, detail, p, Core.FONT_HERSHEY_PLAIN, fontScale, black, 3);
                 Imgproc.putText(output, detail, p, Core.FONT_HERSHEY_PLAIN, fontScale, white, 1);
             }

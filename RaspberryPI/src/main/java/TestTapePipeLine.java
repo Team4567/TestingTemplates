@@ -76,22 +76,22 @@ class TestTapePipeLine {
 		displayImage( bi2 );
 
 //		ArrayList<MatOfPoint> contours = tp.findContoursOutput();
-		ArrayList<MatOfPoint> contours = tp.getFilteredContours();
+//		ArrayList<MatOfPoint> contours = tp.getFilteredContours();
 
 		Mat contourImg = new Mat(logo.size(), logo.type(), black );
 
 
-		for (int i = 0; i < contours.size(); i++) {
-			Imgproc.drawContours(contourImg, contours, i, white, -1 );
-
-			Rect rect = Imgproc.boundingRect(contours.get(i));
-			Imgproc.rectangle(contourImg, rect.tl(), rect.br(), red );
-		}
+//		for (int i = 0; i < contours.size(); i++) {
+//			Imgproc.drawContours(contourImg, contours, i, white, -1 );
+//
+//			Rect rect = Imgproc.boundingRect(contours.get(i));
+//			Imgproc.rectangle(contourImg, rect.tl(), rect.br(), red );
+//		}
 
 		BufferedImage bi3 = Mat2BufferedImage(contourImg);
 		displayImage( bi3 );
 
-		TapeFinder.findTapeLockInfo( contours, contourImg.width(), contourImg.height(), null );
+//		TapeFinder.findTapeLockInfo( contours, contourImg.width(), contourImg.height(), null );
 	}
 
 }

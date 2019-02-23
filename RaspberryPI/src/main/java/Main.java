@@ -1,11 +1,3 @@
-
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2018 FIRST. All Rights Reserved.                             */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -69,11 +61,12 @@ import edu.wpi.first.vision.VisionThread;
    }
  */
 
-@SuppressWarnings("CanBeFinal")
 final class Main
 {
     private static String configFile = "/boot/frc.json";
     private static boolean debug = false;
+    private static boolean debugTape = false;
+    private static boolean debugLine = false;
     private static boolean calculatePath = false;
     private static int frameCount = 0;
 
@@ -238,11 +231,17 @@ final class Main
 
         NetworkTableEntry eDebug = ntinst.getEntry("Debug");
         eDebug.setBoolean(debug);
-        eDebug.addListener( event -> debug = event.value.getBoolean(), EntryListenerFlags.kUpdate );
+        eDebug.addListener(event -> debug = event.value.getBoolean(), EntryListenerFlags.kUpdate);
+        NetworkTableEntry eDebugTape = ntinst.getEntry("DebugTape");
+        eDebugTape.setBoolean(debugTape);
+        eDebugTape.addListener(event -> debugTape = event.value.getBoolean(), EntryListenerFlags.kUpdate);
+        NetworkTableEntry eDebugLine = ntinst.getEntry("DebugLine");
+        eDebugLine.setBoolean(debugLine);
+        eDebugLine.addListener(event -> debugLine = event.value.getBoolean(), EntryListenerFlags.kUpdate);
 
         NetworkTableEntry eCalculatePath = ntinst.getEntry("CalculatePath");
         eCalculatePath.setBoolean(calculatePath);
-        eCalculatePath.addListener( event -> calculatePath = event.value.getBoolean(), EntryListenerFlags.kUpdate );
+        eCalculatePath.addListener(event -> calculatePath = event.value.getBoolean(), EntryListenerFlags.kUpdate);
 
         NetworkTable nt = ntinst.getTable("TargetInfo");
 
@@ -278,7 +277,7 @@ final class Main
                 targetingSource = cameras.get(0);
 
             VideoMode m = targetingSource.getVideoMode();
-//      CvSource debugOut = CameraServer.getInstance().putVideo("Debug", m.width, m.height);
+            CvSource debugOut = CameraServer.getInstance().putVideo("Debug", m.width, m.height );
             CvSource output = CameraServer.getInstance().putVideo("Output", m.width, m.height);
             LinePipeline linePipeline = new LinePipeline();
             PathInfo pathInfo = new PathInfo();
@@ -286,7 +285,9 @@ final class Main
             VisionThread visionThread = new VisionThread(targetingSource,
                     new TapePipeline(), pipeline -> {
                 Mat inFrame = pipeline.getInput();
-//                debugOut.putFrame( pipeline.hslThresholdOutput() );
+
+                if( debugTape )
+                    debugOut.putFrame( pipeline.hslThresholdOutput() );
 
                 TapeInfo tapeInfo = pipeline.getTapeInfo();
                 if (tapeInfo != null) {
@@ -295,7 +296,9 @@ final class Main
 
                     linePipeline.process(inFrame, tapeInfo);
 
-//                  debugOut.putFrame( linePipeline.hsvThresholdOutput() );
+                    if( debugLine )
+                        debugOut.putFrame( linePipeline.hsvThresholdOutput() );
+
                     eLineAngle.setDouble(linePipeline.getLineAngle());
 
                     if (calculatePath && !Double.isNaN(linePipeline.getLineAngle()))
@@ -336,8 +339,8 @@ final class Main
 
                 output.putFrame(inFrame);
 
-                if ((frameCount % 30) == 0)
-                    System.gc();
+//                if ((frameCount % 30) == 0)
+//                    System.gc();
             });
             visionThread.start();
         }
@@ -425,9 +428,9 @@ final class Main
                         TapePipeline.setThresholdValue(TapePipeline.getThresholdValue()[0], event.value.getDouble())
                 , EntryListenerFlags.kUpdate);
 
-        nt.getEntry("TapeContoursMinArea").setDouble(TapePipeline.getfilterContoursMinArea());
-        nt.getEntry("TapeContoursMinArea").addListener(event ->
-                        TapePipeline.setContoursMinArea(event.value.getDouble())
+        nt.getEntry("TapeRotatedRectMinArea").setDouble(TapePipeline.getRotatedRectMinArea());
+        nt.getEntry("TapeRotatedRectMinArea").addListener(event ->
+                        TapePipeline.setRotatedRectMinArea(event.value.getDouble())
                 , EntryListenerFlags.kUpdate);
 
         nt.getEntry("TapeRotatedRectMinRatio").setDouble(TapePipeline.getRotatedRectRatio()[0]);

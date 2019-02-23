@@ -1,13 +1,9 @@
-import java.util.ArrayList;
-//import java.util.Comparator;
-import java.util.List;
-
-import org.opencv.core.CvType;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
-import org.opencv.imgproc.Imgproc;
+
+import java.util.List;
+
+//import java.util.Comparator;
 
 class TapeFinder
 {
@@ -15,25 +11,15 @@ class TapeFinder
 
     // This routine finds a target (tape pair) and returns the X to the center and approx distance
     // If no complete target is found it returns null
-    static TapeInfo findTapeLockInfo(List<MatOfPoint> inputContours, int frameWidth, int frameHeight, TapeInfo ti)
+    static TapeInfo findTapeLockInfo(List<RotatedRect> rotatedRects, int frameWidth, int frameHeight, TapeInfo ti)
     {
         // return nothing if less than 2 contours or more than 8 (too much noise)
-        if (inputContours.size() < 2 || inputContours.size() > 8) {
+        if (rotatedRects.size() < 2 || rotatedRects.size() > 8) {
             return null;
         }
 
         // Sort from largest to smallest area contour
-        inputContours.sort((o1, o2) -> -((int) Math.round(Imgproc.contourArea(o1))
-                - (int) Math.round(Imgproc.contourArea(o2))));
-
-        // Calculate rotatedRectangles for each contour
-        // Because we are processing them in order, rects will also be in descending size order.
-        ArrayList<RotatedRect> rotatedRects = new ArrayList<>();
-        MatOfPoint2f mat2f = new MatOfPoint2f();
-        for (MatOfPoint inputContour : inputContours) {
-            inputContour.convertTo(mat2f, CvType.CV_32F);
-            rotatedRects.add(Imgproc.minAreaRect(mat2f));
-        }
+        rotatedRects.sort( (o1, o2) -> -( o1.boundingRect().height - o2.boundingRect().height ) );
 
         // Found a bug that makes this quite a bit more complicated.
         // If we start with the largest rect, looking for match might skip past a rect that would be
