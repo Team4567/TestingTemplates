@@ -25,7 +25,7 @@ public class ScoringMech extends Subsystem {
   Talon emergBack;
   TalonSRX flippy;
   DoubleSolenoid pistonL,pistonR, pistonMisc;
-  Compressor c;
+  
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   public ScoringMech(){
@@ -34,8 +34,7 @@ public class ScoringMech extends Subsystem {
     scoreR.follow( scoreL );
     flippy= new TalonSRX( Constants.flippyMC );
     emergBack= new Talon( 0 );
-    c = new Compressor(0);
-    c.setClosedLoopControl(true);
+    
     pistonL= new DoubleSolenoid( 10, 0, 1 );
     pistonR= new DoubleSolenoid( 10, 2, 3 );
     pistonMisc= new DoubleSolenoid( 10, 4, 5 );

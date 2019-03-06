@@ -25,6 +25,7 @@ import frc.robot.Constants;
 import frc.robot.enums.*;
 import frc.robot.Robot;
 import frc.robot.commands.TeleOpDrive;
+import edu.wpi.first.wpilibj.Compressor;
 /**
  * An example subsystem.  You can replace me with your own Subsystem.
  */
@@ -38,10 +39,13 @@ public class Drivetrain extends Subsystem {
     public PigeonIMU gyro;
     public VictorSP test;
     Timer time;
+    Compressor c;
     boolean hasLeft=false;
     double[] ypr;
     
     public Drivetrain(){
+      c = new Compressor(0);
+    c.setClosedLoopControl(true);
         rightMain= new TalonSRX(Constants.rightMainMC);
         rightMain.setNeutralMode(NeutralMode.Brake);
         rightMain.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);

@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.command.Command;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Robot;
 import frc.robot.enums.ElevatorPos;
@@ -21,12 +22,13 @@ import frc.robot.Constants;
  */
 public class TeleOpDrive extends Command {
   XboxController xbC;
+  double elevOutput;
   int level=1,prevLevel;
   int encoderLevel=0;
   LineFollow lineCalc= new LineFollow( Constants.gyroP );
-  ElevatorPos pos;
+  ElevatorPos pos, prevPos;
   public boolean useLineFollow=false;
-  public TeleOpDrive(XboxController controller) {
+  public TeleOpDrive( XboxController controller ) {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.drive);
     //requires(Robot.upper);
@@ -46,6 +48,8 @@ public class TeleOpDrive extends Command {
       //Robot.drive.drive(xbC.getY(Hand.kLeft), lineCalc.turn());
     //}else{
       Robot.drive.drive(xbC);
+      elevOutput= ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
+      Robot.upper.manualMove( elevOutput );
     //}
     if( xbC.getAButtonPressed() ){
       level--;
@@ -80,27 +84,30 @@ public class TeleOpDrive extends Command {
       case 71:
         pos=ElevatorPos.cargoShip;
     }
-    Robot.upper.move(pos);
+    if( pos != prevPos ){
+      //Robot.upper.move(pos);
+    }
     
-    
-    if(xbC.getXButton()){
+    if( xbC.getXButton() ){
       //Robot.drive.rightMain.set(ControlMode.PercentOutput,.5);
       //Robot.drive.rightSlave.follow(Robot.drive.rightSlave);
     }
-    if(xbC.getBackButtonPressed()){
-     
+    if( xbC.getBackButtonPressed() ){
+     Robot.platformer.setBack( Value. kForward );
     }
-    if(xbC.getStartButtonPressed()){
-     
+    if( xbC.getBackButtonReleased() ){
+      Robot.platformer.setBack( Value.kReverse );
     }
-    if(xbC.getStartButtonReleased()){
+    if( xbC.getStartButtonPressed() ){
+      Robot.platformer.setFronts( Value.kForward );
+    }
+    if( xbC.getStartButtonReleased() ){
+      Robot.platformer.setBack( Value. kReverse );
+    }
+    if( xbC.getTriggerAxis( Hand.kLeft ) > .5 ){
       
     }
-   
-    if(xbC.getTriggerAxis(Hand.kLeft)>.5){
-      
-    }
-    if(xbC.getTriggerAxis(Hand.kRight)>.5){
+    if( xbC.getTriggerAxis( Hand.kRight ) > .5 ){
       
     }                                                    
     useLineFollow=xbC.getBumper(Hand.kRight);

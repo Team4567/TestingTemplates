@@ -21,8 +21,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableEntry;
-
-import frc.robot.autonomous.*;
 import frc.robot.commands.*;
 import frc.robot.enums.Want;
 import frc.robot.subsystems.*;
@@ -61,6 +59,7 @@ public class Robot extends TimedRobot {
   public static Drivetrain drive;
   public static Elevator upper;
   public static ScoringMech score;
+  public static PlatformClimber platformer;
   //Commands
   public static CommandGroup m_autonomousCommand;
   public static TeleOpDrive teleOp;
@@ -81,6 +80,7 @@ public class Robot extends TimedRobot {
     //score= new ScoringMech();
     //Commands
     teleOp= new TeleOpDrive(xbC);
+    platformer= new PlatformClimber();
     //turn=new TurnAngle(new SimpleTurnP(.02, .002, .4, .1, 1 ) );
     //goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
     //moveElev= new ElevatorPosition();

@@ -72,6 +72,9 @@ public class Elevator extends Subsystem {
     t1.set( ControlMode.PercentOutput, posCalc.getOutput( t1.getSelectedSensorPosition() ) );
     
   }
+  public void manualMove( double val ){
+    t1.set( ControlMode.PercentOutput, val );
+  }
   public void stop(){
     t1.set( ControlMode.PercentOutput, 0);
   }
