@@ -23,16 +23,14 @@ import frc.robot.Constants;
 public class TeleOpDrive extends Command {
   XboxController xbC;
   double elevOutput;
-  int level=1,prevLevel;
-  int encoderLevel=0;
-  LineFollow lineCalc= new LineFollow( Constants.gyroP );
+  int level = 1,prevLevel;
+  int encoderLevel = 0;
   ElevatorPos pos, prevPos;
-  public boolean useLineFollow=false;
   public TeleOpDrive( XboxController controller ) {
     // Use requires() here to declare subsystem dependencies
     requires( Robot.drive );
     //requires(Robot.upper);
-    xbC=controller;
+    xbC = controller;
   }
 
   // Called just before this Command runs the first time
@@ -48,41 +46,30 @@ public class TeleOpDrive extends Command {
       //Robot.drive.drive(xbC.getY(Hand.kLeft), lineCalc.turn());
     //}else{
       Robot.drive.drive( xbC );
-      elevOutput= ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
+      elevOutput = ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
       Robot.upper.manualMove( elevOutput );
     //}
-    if( xbC.getAButtonPressed() ){
-      level--;
-    }
-    if( xbC.getYButtonPressed() ){
-      level++;
-    }
-    if( xbC.getBButtonPressed() ){
-      prevLevel=level;
-      
-    }
-    if( xbC.getBButton() ){
-      level=71;
-    }
-    if( xbC.getBButtonReleased() ){
-      level=prevLevel;
-    }
+    if( xbC.getAButtonPressed() ) level--;
+    if( xbC.getYButtonPressed() ) level++;
+    if( xbC.getBButtonPressed() ) prevLevel=level;
+    if( xbC.getBButton() ) level = 71;
+    if( xbC.getBButtonReleased() ) level=prevLevel;
     switch( level ){
       case 0:
-        level=1;
-        pos=ElevatorPos.ballLow;
+        level = 1;
+        pos = ElevatorPos.ballLow;
       break;
       case 1:
-        pos=ElevatorPos.ballLow;
+        pos = ElevatorPos.ballLow;
       break;
       case 2:
-        pos=ElevatorPos.ballMed;
+        pos = ElevatorPos.ballMed;
       break;
       case 3:
-        pos=ElevatorPos.ballHigh;
+        pos = ElevatorPos.ballHigh;
       break;
       case 71:
-        pos=ElevatorPos.cargoShip;
+        pos = ElevatorPos.cargoShip;
     }
     if( pos != prevPos ){
       //Robot.upper.move(pos);
@@ -92,25 +79,16 @@ public class TeleOpDrive extends Command {
       //Robot.drive.rightMain.set(ControlMode.PercentOutput,.5);
       //Robot.drive.rightSlave.follow(Robot.drive.rightSlave);
     }
-    if( xbC.getBackButtonPressed() ){
-     Robot.platformer.setBack( Value. kForward );
-    }
-    if( xbC.getBackButtonReleased() ){
-      Robot.platformer.setBack( Value.kReverse );
-    }
-    if( xbC.getStartButtonPressed() ){
-      Robot.platformer.setFronts( Value.kForward );
-    }
-    if( xbC.getStartButtonReleased() ){
-      Robot.platformer.setBack( Value. kReverse );
-    }
+    if( xbC.getBackButtonPressed() ) Robot.platformer.setBack( Value. kForward );
+    if( xbC.getBackButtonReleased() ) Robot.platformer.setBack( Value.kReverse );
+    if( xbC.getStartButtonPressed() ) Robot.platformer.setFronts( Value.kForward );
+    if( xbC.getStartButtonReleased() ) Robot.platformer.setBack( Value. kReverse );
     if( xbC.getTriggerAxis( Hand.kLeft ) > .5 ){
       
     }
     if( xbC.getTriggerAxis( Hand.kRight ) > .5 ){
       
     }                                                    
-    useLineFollow=xbC.getBumper( Hand.kRight );
   }
 
   // Make this return true when this Command no longer needs to run execute()
@@ -123,7 +101,7 @@ public class TeleOpDrive extends Command {
   @Override
   protected void end() {
     Robot.drive.stop();
-    //Robot.upper.move(0);
+    Robot.upper.stop();
   }
 
   // Called when another command which requires one or more of the same
@@ -131,6 +109,6 @@ public class TeleOpDrive extends Command {
   @Override
   protected void interrupted() {
     Robot.drive.stop();
-    //Robot.upper.move(0);
+    Robot.upper.stop();
   }
 }

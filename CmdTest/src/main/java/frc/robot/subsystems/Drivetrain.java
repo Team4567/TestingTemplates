@@ -46,20 +46,20 @@ public class Drivetrain extends Subsystem {
     public Drivetrain(){
       c = new Compressor( 0 );
     c.setClosedLoopControl( true );
-        rightMain= new TalonSRX( Constants.rightMainMC );
+        rightMain = new TalonSRX( Constants.rightMainMC );
         rightMain.setNeutralMode( NeutralMode.Brake );
         rightMain.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
-        leftMain= new TalonSRX( Constants.leftMainMC );
+        leftMain = new TalonSRX( Constants.leftMainMC );
         leftMain.setNeutralMode( NeutralMode.Brake );
         rightMain.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
-        rightSlave= new TalonSRX( Constants.rightSlaveMC );
+        rightSlave = new TalonSRX( Constants.rightSlaveMC );
         rightSlave.follow( rightMain );
         rightSlave.setNeutralMode( NeutralMode.Brake );
-        leftSlave= new TalonSRX( Constants.leftSlaveMC );
+        leftSlave = new TalonSRX( Constants.leftSlaveMC );
         leftSlave.follow(leftMain);
         leftSlave.setNeutralMode( NeutralMode.Brake );
-        gyro= new PigeonIMU( leftSlave );
-        ypr= new double[3];
+        gyro = new PigeonIMU( leftSlave );
+        ypr = new double[3];
         
     }
     public double applyDeadband( double value, double deadband ) {
@@ -113,15 +113,15 @@ public class Drivetrain extends Subsystem {
       leftSlave.follow( leftMain );
     }
     public void drive( XboxController controller ){
-      double y= applyDeadband( .75 * controller.getY( Hand.kLeft ), 0.1 );
-      double x= applyDeadband( .75 * controller.getX( Hand.kLeft ), 0.1 );
+      double y = applyDeadband( .75 * controller.getY( Hand.kLeft ), 0.1 );
+      double x = applyDeadband( .75 * controller.getX( Hand.kLeft ), 0.1 );
       drive( y, x );
     }
 
   @Override
   public void initDefaultCommand() {
-    if(Robot.ds.isOperatorControl()){
-      setDefaultCommand(new TeleOpDrive(Robot.xbC));
+    if( Robot.ds.isOperatorControl() ){
+      setDefaultCommand( new TeleOpDrive( Robot.xbC ) );
     }
   }
 }

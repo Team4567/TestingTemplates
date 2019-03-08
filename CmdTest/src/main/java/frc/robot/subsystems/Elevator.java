@@ -20,8 +20,8 @@ import frc.robot.enums.*;
  */
 public class Elevator extends Subsystem {
   private MotorCalculator posCalc;
-  private double diameter=0;
-  private double circ= Math.PI * diameter;
+  private double diameter = 0;
+  private double circ = Math.PI * diameter;
   private double elevatorGearbox = 184320;
   private double initHeightOffGround = 0;
   public TalonSRX t1;
@@ -29,10 +29,10 @@ public class Elevator extends Subsystem {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   public Elevator(){
-    t1=new TalonSRX( Constants.elevatorMainMC );
+    t1 = new TalonSRX( Constants.elevatorMainMC );
     t1.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
     // ~184340 is one rotation, 5120 allows 5 degrees of error on each side
-    posCalc= new SimpleMotorP( .02, 0.00000054, 1, .1, 5120 );
+    posCalc = new SimpleMotorP( .02, 0.00000054, 1, .1, 5120 );
     
   }
   public double getOutput(){
@@ -40,7 +40,7 @@ public class Elevator extends Subsystem {
   }
   
   public void move( ElevatorPos pos ){
-    this.pos=pos;
+    this.pos = pos;
     switch( pos ){
       case undecided:
         pos=ElevatorPos.ballLow;

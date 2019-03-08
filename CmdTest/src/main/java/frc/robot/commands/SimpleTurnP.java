@@ -30,19 +30,17 @@ public class SimpleTurnP implements TurnCalculator{
     
   }
   public void setSetpoint( double setpoint ){
-    targetValue=setpoint;
+    targetValue = setpoint;
   }
   
   
   
   public double getOutput( double currentValue ) {
     double output;
-    double error=Math.abs( targetValue - currentValue );
-    double direction=Math.signum( targetValue - currentValue );
-    if( error < minError ) {
-      error=0;
-    }
-    output=Kp * error;
+    double error = Math.abs( targetValue - currentValue );
+    double direction = Math.signum( targetValue - currentValue );
+    if( error < minError ) error = 0;
+    output = Kp * error;
     if( output > maxOutput ) {
       output = maxOutput;
     } else if( error > 0.0 && output < minOutput ) {
@@ -54,7 +52,7 @@ public class SimpleTurnP implements TurnCalculator{
       output = prevOutput + ( maxAccel * directionOfOutputChange );
     }
     
-    prevOutput=output;           
+    prevOutput = output;           
     
     
     return output; 

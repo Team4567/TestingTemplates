@@ -18,20 +18,20 @@ public class VisionMovement extends CommandGroup {
   /**
    * Add your docs here.
    */
-  private double ang1,d1,ang2,d2;
+  private double ang1, d1, ang2, d2;
   public VisionMovement() {
     requires( Robot.drive );
-    NetworkTableInstance inst= NetworkTableInstance.getDefault();
-    NetworkTable nt= inst.getTable( "TargetInfo" );
-    NetworkTableEntry eAngleToPerp      = nt.getEntry( "AngleToPerp" );     // Perpendicular from hatch wall
-    NetworkTableEntry eDistanceToPerp   = nt.getEntry( "DistanceToPerp" );  // Perpendicular from hatch wall
-    NetworkTableEntry eAngleToTarget    = nt.getEntry( "AngleToTarget" );   // Turn to face target
+    NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    NetworkTable nt = inst.getTable( "TargetInfo" );
+    NetworkTableEntry eAngleToPerp = nt.getEntry( "AngleToPerp" );     // Perpendicular from hatch wall
+    NetworkTableEntry eDistanceToPerp = nt.getEntry( "DistanceToPerp" );  // Perpendicular from hatch wall
+    NetworkTableEntry eAngleToTarget = nt.getEntry( "AngleToTarget" );   // Turn to face target
     NetworkTableEntry eDistanceToTarget = nt.getEntry( "DistanceToTarget" );
-    NetworkTableEntry eTargetPathValid  = nt.getEntry( "TargetPathValid" );
-    ang1=eAngleToPerp.getDouble( 0 );
-    d1=eDistanceToPerp.getDouble( 0 );
-    ang2=eAngleToTarget.getDouble( 0 );
-    d2=eDistanceToTarget.getDouble( 0 );
+    NetworkTableEntry eTargetPathValid = nt.getEntry( "TargetPathValid" );
+    ang1 = eAngleToPerp.getDouble( 0 );
+    d1 = eDistanceToPerp.getDouble( 0 );
+    ang2 = eAngleToTarget.getDouble( 0 );
+    d2 = eDistanceToTarget.getDouble( 0 );
     if( eTargetPathValid.getBoolean( false ) ){
       addSequential( new TurnAngle( 1, new SimpleTurnP( .05, Constants.gyroP , .5 , .15 , 1 ) ) );
       

@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
   public static TeleOpDrive teleOp;
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
-  public static XboxController xbC= new XboxController( 0 );
+  public static XboxController xbC = new XboxController( 0 );
   SendableChooser<CommandGroup> m_chooser = new SendableChooser<>();
   //NetworkTables
   /**
@@ -75,12 +75,12 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     //Subsystems
-    drive= new Drivetrain();
+    drive = new Drivetrain();
     //upper= new Elevator();
     //score= new ScoringMech();
     //Commands
-    teleOp= new TeleOpDrive( xbC );
-    platformer= new PlatformClimber();
+    teleOp = new TeleOpDrive( xbC );
+    platformer = new PlatformClimber();
     //turn=new TurnAngle(new SimpleTurnP(.02, .002, .4, .1, 1 ) );
     //goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
     //moveElev= new ElevatorPosition();
@@ -143,9 +143,10 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_chooser.getSelected();
-    /*if(m_autonomousCommand !=null){
+    if( m_autonomousCommand != null ){
       m_autonomousCommand.start();
-    }else{
+    }
+    /*}else{
       CommandGroup emerg= new noMovement();
       emerg.start();
     }*/
@@ -181,26 +182,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    Scheduler.getInstance().run();
-    SmartDashboard.putNumber( "Gyro Val", drive.getYaw() );
-    SmartDashboard.putNumber( "Encoder Pos", drive.rightMain.getSelectedSensorPosition() );
-    //Init Distance
-    
-    /*if(xbC.getBumperPressed(Hand.kLeft)){
-      if(cargoWanted.getBoolean(false)){
-        
-      }else if(tapeWanted.getBoolean(false)){
-        turn.setSetpoint(tapeYaw.getDouble(123456789));
-        if(turn.getSetpoint()!=123456789){
-          turn.start();
-        }else{
-          System.out.println("Yaw at the Default/None Found Value- 123456789");
-        }
-        turn.start();
-      }
-    }*/
-    
-    
     
   }
 
