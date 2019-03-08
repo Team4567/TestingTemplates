@@ -21,9 +21,9 @@ import frc.robot.enums.*;
 public class Elevator extends Subsystem {
   private MotorCalculator posCalc;
   private double diameter=0;
-  private double circ= Math.PI*diameter;
-  private double elevatorGearbox=184320;
-  private double initHeightOffGround=0;
+  private double circ= Math.PI * diameter;
+  private double elevatorGearbox = 184320;
+  private double initHeightOffGround = 0;
   public TalonSRX t1;
   private ElevatorPos pos;
   // Put methods for controlling this subsystem
@@ -36,12 +36,12 @@ public class Elevator extends Subsystem {
     
   }
   public double getOutput(){
-    return (pos==ElevatorPos.undecided) ? 1 : posCalc.getOutput( t1.getSelectedSensorPosition() );
+    return ( pos == ElevatorPos.undecided ) ? 0 : posCalc.getOutput( t1.getSelectedSensorPosition() );
   }
   
-  public void move(ElevatorPos pos){
+  public void move( ElevatorPos pos ){
     this.pos=pos;
-    switch(pos){
+    switch( pos ){
       case undecided:
         pos=ElevatorPos.ballLow;
         posCalc.setSetpoint( ( 27.5 - initHeightOffGround ) / circ * elevatorGearbox );
@@ -52,10 +52,10 @@ public class Elevator extends Subsystem {
         posCalc.setSetpoint( ( 55.5 - initHeightOffGround ) / circ * elevatorGearbox );
       break;
       case ballHigh:
-        posCalc.setSetpoint( (83.5-initHeightOffGround) / circ * elevatorGearbox );
+        posCalc.setSetpoint( ( 83.5 - initHeightOffGround) / circ * elevatorGearbox );
       break;
       case cargoShip:
-        posCalc.setSetpoint( (31.5-initHeightOffGround) / circ * elevatorGearbox );
+        posCalc.setSetpoint( ( 31.5 - initHeightOffGround) / circ * elevatorGearbox );
       break;
         /*
       case hatchLow:
@@ -76,7 +76,7 @@ public class Elevator extends Subsystem {
     t1.set( ControlMode.PercentOutput, val );
   }
   public void stop(){
-    t1.set( ControlMode.PercentOutput, 0);
+    t1.set( ControlMode.PercentOutput, 0 );
   }
   @Override
   public void initDefaultCommand() {

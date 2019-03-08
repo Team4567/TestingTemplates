@@ -28,13 +28,13 @@ public class DriveDistance extends Command {
     init( mc );
   }
 
-  public DriveDistance(double setpointI, MotorCalculator mc) {
+  public DriveDistance( double setpointI, MotorCalculator mc ) {
     init( mc );
-    setSetpointInches(setpointI);
+    setSetpointInches( setpointI );
   }
 
   private void init( MotorCalculator mc ) {
-    requires(Robot.drive);
+    requires( Robot.drive );
     this.mc=mc;
     straight= new SimpleTurnP( .02, .0015, .4, .1, 1 );
     tR=Robot.drive.rightMain;
@@ -49,14 +49,14 @@ public class DriveDistance extends Command {
   @Override
   protected void initialize() {
     done=false;
-    tR.setSelectedSensorPosition(0);
-    straight.setSetpoint(Robot.drive.getYaw());
+    tR.setSelectedSensorPosition( 0 );
+    straight.setSetpoint( Robot.drive.getYaw() );
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    done = (mc.getOutput( tR.getSelectedSensorPosition() ) == 0.0 );
+    done = ( mc.getOutput( tR.getSelectedSensorPosition() ) == 0.0 );
     Robot.drive.drive( mc.getOutput( tR.getSelectedSensorPosition() ), straight.getOutput( Robot.drive.getYaw() ) );
     System.out.println( straight.getOutput( Robot.drive.getYaw() ) );
   }

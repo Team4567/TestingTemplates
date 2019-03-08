@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
   public static TeleOpDrive teleOp;
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
-  public static XboxController xbC= new XboxController(0);
+  public static XboxController xbC= new XboxController( 0 );
   SendableChooser<CommandGroup> m_chooser = new SendableChooser<>();
   //NetworkTables
   /**
@@ -79,7 +79,7 @@ public class Robot extends TimedRobot {
     //upper= new Elevator();
     //score= new ScoringMech();
     //Commands
-    teleOp= new TeleOpDrive(xbC);
+    teleOp= new TeleOpDrive( xbC );
     platformer= new PlatformClimber();
     //turn=new TurnAngle(new SimpleTurnP(.02, .002, .4, .1, 1 ) );
     //goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
@@ -96,7 +96,7 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Start: Center, Target: Left-Side Rocket", new CenterLRocket());
     m_chooser.addOption("Start: Center, Target: Right-side Rocket", new CenterRCargo());
     m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new CenterRRocket());*/
-    SmartDashboard.putData("Auto mode", m_chooser);
+    SmartDashboard.putData( "Auto mode", m_chooser );
     
     
   }
@@ -170,7 +170,7 @@ public class Robot extends TimedRobot {
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
     // this line or comment it out.
-    if (m_autonomousCommand != null) {
+    if ( m_autonomousCommand != null ) {
       m_autonomousCommand.cancel();
     }
     teleOp.start();
@@ -182,8 +182,8 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
-    SmartDashboard.putNumber("Gyro Val", drive.getYaw());
-    SmartDashboard.putNumber("Encoder Pos", drive.rightMain.getSelectedSensorPosition());
+    SmartDashboard.putNumber( "Gyro Val", drive.getYaw() );
+    SmartDashboard.putNumber( "Encoder Pos", drive.rightMain.getSelectedSensorPosition() );
     //Init Distance
     
     /*if(xbC.getBumperPressed(Hand.kLeft)){

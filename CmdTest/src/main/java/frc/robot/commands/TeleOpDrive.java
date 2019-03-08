@@ -30,7 +30,7 @@ public class TeleOpDrive extends Command {
   public boolean useLineFollow=false;
   public TeleOpDrive( XboxController controller ) {
     // Use requires() here to declare subsystem dependencies
-    requires(Robot.drive);
+    requires( Robot.drive );
     //requires(Robot.upper);
     xbC=controller;
   }
@@ -47,7 +47,7 @@ public class TeleOpDrive extends Command {
     //if(useLineFollow){
       //Robot.drive.drive(xbC.getY(Hand.kLeft), lineCalc.turn());
     //}else{
-      Robot.drive.drive(xbC);
+      Robot.drive.drive( xbC );
       elevOutput= ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
       Robot.upper.manualMove( elevOutput );
     //}
@@ -110,14 +110,13 @@ public class TeleOpDrive extends Command {
     if( xbC.getTriggerAxis( Hand.kRight ) > .5 ){
       
     }                                                    
-    useLineFollow=xbC.getBumper(Hand.kRight);
+    useLineFollow=xbC.getBumper( Hand.kRight );
   }
 
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
     return false;
-    
   }
 
   // Called once after isFinished returns true

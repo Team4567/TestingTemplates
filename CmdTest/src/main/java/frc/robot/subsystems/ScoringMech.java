@@ -60,7 +60,7 @@ public class ScoringMech extends Subsystem {
     }
   }
   public void useEmerg( double value ){
-    emergBack.set(value);
+    emergBack.set( value );
   }
   @Override
   public void initDefaultCommand() {

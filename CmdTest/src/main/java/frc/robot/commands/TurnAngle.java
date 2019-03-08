@@ -16,28 +16,28 @@ public class TurnAngle extends Command {
   double integral=0, previous_error=0, setpoint, error, derivative; 
   boolean done;
   TurnCalculator tc;
-  public TurnAngle(TurnCalculator tc) {
-    init(tc);
+  public TurnAngle( TurnCalculator tc ) {
+    init( tc );
   }
 
-  public TurnAngle(double setpoint,TurnCalculator tc) {
+  public TurnAngle( double setpoint,TurnCalculator tc ) {
     init(tc);
-    setSetpoint(setpoint);
+    setSetpoint( setpoint );
   }
   
-  private void init(TurnCalculator tc){
-    requires(Robot.drive);
+  private void init( TurnCalculator tc ){
+    requires( Robot.drive );
     this.tc=tc;
   }
   
-  public void setSetpoint(double setpoint){
+  public void setSetpoint( double setpoint ){
     this.setpoint=setpoint;
   }
 
   @Override
   protected void initialize() {
     done=false;
-    tc.setSetpoint(setpoint);
+    tc.setSetpoint( setpoint );
   }
 
   @Override

@@ -25,13 +25,13 @@ public class LineFollow {
     this.kP=kP;
   }
   public double turn(){
-    xOut=( xEntry.getDouble(0) - ( Constants.camW/2 ) ) * kP;
-    double direction= Math.signum( xEntry.getDouble(0) - ( Constants.camW/2 ) );
-    if( Math.abs( xPrevOut-xOut ) >.02 ){
+    xOut=( xEntry.getDouble( 0 ) - ( Constants.camW / 2 ) ) * kP;
+    double direction= Math.signum( xEntry.getDouble( 0 ) - ( Constants.camW / 2 ) );
+    if( Math.abs( xPrevOut-xOut ) > .02 ){
       xOut=xPrevOut+Math.signum( direction );
     }
-    if( Math.abs( xOut ) <.1 ){
-      xOut=.1*direction;
+    if( Math.abs( xOut ) < .1 ){
+      xOut= .1 * direction;
     }
     xPrevOut=xOut;
     return xOut;

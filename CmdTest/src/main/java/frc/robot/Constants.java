@@ -14,7 +14,7 @@ public class Constants {
     public static final int flippyMC=9;
 
     public static final double wheelCirc=1.5625*12;
-    public static final double wheelDiameter=wheelCirc/Math.PI;
+    public static final double wheelDiameter= wheelCirc / Math.PI;
     
     public static final double minValY=0.1;
     public static final double minValX=0.0;
