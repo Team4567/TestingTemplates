@@ -9,12 +9,14 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import frc.robot.Constants;
 import frc.robot.commands.*;
 import frc.robot.enums.*;
+import frc.robot.calculators.*;
 /**
  * Add your docs here.
  */
@@ -30,7 +32,7 @@ public class Elevator extends Subsystem {
   // here. Call these from Commands.
   public Elevator(){
     t1 = new TalonSRX( Constants.elevatorMainMC );
-    t1.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
+    t1.setNeutralMode( NeutralMode.Brake );
     // ~184340 is one rotation, 5120 allows 5 degrees of error on each side
     posCalc = new SimpleMotorP( .02, 0.00000054, 1, .1, 5120 );
     

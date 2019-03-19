@@ -29,14 +29,14 @@ public class TeleOpDrive extends Command {
   public TeleOpDrive( XboxController controller ) {
     // Use requires() here to declare subsystem dependencies
     requires( Robot.drive );
-    //requires(Robot.upper);
+    requires( Robot.upper );
     xbC = controller;
   }
 
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    
+    System.out.println("Starting TeleOpDrive!");
   }
 
   // Called repeatedly when this Command is scheduled to run
@@ -47,9 +47,10 @@ public class TeleOpDrive extends Command {
     //}else{
       Robot.drive.drive( xbC );
       elevOutput = ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
-      Robot.upper.manualMove( elevOutput );
+      Robot.upper.manualMove( xbC.getY( Hand.kRight ) );
+      
     //}
-    if( xbC.getAButtonPressed() ) level--;
+    /*if( xbC.getAButtonPressed() ) level--;
     if( xbC.getYButtonPressed() ) level++;
     if( xbC.getBButtonPressed() ) prevLevel=level;
     if( xbC.getBButton() ) level = 71;
@@ -74,11 +75,12 @@ public class TeleOpDrive extends Command {
     if( pos != prevPos ){
       //Robot.upper.move(pos);
     }
-    
+    */
     if( xbC.getXButton() ){
       //Robot.drive.rightMain.set(ControlMode.PercentOutput,.5);
       //Robot.drive.rightSlave.follow(Robot.drive.rightSlave);
     }
+    /*
     if( xbC.getBackButtonPressed() ) Robot.platformer.setBack( Value. kForward );
     if( xbC.getBackButtonReleased() ) Robot.platformer.setBack( Value.kReverse );
     if( xbC.getStartButtonPressed() ) Robot.platformer.setFronts( Value.kForward );
@@ -88,7 +90,7 @@ public class TeleOpDrive extends Command {
     }
     if( xbC.getTriggerAxis( Hand.kRight ) > .5 ){
       
-    }                                                    
+    } */                                                   
   }
 
   // Make this return true when this Command no longer needs to run execute()

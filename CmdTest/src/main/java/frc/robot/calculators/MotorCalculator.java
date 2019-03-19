@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.calculators;
 
 public interface MotorCalculator {
     public void setSetpoint( double setpoint );

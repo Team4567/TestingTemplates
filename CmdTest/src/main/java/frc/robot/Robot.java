@@ -76,7 +76,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     //Subsystems
     drive = new Drivetrain();
-    //upper= new Elevator();
+    upper= new Elevator();
     //score= new ScoringMech();
     //Commands
     teleOp = new TeleOpDrive( xbC );
@@ -182,6 +182,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
+    System.out.println( teleOp.isRunning() );
+    
+      upper.manualMove( xbC.getY( Hand.kRight ) );
     
   }
 

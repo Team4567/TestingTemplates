@@ -24,7 +24,7 @@ public class ScoringMech extends Subsystem {
   VictorSPX scoreL, scoreR;
   Talon emergBack;
   TalonSRX flippy;
-  DoubleSolenoid pistonL,pistonR, pistonMisc;
+  //DoubleSolenoid pistonL,pistonR, pistonMisc;
   
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
@@ -35,9 +35,9 @@ public class ScoringMech extends Subsystem {
     flippy= new TalonSRX( Constants.flippyMC );
     emergBack= new Talon( 0 );
     
-    pistonL= new DoubleSolenoid( 10, 0, 1 );
-    pistonR= new DoubleSolenoid( 10, 2, 3 );
-    pistonMisc= new DoubleSolenoid( 10, 4, 5 );
+    //pistonL= new DoubleSolenoid( 10, 0, 1 );
+    //pistonR= new DoubleSolenoid( 10, 2, 3 );
+    //pistonMisc= new DoubleSolenoid( 10, 4, 5 );
 
   }
   public void moveScore( double value ){
@@ -47,7 +47,7 @@ public class ScoringMech extends Subsystem {
   public void moveFlipper( double value ){
     flippy.set( ControlMode.PercentOutput, value );
   }
-  public void setPiston( boolean in, boolean out ){
+  /*public void setPiston( boolean in, boolean out ){
     if( in ){
       pistonL.set( DoubleSolenoid.Value.kReverse );
       pistonR.set( DoubleSolenoid.Value.kReverse );
@@ -61,7 +61,7 @@ public class ScoringMech extends Subsystem {
   }
   public void useEmerg( double value ){
     emergBack.set( value );
-  }
+  }*/
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.

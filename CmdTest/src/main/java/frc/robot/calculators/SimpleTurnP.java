@@ -5,7 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-package frc.robot.commands;
+package frc.robot.calculators;
 
 import com.ctre.phoenix.sensors.PigeonIMU;
 import frc.robot.Robot;

@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.calculators;
 
 /*----------------------------------------------------------------------------*/
 /* Sample control function that implements Proportional control to a maximum  */

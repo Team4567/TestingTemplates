@@ -34,18 +34,15 @@ public class Drivetrain extends Subsystem {
   // here. Call these from Commands.
     public TalonSRX rightMain,leftMain;
     public TalonSRX rightSlave, leftSlave;
-    private AnalogInput range;
-    private double scaleR;
     public PigeonIMU gyro;
-    public VictorSP test;
     Timer time;
     Compressor c;
     boolean hasLeft=false;
     double[] ypr;
     
     public Drivetrain(){
-      c = new Compressor( 0 );
-    c.setClosedLoopControl( true );
+      //c = new Compressor( 42 );
+    //c.setClosedLoopControl( true );
         rightMain = new TalonSRX( Constants.rightMainMC );
         rightMain.setNeutralMode( NeutralMode.Brake );
         rightMain.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
@@ -121,7 +118,7 @@ public class Drivetrain extends Subsystem {
   @Override
   public void initDefaultCommand() {
     if( Robot.ds.isOperatorControl() ){
-      setDefaultCommand( new TeleOpDrive( Robot.xbC ) );
+
     }
   }
 }
