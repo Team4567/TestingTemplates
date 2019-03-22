@@ -29,6 +29,20 @@ public class PlatformClimber extends Subsystem {
   public void setBack( DoubleSolenoid.Value v ){
     back.set( v );
   }
+  public void dropAllPistons(){
+    boolean done = false;
+    for( int i = 0; i <= 20; i++ ){
+      setFronts( DoubleSolenoid.Value.kReverse );
+      setBack( DoubleSolenoid.Value.kReverse );
+      if( i == 20 ){
+        done = true;
+      }
+    }
+    if( done ){
+      setFronts( DoubleSolenoid.Value.kOff );
+      setBack( DoubleSolenoid.Value.kOff );
+    }
+  }
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.

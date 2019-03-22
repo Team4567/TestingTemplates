@@ -10,6 +10,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Relay.Value;
 
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import frc.robot.Constants;
@@ -21,47 +22,31 @@ import edu.wpi.first.wpilibj.Compressor;
  * Add your docs here.
  */
 public class ScoringMech extends Subsystem {
-  VictorSPX scoreL, scoreR;
-  Talon emergBack;
-  TalonSRX flippy;
-  //DoubleSolenoid pistonL,pistonR, pistonMisc;
-  
-  // Put methods for controlling this subsystem
-  // here. Call these from Commands.
+  DoubleSolenoid backBall, frontHatch;
   public ScoringMech(){
-    scoreL= new VictorSPX( Constants.scoreLMC );
-    scoreR= new VictorSPX( Constants.scoreRMC );
-    scoreR.follow( scoreL );
-    flippy= new TalonSRX( Constants.flippyMC );
-    emergBack= new Talon( 0 );
-    
-    //pistonL= new DoubleSolenoid( 10, 0, 1 );
-    //pistonR= new DoubleSolenoid( 10, 2, 3 );
-    //pistonMisc= new DoubleSolenoid( 10, 4, 5 );
-
+    backBall = new DoubleSolenoid( Constants.scoringPCM, 0, 1);
+    frontHatch = new DoubleSolenoid( Constants.scoringPCM, 2, 3);
   }
-  public void moveScore( double value ){
-    scoreL.set( ControlMode.PercentOutput, value );
-    scoreR.follow( scoreL );
+  public void moveBackBall( DoubleSolenoid.Value v ){
+    backBall.set( v );
   }
-  public void moveFlipper( double value ){
-    flippy.set( ControlMode.PercentOutput, value );
+  public void moveFrontHatch( DoubleSolenoid.Value v ){
+    frontHatch.set ( v );
   }
-  /*public void setPiston( boolean in, boolean out ){
-    if( in ){
-      pistonL.set( DoubleSolenoid.Value.kReverse );
-      pistonR.set( DoubleSolenoid.Value.kReverse );
-    } else if ( out ){
-      pistonL.set( DoubleSolenoid.Value.kForward );
-      pistonR.set( DoubleSolenoid.Value.kForward );
-    } else {
-      pistonL.set( DoubleSolenoid.Value.kOff );
-      pistonR.set( DoubleSolenoid.Value.kOff );
+  public void dropAllPistons(){
+    boolean done = false;
+    for( int i = 0; i <= 20; i++ ){
+      moveBackBall( DoubleSolenoid.Value.kReverse );
+      moveFrontHatch( DoubleSolenoid.Value.kReverse );
+      if( i == 20 ){
+        done = true;
+      }
+    }
+    if( done ){
+      moveBackBall( DoubleSolenoid.Value.kOff );
+      moveFrontHatch( DoubleSolenoid.Value.kOff );
     }
   }
-  public void useEmerg( double value ){
-    emergBack.set( value );
-  }*/
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.

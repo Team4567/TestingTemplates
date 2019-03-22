@@ -10,6 +10,7 @@ public class Constants {
     public static final double wheelDiameter = wheelCirc / Math.PI;
 
     public static final int platformPCM = 42;
+    public static final int scoringPCM = 10;
 
     public static final int elevatorMainMC=6;
     //public static final int elevatorSlaveMC=6;

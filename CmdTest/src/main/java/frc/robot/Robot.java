@@ -16,13 +16,10 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import frc.robot.commands.*;
-import frc.robot.enums.Want;
 import frc.robot.subsystems.*;
 
 
@@ -66,7 +63,6 @@ public class Robot extends TimedRobot {
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
   public static XboxController xbC = new XboxController( 0 );
-  SendableChooser<CommandGroup> m_chooser = new SendableChooser<>();
   //NetworkTables
   /**
    * This function is run when the robot is first started up and should be
@@ -77,28 +73,9 @@ public class Robot extends TimedRobot {
     //Subsystems
     drive = new Drivetrain();
     upper= new Elevator();
-    //score= new ScoringMech();
-    //Commands
-    teleOp = new TeleOpDrive( xbC );
     platformer = new PlatformClimber();
-    //turn=new TurnAngle(new SimpleTurnP(.02, .002, .4, .1, 1 ) );
-    //goDistance= new DriveDistance(new SimpleMotorP( 0.10, Constants.motorP, 0.5, Constants.minValY, Constants.closeEnough) );
-    //moveElev= new ElevatorPosition();
-    //test=new Testing();
-    //lineCalc= new LineFollow(0,0);
-    //Interfaces/Controllers
-    /*m_chooser.setDefaultOption("Default Auto, No Movement", new NoMovement());
-    m_chooser.addOption("Start: Left, Target: Cargo", new LeftCargo());
-    m_chooser.addOption("Start: Left, Target: Rocket", new LeftRocket());
-    m_chooser.addOption("Start: Right, Target: Cargo", new RightCargo());
-    m_chooser.addOption("Start: Right, Target: Rocket", new RightRocket());
-    m_chooser.addOption("Start: Center, Target: Left-Side Cargo", new CenterLCargo());
-    m_chooser.addOption("Start: Center, Target: Left-Side Rocket", new CenterLRocket());
-    m_chooser.addOption("Start: Center, Target: Right-side Rocket", new CenterRCargo());
-    m_chooser.addOption("Start: Center, Target: Right-Side Rocket", new CenterRRocket());*/
-    SmartDashboard.putData( "Auto mode", m_chooser );
-    
-    
+    teleOp = new TeleOpDrive( xbC );
+    score = new ScoringMech();
   }
   
 
@@ -129,31 +106,10 @@ public class Robot extends TimedRobot {
     Scheduler.getInstance().run();
   }
 
-  /**
-   * This autonomous (along with the chooser code above) shows how to select
-   * between different autonomous modes using the dashboard. The sendable
-   * chooser code works with the Java SmartDashboard. If you prefer the
-   * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-   * getString code to get the auto name from the text box below the Gyro
-   *
-   * <p>You can add additional auto modes by adding additional commands to the
-   * chooser code above (like the commented example) or additional comparisons
-   * to the switch structure below with additional strings & commands.
-   */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_chooser.getSelected();
-    if( m_autonomousCommand != null ){
-      m_autonomousCommand.start();
-    }
-    /*}else{
-      CommandGroup emerg= new noMovement();
-      emerg.start();
-    }*/
-
     drive.resetGyro();
-    //turn.setSetpoint(0);
-    
+    teleOp.start();
   }
 
   /**
@@ -161,19 +117,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    
-    
   }
 
   @Override
   public void teleopInit() {
-    // This makes sure that the autonomous stops running when
-    // teleop starts running. If you want the autonomous to
-    // continue until interrupted by another command, remove
-    // this line or comment it out.
-    if ( m_autonomousCommand != null ) {
-      m_autonomousCommand.cancel();
-    }
     teleOp.start();
   }
 
@@ -182,10 +129,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    System.out.println( teleOp.isRunning() );
-    
-      upper.manualMove( xbC.getY( Hand.kRight ) );
-    
+    System.out.println( teleOp.isRunning() );  
   }
 
   /**
@@ -199,7 +143,6 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
     super.testInit();
-    //teleOp.start();
   }
   @Override
   public void testPeriodic() {

@@ -23,74 +23,62 @@ import frc.robot.Constants;
 public class TeleOpDrive extends Command {
   XboxController xbC;
   double elevOutput;
-  int level = 1,prevLevel;
+  int level = 1, prevLevel;
   int encoderLevel = 0;
   ElevatorPos pos, prevPos;
+  boolean invert = false;
   public TeleOpDrive( XboxController controller ) {
     // Use requires() here to declare subsystem dependencies
     requires( Robot.drive );
     requires( Robot.upper );
+    requires( Robot.platformer );
+    requires( Robot.score );
     xbC = controller;
   }
 
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    System.out.println("Starting TeleOpDrive!");
+    System.out.println( "Starting TeleOpDrive!" );
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    //if(useLineFollow){
-      //Robot.drive.drive(xbC.getY(Hand.kLeft), lineCalc.turn());
-    //}else{
-      Robot.drive.drive( xbC );
-      elevOutput = ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
-      Robot.upper.manualMove( xbC.getY( Hand.kRight ) );
-      
-    //}
-    /*if( xbC.getAButtonPressed() ) level--;
-    if( xbC.getYButtonPressed() ) level++;
-    if( xbC.getBButtonPressed() ) prevLevel=level;
-    if( xbC.getBButton() ) level = 71;
-    if( xbC.getBButtonReleased() ) level=prevLevel;
-    switch( level ){
-      case 0:
-        level = 1;
-        pos = ElevatorPos.ballLow;
-      break;
-      case 1:
-        pos = ElevatorPos.ballLow;
-      break;
-      case 2:
-        pos = ElevatorPos.ballMed;
-      break;
-      case 3:
-        pos = ElevatorPos.ballHigh;
-      break;
-      case 71:
-        pos = ElevatorPos.cargoShip;
+    
+    elevOutput = ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
+    Robot.upper.move( elevOutput );
+    if( xbC.getAButton() ){
+
     }
-    if( pos != prevPos ){
-      //Robot.upper.move(pos);
+    if( xbC.getBButton() ){
+
     }
-    */
-    if( xbC.getXButton() ){
-      //Robot.drive.rightMain.set(ControlMode.PercentOutput,.5);
-      //Robot.drive.rightSlave.follow(Robot.drive.rightSlave);
+    if ( xbC.getXButton() ){
+
     }
-    /*
-    if( xbC.getBackButtonPressed() ) Robot.platformer.setBack( Value. kForward );
-    if( xbC.getBackButtonReleased() ) Robot.platformer.setBack( Value.kReverse );
-    if( xbC.getStartButtonPressed() ) Robot.platformer.setFronts( Value.kForward );
-    if( xbC.getStartButtonReleased() ) Robot.platformer.setBack( Value. kReverse );
-    if( xbC.getTriggerAxis( Hand.kLeft ) > .5 ){
-      
+    if( xbC.getYButton() ){
+        
     }
-    if( xbC.getTriggerAxis( Hand.kRight ) > .5 ){
-      
-    } */                                                   
+    if( xbC.getBumper( Hand.kLeft ) ){
+
+    } 
+    if( xbC.getBumper( Hand.kRight ) ){
+
+    } 
+    if( xbC.getTriggerAxis( Hand.kLeft ) > .1 ){
+
+    }
+    if( xbC.getTriggerAxis( Hand.kRight ) > .1 ){
+
+    }               
+    if( xbC.getStartButtonPressed() ){
+      invert = !invert;
+    }
+    if( xbC.getBackButton() ){
+
+    }
+    Robot.drive.drive( xbC, invert );                              
   }
 
   // Make this return true when this Command no longer needs to run execute()
