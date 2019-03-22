@@ -23,9 +23,6 @@ import frc.robot.Constants;
 public class TeleOpDrive extends Command {
   XboxController xbC;
   double elevOutput;
-  int level = 1, prevLevel;
-  int encoderLevel = 0;
-  ElevatorPos pos, prevPos;
   boolean invert = false;
   public TeleOpDrive( XboxController controller ) {
     // Use requires() here to declare subsystem dependencies
@@ -45,9 +42,6 @@ public class TeleOpDrive extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    
-    elevOutput = ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
-    Robot.upper.move( elevOutput );
     if( xbC.getAButton() ){
 
     }
@@ -76,9 +70,12 @@ public class TeleOpDrive extends Command {
       invert = !invert;
     }
     if( xbC.getBackButton() ){
-
+      VisionMovement vision = new VisionMovement();
+      vision.start();
     }
-    Robot.drive.drive( xbC, invert );                              
+    Robot.drive.drive( xbC, invert );     
+    elevOutput = ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
+    Robot.upper.move( elevOutput );                         
   }
 
   // Make this return true when this Command no longer needs to run execute()
