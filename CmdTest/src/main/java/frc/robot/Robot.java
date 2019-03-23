@@ -70,7 +70,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    //Subsystems
+    //Subsystems/Commands
     drive = new Drivetrain();
     upper= new Elevator();
     platformer = new PlatformClimber();

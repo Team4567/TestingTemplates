@@ -48,7 +48,7 @@ public class TeleOpDrive extends Command {
     if( xbC.getBButton() ){
 
     }
-    if ( xbC.getXButton() ){
+    if( xbC.getXButton() ){
 
     }
     if( xbC.getYButton() ){
@@ -75,7 +75,19 @@ public class TeleOpDrive extends Command {
     }
     Robot.drive.drive( xbC, invert );     
     elevOutput = ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
-    Robot.upper.move( elevOutput );                         
+    Robot.upper.move( elevOutput );  
+    if( xbC.getPOV() == 0 ){
+      Robot.drive.gyro.setYaw( 0 );
+    }
+    if( xbC.getPOV() == 90 ){
+      Robot.drive.gyro.setYaw( 90 );      
+    }   
+    if( xbC.getPOV() == 180 ){
+      Robot.drive.gyro.setYaw( 180 );
+    }   
+    if( xbC.getPOV() == 270 ){
+      Robot.drive.gyro.setYaw( 270 );   
+    }                          
   }
 
   // Make this return true when this Command no longer needs to run execute()

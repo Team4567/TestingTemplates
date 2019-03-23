@@ -78,6 +78,9 @@ public class Drivetrain extends Subsystem {
     public double getYaw(){
       return ypr[0];
     }
+    public double getYaw360(){
+      return getYaw() % 360;
+    }
     public double encoderDistanceInInches( TalonSRX t ){
       return t.getSelectedSensorPosition() * ( ( 1 / 4096 ) * ( Constants.wheelCirc ) );
     }
