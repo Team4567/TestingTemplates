@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.command.Command;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -24,6 +25,9 @@ public class TeleOpDrive extends Command {
   XboxController xbC;
   double elevOutput;
   boolean invert = false;
+  boolean dumpTruckUp, platformBackUp, platformFrontUp, scoreOut;
+  int prevPOV=-1;
+  VisionMovement vision;
   public TeleOpDrive( XboxController controller ) {
     // Use requires() here to declare subsystem dependencies
     requires( Robot.drive );
@@ -31,6 +35,7 @@ public class TeleOpDrive extends Command {
     requires( Robot.platformer );
     requires( Robot.score );
     xbC = controller;
+    VisionMovement vision = new VisionMovement();
   }
 
   // Called just before this Command runs the first time
@@ -42,52 +47,126 @@ public class TeleOpDrive extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    if( xbC.getAButton() ){
-
-    }
-    if( xbC.getBButton() ){
-
-    }
-    if( xbC.getXButton() ){
-
-    }
+    // Scoring Front
     if( xbC.getYButton() ){
-        
+      Robot.score.moveFrontMotor( .75 );
+    } else if( xbC.getAButton() ){
+      Robot.score.moveFrontMotor( -.75 );
+    } else {
+      Robot.score.moveFrontMotor( 0 );
     }
+    if( xbC.getXButtonPressed() ){
+      scoreOut = !scoreOut;
+    }
+    if ( scoreOut ){
+      Robot.score.moveFrontPiston( DoubleSolenoid.Value.kForward );
+    } else {
+      int i;
+      boolean done = false;
+      for( i = 0; i <= 20; i++ ){
+        Robot.score.moveFrontPiston( DoubleSolenoid.Value.kReverse );
+        if( i == 20 ){
+          done = true;
+        }
+      }
+      if( done ){
+        Robot.score.moveFrontPiston( DoubleSolenoid.Value.kOff );
+      }
+    }
+    // Dump Truck
+    if( xbC.getBButtonPressed() ){
+      dumpTruckUp = !dumpTruckUp;
+    }
+    if( dumpTruckUp ){
+      Robot.score.moveBackBall( DoubleSolenoid.Value.kForward );
+    }else{
+      int i;
+      boolean done = false;
+      for( i = 0; i <= 20; i++ ){
+        Robot.score.moveBackBall( DoubleSolenoid.Value.kReverse );
+        if( i == 20 ){
+          done = true;
+        }
+      }
+      if( done ){
+        Robot.score.moveBackBall( DoubleSolenoid.Value.kOff );
+      }
+    }
+    
+    // Vision Cancelling
     if( xbC.getBumper( Hand.kLeft ) ){
-
+      vision.cancel();
     } 
-    if( xbC.getBumper( Hand.kRight ) ){
-
-    } 
-    if( xbC.getTriggerAxis( Hand.kLeft ) > .1 ){
+    if( xbC.getTriggerAxis( Hand.kLeft ) > .5 ){
 
     }
+    // Elevator
+    if( xbC.getBumper( Hand.kRight ) ){
+      Robot.upper.move( .5 );
+    } 
     if( xbC.getTriggerAxis( Hand.kRight ) > .1 ){
-
-    }               
+      Robot.upper.move( xbC.getTriggerAxis( Hand.kRight ) );
+    }          
+    // Drive Inverter     
     if( xbC.getStartButtonPressed() ){
       invert = !invert;
     }
+    // Vision Assistance
     if( xbC.getBackButton() ){
-      VisionMovement vision = new VisionMovement();
+      vision = new VisionMovement();
       vision.start();
     }
+    // Anything to do with a joystick
     Robot.drive.drive( xbC, invert );     
-    elevOutput = ( xbC.getY( Hand.kRight ) > .1 ) ? xbC.getY( Hand.kRight ) : 0;
-    Robot.upper.move( elevOutput );  
-    if( xbC.getPOV() == 0 ){
-      Robot.drive.gyro.setYaw( 0 );
+    // D-Pad
+    if( xbC.getPOV() == 0 && prevPOV != 0 ){
+      platformFrontUp = !platformFrontUp;
+      prevPOV = 0;
+    }
+    if( xbC.getPOV() == 180 && prevPOV != 180 ){
+      platformBackUp = !platformBackUp;
+      prevPOV = 180;
+    }   
+    if( platformFrontUp ){
+      Robot.platformer.setFronts( DoubleSolenoid.Value.kForward );
+    } else {
+      int i;
+      boolean done = false;
+      for( i = 0; i <= 20; i++ ){
+        Robot.platformer.setFronts( DoubleSolenoid.Value.kReverse );
+        if( i == 20 ){
+          done = true;
+        }
+      }
+      if( done ){
+        Robot.platformer.setFronts( DoubleSolenoid.Value.kOff );
+      }
+    }
+    if( platformBackUp ){
+      Robot.platformer.setBack( DoubleSolenoid.Value.kForward );
+    } else {
+      int i;
+      boolean done = false;
+      for( i = 0; i <= 20; i++ ){
+        Robot.platformer.setBack( DoubleSolenoid.Value.kReverse );
+        if( i == 20 ){
+          done = true;
+        }
+      }
+      if( done ){
+        Robot.platformer.setBack( DoubleSolenoid.Value.kOff );
+      }
     }
     if( xbC.getPOV() == 90 ){
-      Robot.drive.gyro.setYaw( 90 );      
+      
     }   
-    if( xbC.getPOV() == 180 ){
-      Robot.drive.gyro.setYaw( 180 );
-    }   
+    
     if( xbC.getPOV() == 270 ){
-      Robot.drive.gyro.setYaw( 270 );   
-    }                          
+      
+    }      
+    if( xbC.getPOV() == -1 ){
+      prevPOV = -1;
+    }                    
   }
 
   // Make this return true when this Command no longer needs to run execute()

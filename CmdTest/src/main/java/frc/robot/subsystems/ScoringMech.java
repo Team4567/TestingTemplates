@@ -22,31 +22,43 @@ import edu.wpi.first.wpilibj.Compressor;
  * Add your docs here.
  */
 public class ScoringMech extends Subsystem {
-  DoubleSolenoid backBall, frontHatch;
+  DoubleSolenoid backBall;
+  Talon frontML, frontMR;
+  DoubleSolenoid frontP;
+  //DoubleSolenoid frontHatch;
   public ScoringMech(){
     backBall = new DoubleSolenoid( Constants.scoringPCM, 0, 1);
-    frontHatch = new DoubleSolenoid( Constants.scoringPCM, 2, 3);
+    frontML = new Talon( 0 );
+    frontMR = new Talon( 1 );
+    //frontHatch = new DoubleSolenoid( Constants.scoringPCM, 2, 3);
   }
   public void moveBackBall( DoubleSolenoid.Value v ){
     backBall.set( v );
   }
-  public void moveFrontHatch( DoubleSolenoid.Value v ){
+  /*public void moveFrontHatch( DoubleSolenoid.Value v ){
     frontHatch.set ( v );
+  }*/
+  public void moveFrontMotor( double v ){
+    frontML.set( v );
+    frontMR.set( v );
   }
-  public void dropAllPistons(){
+  public void moveFrontPiston( DoubleSolenoid.Value v ){
+    frontP.set( v );
+  }
+  /*public void dropAllPistons(){
     boolean done = false;
     for( int i = 0; i <= 20; i++ ){
       moveBackBall( DoubleSolenoid.Value.kReverse );
-      moveFrontHatch( DoubleSolenoid.Value.kReverse );
+      //moveFrontHatch( DoubleSolenoid.Value.kReverse );
       if( i == 20 ){
         done = true;
       }
     }
     if( done ){
       moveBackBall( DoubleSolenoid.Value.kOff );
-      moveFrontHatch( DoubleSolenoid.Value.kOff );
+      //moveFrontHatch( DoubleSolenoid.Value.kOff );
     }
-  }
+  }*/
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.
