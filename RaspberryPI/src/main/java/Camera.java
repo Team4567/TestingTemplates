@@ -8,11 +8,11 @@ class Camera
     static {
         // FOV Measurements at difference resolutions
         vfov.put(240, 37.2671);
-        vfov.put(288, 37.3019);
+        vfov.put(288, 43.2514);
         vfov.put(600, 39.4171);
 
         hfov.put(320, 58.8701);
-        hfov.put(352, 53.6508);
+        hfov.put(352, 54.5442);
         hfov.put(800, 59.2790);
     }
 
