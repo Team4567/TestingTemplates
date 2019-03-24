@@ -20,7 +20,7 @@ public class LineScoreMode extends Command {
     requires( Robot.drive );
     requires( Robot.upper );
     requires( Robot.score );
-    follower= new LineFollow( Constants.gyroP );
+    follower = new LineFollow( Constants.gyroP );
   }
 
   // Called just before this Command runs the first time

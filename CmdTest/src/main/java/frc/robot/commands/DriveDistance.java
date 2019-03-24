@@ -11,11 +11,11 @@ import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 import frc.robot.Constants;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import frc.robot.calculators.*;
 
 public class DriveDistance extends Command {
-  public double P,I,D;
-  public double integral=0, previous_error=0, setpoint, error, derivative;
-  public double output=0;
+  public double integral = 0, previous_error=0, setpoint, error, derivative;
+  public double output = 0;
   double avgEncoder;
   public TalonSRX tL, tR;
   TurnCalculator straight;
@@ -28,17 +28,17 @@ public class DriveDistance extends Command {
     init( mc );
   }
 
-  public DriveDistance(double setpointI, MotorCalculator mc) {
+  public DriveDistance( double setpointI, MotorCalculator mc ) {
     init( mc );
-    setSetpointInches(setpointI);
+    setSetpointInches( setpointI );
   }
 
   private void init( MotorCalculator mc ) {
-    requires(Robot.drive);
-    this.mc=mc;
-    straight= new SimpleTurnP( .02, .0015, .4, .1, 1 );
-    tR=Robot.drive.rightMain;
-    tL=Robot.drive.leftMain;
+    requires( Robot.drive );
+    this.mc = mc;
+    straight = new SimpleTurnP( .02, .0015, .4, .1, 1 );
+    tR = Robot.drive.rightMain;
+    tL = Robot.drive.leftMain;
   }
 
   public void setSetpointInches( double setpoint ) {
@@ -48,15 +48,15 @@ public class DriveDistance extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    done=false;
-    tR.setSelectedSensorPosition(0);
-    straight.setSetpoint(Robot.drive.getYaw());
+    done = false;
+    tR.setSelectedSensorPosition( 0 );
+    straight.setSetpoint( Robot.drive.getYaw() );
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    done = (mc.getOutput( tR.getSelectedSensorPosition() ) == 0.0 );
+    done = ( mc.getOutput( tR.getSelectedSensorPosition() ) == 0.0 );
     Robot.drive.drive( mc.getOutput( tR.getSelectedSensorPosition() ), straight.getOutput( Robot.drive.getYaw() ) );
     System.out.println( straight.getOutput( Robot.drive.getYaw() ) );
   }

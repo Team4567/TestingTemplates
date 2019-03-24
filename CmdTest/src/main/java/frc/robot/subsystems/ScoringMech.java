@@ -10,6 +10,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Relay.Value;
 
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import frc.robot.Constants;
@@ -21,48 +22,43 @@ import edu.wpi.first.wpilibj.Compressor;
  * Add your docs here.
  */
 public class ScoringMech extends Subsystem {
-  VictorSPX scoreL, scoreR;
-  Talon emergBack;
-  TalonSRX flippy;
-  DoubleSolenoid pistonL,pistonR, pistonMisc;
-  Compressor c;
-  // Put methods for controlling this subsystem
-  // here. Call these from Commands.
+  DoubleSolenoid backBall;
+  Talon frontML, frontMR;
+  DoubleSolenoid frontP;
+  //DoubleSolenoid frontHatch;
   public ScoringMech(){
-    scoreL= new VictorSPX( Constants.scoreLMC );
-    scoreR= new VictorSPX( Constants.scoreRMC );
-    scoreR.follow( scoreL );
-    flippy= new TalonSRX( Constants.flippyMC );
-    emergBack= new Talon( 0 );
-    c = new Compressor(0);
-    c.setClosedLoopControl(true);
-    pistonL= new DoubleSolenoid( 10, 0, 1 );
-    pistonR= new DoubleSolenoid( 10, 2, 3 );
-    pistonMisc= new DoubleSolenoid( 10, 4, 5 );
-
+    backBall = new DoubleSolenoid( Constants.scoringPCM, 0, 1);
+    frontML = new Talon( 0 );
+    frontMR = new Talon( 1 );
+    //frontHatch = new DoubleSolenoid( Constants.scoringPCM, 2, 3);
   }
-  public void moveScore( double value ){
-    scoreL.set( ControlMode.PercentOutput, value );
-    scoreR.follow( scoreL );
+  public void moveBackBall( DoubleSolenoid.Value v ){
+    backBall.set( v );
   }
-  public void moveFlipper( double value ){
-    flippy.set( ControlMode.PercentOutput, value );
+  /*public void moveFrontHatch( DoubleSolenoid.Value v ){
+    frontHatch.set ( v );
+  }*/
+  public void moveFrontMotor( double v ){
+    frontML.set( v );
+    frontMR.set( v );
   }
-  public void setPiston( boolean in, boolean out ){
-    if( in ){
-      pistonL.set( DoubleSolenoid.Value.kReverse );
-      pistonR.set( DoubleSolenoid.Value.kReverse );
-    } else if ( out ){
-      pistonL.set( DoubleSolenoid.Value.kForward );
-      pistonR.set( DoubleSolenoid.Value.kForward );
-    } else {
-      pistonL.set( DoubleSolenoid.Value.kOff );
-      pistonR.set( DoubleSolenoid.Value.kOff );
+  public void moveFrontPiston( DoubleSolenoid.Value v ){
+    frontP.set( v );
+  }
+  /*public void dropAllPistons(){
+    boolean done = false;
+    for( int i = 0; i <= 20; i++ ){
+      moveBackBall( DoubleSolenoid.Value.kReverse );
+      //moveFrontHatch( DoubleSolenoid.Value.kReverse );
+      if( i == 20 ){
+        done = true;
+      }
     }
-  }
-  public void useEmerg( double value ){
-    emergBack.set(value);
-  }
+    if( done ){
+      moveBackBall( DoubleSolenoid.Value.kOff );
+      //moveFrontHatch( DoubleSolenoid.Value.kOff );
+    }
+  }*/
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.

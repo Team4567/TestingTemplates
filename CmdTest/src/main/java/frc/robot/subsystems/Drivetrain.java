@@ -25,6 +25,7 @@ import frc.robot.Constants;
 import frc.robot.enums.*;
 import frc.robot.Robot;
 import frc.robot.commands.TeleOpDrive;
+import edu.wpi.first.wpilibj.Compressor;
 /**
  * An example subsystem.  You can replace me with your own Subsystem.
  */
@@ -33,115 +34,95 @@ public class Drivetrain extends Subsystem {
   // here. Call these from Commands.
     public TalonSRX rightMain,leftMain;
     public TalonSRX rightSlave, leftSlave;
-    private AnalogInput range;
-    private double scaleR;
     public PigeonIMU gyro;
-    public VictorSP test;
     Timer time;
+    Compressor c;
     boolean hasLeft=false;
     double[] ypr;
     
     public Drivetrain(){
-        rightMain= new TalonSRX(Constants.rightMainMC);
-        rightMain.setNeutralMode(NeutralMode.Brake);
-        rightMain.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        leftMain= new TalonSRX(Constants.leftMainMC);
-        leftMain.setNeutralMode(NeutralMode.Brake);
-        rightMain.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        rightSlave= new TalonSRX(Constants.rightSlaveMC);
-        rightSlave.follow(rightMain);
-        rightSlave.setNeutralMode(NeutralMode.Brake);
-        leftSlave= new TalonSRX(Constants.leftSlaveMC);
-        leftSlave.follow(leftMain);
-        leftSlave.setNeutralMode(NeutralMode.Brake);
-        gyro= new PigeonIMU(leftSlave);
-        ypr= new double[3];
+      c = new Compressor( Constants.scoringPCM );
+      c.setClosedLoopControl( true );
+      rightMain = new TalonSRX( Constants.rightMainMC );
+      rightMain.setNeutralMode( NeutralMode.Brake );
+      rightMain.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
+      leftMain = new TalonSRX( Constants.leftMainMC );
+      leftMain.setNeutralMode( NeutralMode.Brake );
+      rightMain.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
+      rightSlave = new TalonSRX( Constants.rightSlaveMC );
+      rightSlave.follow( rightMain );
+      rightSlave.setNeutralMode( NeutralMode.Brake );
+      leftSlave = new TalonSRX( Constants.leftSlaveMC );
+      leftSlave.follow( leftMain );
+      leftSlave.setNeutralMode( NeutralMode.Brake );
+      gyro = new PigeonIMU( leftSlave );
+      ypr = new double[3];
         
     }
-    public double applyDeadband(double value, double deadband) {
-      if (Math.abs(value) > deadband) {
+    public double applyDeadband( double value, double deadband ) {
+      if ( Math.abs( value ) > deadband ) {
           return value;
       } else {
         return 0.0;
       }
     }
     public void stop(){
-      drive(0,0);
+      drive( 0,0 );
     }
     public void findGyroVals(){
-      gyro.getYawPitchRoll(ypr);
+      gyro.getYawPitchRoll( ypr );
     }
     public void resetGyro(){
-      gyro.setYaw(0);
+      gyro.setYaw( 0 );
     }
     public double getYaw(){
       return ypr[0];
     }
-    public double encoderDistanceInInches(TalonSRX t){
-      return t.getSelectedSensorPosition()*((1/4096)*(Constants.wheelCirc));
+    public double getYaw360(){
+      return getYaw() % 360;
     }
-    public double encoderDistanceInCentimenters(TalonSRX t){
-      return t.getSelectedSensorPosition()*((1/4096)*(Constants.wheelCirc)*2.54);
+    public double encoderDistanceInInches( TalonSRX t ){
+      return t.getSelectedSensorPosition() * ( ( 1 / 4096 ) * ( Constants.wheelCirc ) );
     }
-    public void drive(double y,double x){
+    public double encoderDistanceInCentimenters( TalonSRX t ){
+      return t.getSelectedSensorPosition() * ( ( 1 / 4096 ) * ( Constants.wheelCirc ) * 2.54 );
+    }
+    public void drive( double y, double x ){
       double leftMotors,rightMotors;
-      if (y > 0.0) {
-        if (x > 0.0) {
+      if ( y > 0.0 ) {
+        if ( x > 0.0 ) {
           leftMotors = y - x;
-          rightMotors = Math.max(y, x);
+          rightMotors = Math.max( y, x );
         } else {
-          leftMotors = Math.max(y, -x);
+          leftMotors = Math.max( y, -x );
           rightMotors = y + x;
         }
       } else {
-        if (x > 0.0) {
-          leftMotors = -Math.max(-y, x);
+        if ( x > 0.0 ) {
+          leftMotors = -Math.max( -y, x );
           rightMotors = y + x;
         } else {
           leftMotors = y - x;
-          rightMotors = -Math.max(-y, -x);
+          rightMotors = -Math.max( -y, -x );
         }
         
       }
-      rightMain.set(ControlMode.PercentOutput,-rightMotors);
-        leftMain.set(ControlMode.PercentOutput,leftMotors);
-        rightSlave.follow(rightMain);
-        leftSlave.follow(leftMain);
+      rightMain.set( ControlMode.PercentOutput, -rightMotors );
+      leftMain.set( ControlMode.PercentOutput, leftMotors );
+      rightSlave.follow( rightMain );
+      leftSlave.follow( leftMain );
     }
-    public void drive(XboxController controller){
-      double y= applyDeadband(.75*controller.getY(Hand.kLeft),0.1);
-      double x= applyDeadband(.75*controller.getX(Hand.kLeft),0.1);
-      double leftMotors,rightMotors;
-      if (y > 0.0) {
-        if (x > 0.0) {
-          leftMotors = y - x;
-          rightMotors = Math.max(y, x);
-        } else {
-          leftMotors = Math.max(y, -x);
-          rightMotors = y + x;
-        }
-      } else {
-        if (x > 0.0) {
-          leftMotors = -Math.max(-y, x);
-          rightMotors = y + x;
-        } else {
-          leftMotors = y - x;
-          rightMotors = -Math.max(-y, -x);
-        }
-        
-      }
-      rightMain.set(ControlMode.PercentOutput,rightMotors);
-        leftMain.set(ControlMode.PercentOutput,leftMotors);
-        System.out.println(rightMotors+ " "+ leftMotors);
-        rightSlave.follow(rightMain);
-        leftSlave.follow(leftMain);
-        
+    public void drive( XboxController controller, boolean isInverted ){
+      double y = applyDeadband( .75 * controller.getY( Hand.kLeft ), 0.1 );
+      if( isInverted ) y *= -1;
+      double x = applyDeadband( .75 * controller.getX( Hand.kLeft ), 0.1 );
+      drive( y, x );
     }
 
   @Override
   public void initDefaultCommand() {
-    if(Robot.ds.isOperatorControl()){
-      setDefaultCommand(new TeleOpDrive(Robot.xbC));
+    if( Robot.ds.isOperatorControl() ){
+
     }
   }
 }

@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.calculators;
 
 /*----------------------------------------------------------------------------*/
 /* Sample control function that implements Proportional control to a maximum  */
@@ -30,15 +30,15 @@ public class SimpleMotorP implements MotorCalculator {
 
     private void init( double maxAccel, double Kp, double maxOutput, double minOutput, double minError ) {
         this.targetValue = 0.0;
-        this.maxAccel = Math.abs(maxAccel);
+        this.maxAccel = Math.abs( maxAccel );
         this.Kp = Kp;
-        this.maxOutput = Math.abs(maxOutput);
-        this.minOutput = Math.abs(minOutput);
-        this.minError = Math.abs(minError);
+        this.maxOutput = Math.abs( maxOutput );
+        this.minOutput = Math.abs( minOutput );
+        this.minError = Math.abs( minError );
         this.previousOutput = 0.0;
     }
 
-    public void setSetpoint(double set){
+    public void setSetpoint( double set ){
         targetValue=set;
     }
 
@@ -46,8 +46,8 @@ public class SimpleMotorP implements MotorCalculator {
         // Separate the direction to simplify the math.
         // We could have a setpoint forward or backwards.
         // also, if we overshoot we need to come back.
-        double direction = Math.signum(targetValue - currentValue);  // -1, 0, 1 returned for sign.
-        double error = Math.abs(targetValue - currentValue);
+        double direction = Math.signum( targetValue - currentValue );  // -1, 0, 1 returned for sign.
+        double error = Math.abs( targetValue - currentValue );
         if( error < minError ) {
             error = 0.0;
         }
@@ -61,16 +61,16 @@ public class SimpleMotorP implements MotorCalculator {
 
         newOutput *= direction;  // Apply direction
 
-        if( Math.abs(newOutput - previousOutput) > maxAccel ) {
+        if( Math.abs( newOutput - previousOutput ) > maxAccel ) {
             double directionOfOutputChange = Math.signum( newOutput - previousOutput );
-            newOutput = previousOutput + (maxAccel * directionOfOutputChange );
+            newOutput = previousOutput + ( maxAccel * directionOfOutputChange );
         }
 
         previousOutput = newOutput;
         return newOutput;
     }
 
-    public static void main(String[] args) {
+    public static void main( String[] args ) {
         // This the test routine.
         // It is never called unless run explicitly, usually in the debugger.
 
@@ -82,10 +82,10 @@ public class SimpleMotorP implements MotorCalculator {
         double output = 0.0;
 
         // done only when position is within 100 AND output has settled on zero.
-        while( (Math.abs(20000-currentPosition) > 100 || output != 0.0) && maxRuns-- > 0 ) {  
+        while( ( Math.abs( 20000 - currentPosition ) > 100 || output != 0.0 ) && maxRuns-- > 0 ) {  
             //output = c.getOutput( currentPosition );
 
-            System.out.println("CurrentPosition: " + currentPosition + " Output: " + output );
+            System.out.println( "CurrentPosition: " + currentPosition + " Output: " + output );
 
             // Max speed in ticks/call (for 1.0 output), 4096 ticks per rev, 0.25 rev/call
             // This needs to be accurate for the output to reflect reality.
@@ -93,7 +93,7 @@ public class SimpleMotorP implements MotorCalculator {
             currentPosition += output * 1024.0; 
 
         }
-        System.out.println("CurrentPosition: " + currentPosition );
+        System.out.println( "CurrentPosition: " + currentPosition );
     }
   }
 
