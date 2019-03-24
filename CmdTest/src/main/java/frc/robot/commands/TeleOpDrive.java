@@ -61,17 +61,7 @@ public class TeleOpDrive extends Command {
     if ( scoreOut ){
       Robot.score.moveFrontPiston( DoubleSolenoid.Value.kForward );
     } else {
-      int i;
-      boolean done = false;
-      for( i = 0; i <= 20; i++ ){
-        Robot.score.moveFrontPiston( DoubleSolenoid.Value.kReverse );
-        if( i == 20 ){
-          done = true;
-        }
-      }
-      if( done ){
-        Robot.score.moveFrontPiston( DoubleSolenoid.Value.kOff );
-      }
+      Robot.score.moveFrontPiston( DoubleSolenoid.Value.kReverse );
     }
     // Dump Truck
     if( xbC.getBButtonPressed() ){
@@ -80,17 +70,7 @@ public class TeleOpDrive extends Command {
     if( dumpTruckUp ){
       Robot.score.moveBackBall( DoubleSolenoid.Value.kForward );
     }else{
-      int i;
-      boolean done = false;
-      for( i = 0; i <= 20; i++ ){
-        Robot.score.moveBackBall( DoubleSolenoid.Value.kReverse );
-        if( i == 20 ){
-          done = true;
-        }
-      }
-      if( done ){
-        Robot.score.moveBackBall( DoubleSolenoid.Value.kOff );
-      }
+      Robot.score.moveBackBall( DoubleSolenoid.Value.kReverse );
     }
     
     // Vision Cancelling
@@ -130,32 +110,14 @@ public class TeleOpDrive extends Command {
     if( platformFrontUp ){
       Robot.platformer.setFronts( DoubleSolenoid.Value.kForward );
     } else {
-      int i;
-      boolean done = false;
-      for( i = 0; i <= 20; i++ ){
+      
         Robot.platformer.setFronts( DoubleSolenoid.Value.kReverse );
-        if( i == 20 ){
-          done = true;
-        }
-      }
-      if( done ){
-        Robot.platformer.setFronts( DoubleSolenoid.Value.kOff );
-      }
+      
     }
     if( platformBackUp ){
       Robot.platformer.setBack( DoubleSolenoid.Value.kForward );
     } else {
-      int i;
-      boolean done = false;
-      for( i = 0; i <= 20; i++ ){
-        Robot.platformer.setBack( DoubleSolenoid.Value.kReverse );
-        if( i == 20 ){
-          done = true;
-        }
-      }
-      if( done ){
-        Robot.platformer.setBack( DoubleSolenoid.Value.kOff );
-      }
+      Robot.platformer.setBack( DoubleSolenoid.Value.kReverse );
     }
     if( xbC.getPOV() == 90 ){
       
