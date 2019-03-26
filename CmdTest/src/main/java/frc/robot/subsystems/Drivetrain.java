@@ -35,20 +35,21 @@ public class Drivetrain extends Subsystem {
     public TalonSRX rightMain,leftMain;
     public TalonSRX rightSlave, leftSlave;
     public PigeonIMU gyro;
+    private double privR, privL;
     Timer time;
     Compressor c;
     boolean hasLeft=false;
     double[] ypr;
     
     public Drivetrain(){
-      c = new Compressor( Constants.scoringPCM );
+      c = new Compressor( 10 );
       c.setClosedLoopControl( true );
       rightMain = new TalonSRX( Constants.rightMainMC );
       rightMain.setNeutralMode( NeutralMode.Brake );
       rightMain.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
+      
       leftMain = new TalonSRX( Constants.leftMainMC );
       leftMain.setNeutralMode( NeutralMode.Brake );
-      rightMain.configSelectedFeedbackSensor( FeedbackDevice.CTRE_MagEncoder_Relative );
       rightSlave = new TalonSRX( Constants.rightSlaveMC );
       rightSlave.follow( rightMain );
       rightSlave.setNeutralMode( NeutralMode.Brake );
@@ -107,6 +108,7 @@ public class Drivetrain extends Subsystem {
         }
         
       }
+      
       rightMain.set( ControlMode.PercentOutput, -rightMotors );
       leftMain.set( ControlMode.PercentOutput, leftMotors );
       rightSlave.follow( rightMain );
@@ -121,8 +123,6 @@ public class Drivetrain extends Subsystem {
 
   @Override
   public void initDefaultCommand() {
-    if( Robot.ds.isOperatorControl() ){
 
-    }
   }
 }

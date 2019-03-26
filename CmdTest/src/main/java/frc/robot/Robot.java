@@ -63,7 +63,12 @@ public class Robot extends TimedRobot {
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
   public static XboxController xbC = new XboxController( 0 );
+  
   //NetworkTables
+  private NetworkTableInstance inst = NetworkTableInstance.getDefault();
+  private NetworkTable cmds = inst.getTable( "RobotCmds" );
+  private NetworkTableEntry resetEncoder, fixGyro, gyroVal;
+  test t = new test();
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -74,8 +79,11 @@ public class Robot extends TimedRobot {
     drive = new Drivetrain();
     upper= new Elevator();
     platformer = new PlatformClimber();
-    teleOp = new TeleOpDrive( xbC );
     score = new ScoringMech();
+    teleOp = new TeleOpDrive( xbC );
+    resetEncoder = cmds.getEntry( "Reset Encoder" );
+    fixGyro = cmds.getEntry( "Fix Gyro" );
+    gyroVal = cmds.getEntry( "Gyro Value" );
   }
   
 
@@ -117,10 +125,20 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
+    Scheduler.getInstance().run();
+    if( resetEncoder.getBoolean( false ) ){
+      drive.leftMain.setSelectedSensorPosition( 0 );
+      resetEncoder.setBoolean( false );
+    }
+    if( fixGyro.getBoolean( false ) ){
+      drive.gyro.setYaw( gyroVal.getDouble( drive.getYaw() ) );
+      fixGyro.setBoolean( false );
+    }
   }
 
   @Override
   public void teleopInit() {
+    System.out.println("TeleOpInit");
     teleOp.start();
   }
 
@@ -129,7 +147,19 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    System.out.println( teleOp.isRunning() );  
+    Scheduler.getInstance().run();
+    if( xbC.getTriggerAxis(Hand.kLeft) > .5 ){
+      //t.start(); 
+    }
+    //System.out.println( teleOp.isRunning() );  
+    if( resetEncoder.getBoolean( false ) ){
+      drive.leftMain.setSelectedSensorPosition( 0 );
+      resetEncoder.setBoolean( true );
+    }
+    if( fixGyro.getBoolean( false ) ){
+      drive.gyro.setYaw( gyroVal.getDouble( drive.getYaw() ) );
+      fixGyro.setBoolean( false );
+    }
   }
 
   /**

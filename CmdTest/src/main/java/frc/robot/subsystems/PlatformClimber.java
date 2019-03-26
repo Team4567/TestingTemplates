@@ -12,18 +12,21 @@ import frc.robot.Constants;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 /**
  * Add your docs here.
- */
+ */ // 0145 left
 public class PlatformClimber extends Subsystem {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   DoubleSolenoid front1, front2, back;
   public PlatformClimber(){
-    front1 = new DoubleSolenoid( Constants.platformPCM, 0, 7 );
-    front2 = new DoubleSolenoid( Constants.platformPCM, 1, 6 );
-    back = new DoubleSolenoid( Constants.platformPCM, 2, 5 );
+    // Left
+    //front1 = new DoubleSolenoid( 42, 0, 1 );
+    // Left
+    front2 = new DoubleSolenoid( 42, 2, 3 );
+    // Right
+    back = new DoubleSolenoid( 10, 0, 1 );
   }
   public void setFronts( DoubleSolenoid.Value v ){
-    front1.set( v );
+    //front1.set( v );
     front2.set( v );
   }
   public void setBack( DoubleSolenoid.Value v ){

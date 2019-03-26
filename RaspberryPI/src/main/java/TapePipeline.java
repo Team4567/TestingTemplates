@@ -34,9 +34,9 @@ class TapePipeline implements VisionPipeline
     private TapeInfo tapeInfo = null;  // null when no lock
 
     // Dynamic setting of Threshold values;
-    private static double[] hslThresholdHue = {50.0, 110.0};
-    private static double[] hslThresholdSaturation = {0.0, 170.0};
-    private static double[] hslThresholdValue = {150.0, 255.0};
+    private static double[] hslThresholdHue = {30.0, 100.0};
+    private static double[] hslThresholdSaturation = {0.0, 50.0};
+    private static double[] hslThresholdValue = {200.0, 255.0};
 
     private static double rotatedRectMinArea = 200.0;
     private static double[] rectRatio = {0.25, 0.5};

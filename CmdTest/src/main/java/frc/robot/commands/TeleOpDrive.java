@@ -25,7 +25,7 @@ public class TeleOpDrive extends Command {
   XboxController xbC;
   double elevOutput;
   boolean invert = false;
-  boolean dumpTruckUp, platformBackUp, platformFrontUp, scoreOut;
+  boolean dumpTruckUp, platformBackUp, platformFrontUp, scoreOut, mechOut;
   int prevPOV=-1;
   VisionMovement vision;
   public TeleOpDrive( XboxController controller ) {
@@ -47,21 +47,26 @@ public class TeleOpDrive extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
+    //System.out.println("exec");
     // Scoring Front
     if( xbC.getYButton() ){
-      Robot.score.moveFrontMotor( .75 );
-    } else if( xbC.getAButton() ){
-      Robot.score.moveFrontMotor( -.75 );
+      
+    } 
+    if( xbC.getAButton() ){
+      mechOut = !mechOut;
+    }
+    if( mechOut ){
+      Robot.score.frontP1.set( DoubleSolenoid.Value.kForward );
     } else {
-      Robot.score.moveFrontMotor( 0 );
+      Robot.score.frontP1.set( DoubleSolenoid.Value.kReverse);
     }
     if( xbC.getXButtonPressed() ){
       scoreOut = !scoreOut;
     }
     if ( scoreOut ){
-      Robot.score.moveFrontPiston( DoubleSolenoid.Value.kForward );
+      Robot.score.frontP2.set( DoubleSolenoid.Value.kForward );
     } else {
-      Robot.score.moveFrontPiston( DoubleSolenoid.Value.kReverse );
+      Robot.score.frontP2.set( DoubleSolenoid.Value.kReverse );
     }
     // Dump Truck
     if( xbC.getBButtonPressed() ){
@@ -78,7 +83,7 @@ public class TeleOpDrive extends Command {
       vision.cancel();
     } 
     if( xbC.getTriggerAxis( Hand.kLeft ) > .5 ){
-
+      
     }
     // Elevator
     if( xbC.getBumper( Hand.kRight ) ){
@@ -92,8 +97,9 @@ public class TeleOpDrive extends Command {
       invert = !invert;
     }
     // Vision Assistance
-    if( xbC.getBackButton() ){
+    if( xbC.getBackButtonPressed() ){
       vision = new VisionMovement();
+      System.out.println("Vision");
       vision.start();
     }
     // Anything to do with a joystick
@@ -107,14 +113,14 @@ public class TeleOpDrive extends Command {
       platformBackUp = !platformBackUp;
       prevPOV = 180;
     }   
-    if( platformFrontUp ){
+    if( !platformFrontUp ){
       Robot.platformer.setFronts( DoubleSolenoid.Value.kForward );
     } else {
       
-        Robot.platformer.setFronts( DoubleSolenoid.Value.kReverse );
+      Robot.platformer.setFronts( DoubleSolenoid.Value.kReverse );
       
     }
-    if( platformBackUp ){
+    if( !platformBackUp ){
       Robot.platformer.setBack( DoubleSolenoid.Value.kForward );
     } else {
       Robot.platformer.setBack( DoubleSolenoid.Value.kReverse );

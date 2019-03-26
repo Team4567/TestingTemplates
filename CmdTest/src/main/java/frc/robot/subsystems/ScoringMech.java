@@ -24,12 +24,15 @@ import edu.wpi.first.wpilibj.Compressor;
 public class ScoringMech extends Subsystem {
   DoubleSolenoid backBall;
   Talon frontML, frontMR;
-  DoubleSolenoid frontP;
+  public DoubleSolenoid frontP1, frontP2;
   //DoubleSolenoid frontHatch;
   public ScoringMech(){
-    backBall = new DoubleSolenoid( Constants.scoringPCM, 0, 1);
-    frontML = new Talon( 0 );
-    frontMR = new Talon( 1 );
+    // right
+    backBall = new DoubleSolenoid( 10, 2, 3 );
+    frontP1 = new DoubleSolenoid( 42, 0, 1 );
+    frontP2= new DoubleSolenoid( 42, 4, 5 );
+    //frontML = new Talon( 0 );
+    //frontMR = new Talon( 1 );
     //frontHatch = new DoubleSolenoid( Constants.scoringPCM, 2, 3);
   }
   public void moveBackBall( DoubleSolenoid.Value v ){
@@ -38,13 +41,13 @@ public class ScoringMech extends Subsystem {
   /*public void moveFrontHatch( DoubleSolenoid.Value v ){
     frontHatch.set ( v );
   }*/
-  public void moveFrontMotor( double v ){
-    frontML.set( v );
-    frontMR.set( v );
-  }
-  public void moveFrontPiston( DoubleSolenoid.Value v ){
-    frontP.set( v );
-  }
+  //public void moveFrontMotor( double v ){
+  //  frontML.set( v );
+  //  frontMR.set( v );
+  //}
+  //public void moveFrontPiston( DoubleSolenoid.Value v ){
+  //  frontP.set( v );
+  //}
   /*public void dropAllPistons(){
     boolean done = false;
     for( int i = 0; i <= 20; i++ ){
@@ -57,7 +60,7 @@ public class ScoringMech extends Subsystem {
     if( done ){
       moveBackBall( DoubleSolenoid.Value.kOff );
       //moveFrontHatch( DoubleSolenoid.Value.kOff );
-    }
+    
   }*/
   @Override
   public void initDefaultCommand() {
