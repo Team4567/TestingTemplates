@@ -23,6 +23,9 @@ public class VisionMovement extends CommandGroup {
   private double ang1, d1, ang2, d2;
   public VisionMovement() {
     requires( Robot.drive );
+    requires( Robot.upper );
+    requires( Robot.platformer );
+    requires( Robot.score );
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable nt = inst.getTable( "TargetInfo" );
     eAngleToPerp = nt.getEntry( "AngleToPerp" );     // Perpendicular from hatch wall
@@ -32,16 +35,16 @@ public class VisionMovement extends CommandGroup {
     eTargetPathValid = nt.getEntry( "TargetPathValid" );
     
     if( eTargetPathValid.getBoolean( false ) ){
-      addSequential( new TurnAngle( -1*ang1, new SimpleTurnP( .05, Constants.gyroP , .3 , .15 , 1 ) ) );
+      addSequential( new TurnAngle( -1 * ang1, new SimpleTurnP( .05, Constants.gyroP , .3 , .15 , 1 ) ) );
       
-      addSequential( new DriveDistance( -1*d1, new SimpleMotorP( .02, Constants.motorP, .3, Constants.minValY, 200 ) ) );
+      addSequential( new DriveDistance( -1 * d1, new SimpleMotorP( .02, Constants.motorP, .3, Constants.minValY, 200 ) ) );
       
-      addSequential( new TurnAngle( -1*ang2, new SimpleTurnP( .05, Constants.gyroP , .3 , .15 , 1 ) ) );
+      addSequential( new TurnAngle( -1 * ang2, new SimpleTurnP( .05, Constants.gyroP , .3 , .15 , 1 ) ) );
       
-      addSequential( new DriveDistance( -1*d2, new SimpleMotorP( .02, Constants.motorP, .3, Constants.minValY, 200 ) ) );
+      addSequential( new DriveDistance( -1 * d2, new SimpleMotorP( .02, Constants.motorP, .3, Constants.minValY, 200 ) ) );
       
     } else {
-      
+      System.out.println( "Target Path Invalid" );
     }
     
     // Add Commands here:
@@ -68,9 +71,9 @@ public class VisionMovement extends CommandGroup {
     d1 = eDistanceToPerp.getDouble( 0 );
     ang2 = eAngleToTarget.getDouble( 0 );
     d2 = eDistanceToTarget.getDouble( 0 );
-    if( ang1 == 0 || d1 == 0 || ang2 == 0 || d2 == 0 ){
-      System.out.println( "Code failed, value = 0" );
-      cancel();
-    }
+    //if( ang1 == 0 || d1 == 0 || ang2 == 0 || d2 == 0 ){
+    //  System.out.println( "Code failed, value = 0" );
+    //  cancel();
+    //}
   }
 }
