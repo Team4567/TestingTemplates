@@ -28,8 +28,9 @@ public class ScoringMech extends Subsystem {
   //DoubleSolenoid frontHatch;
   public ScoringMech(){
     // right
-    backBall = new DoubleSolenoid( 10, 2, 3 );
-    frontP1 = new DoubleSolenoid( 42, 0, 1 );
+    // new DoubleSolenoid( 42, 2, 3 );
+    backBall = new DoubleSolenoid( 10, 0, 1 );
+    frontP1 = new DoubleSolenoid( 10, 2, 3 );
     frontP2= new DoubleSolenoid( 42, 4, 5 );
     //frontML = new Talon( 0 );
     //frontMR = new Talon( 1 );

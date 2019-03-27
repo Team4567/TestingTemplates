@@ -58,7 +58,7 @@ public class DriveDistance extends Command {
   protected void execute() {
     done = ( mc.getOutput( tR.getSelectedSensorPosition() ) == 0.0 );
     Robot.drive.drive( mc.getOutput( tR.getSelectedSensorPosition() ), straight.getOutput( Robot.drive.getYaw() ) );
-    System.out.println( straight.getOutput( Robot.drive.getYaw() ) );
+    
   }
 
   // Make this return true when this Command no longer needs to run execute()

@@ -10,12 +10,15 @@ package frc.robot;
 import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
+import edu.wpi.cscore.CvSink;
+import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -63,12 +66,13 @@ public class Robot extends TimedRobot {
   //Interfaces/Controllers
   public static DriverStation ds = DriverStation.getInstance();
   public static XboxController xbC = new XboxController( 0 );
-  
+  public static boolean teleOpStarted = false;
   //NetworkTables
   private NetworkTableInstance inst = NetworkTableInstance.getDefault();
   private NetworkTable cmds = inst.getTable( "RobotCmds" );
   private NetworkTableEntry resetEncoder, fixGyro, gyroVal;
-  test t = new test();
+  //public static UsbCamera cam;
+
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -84,8 +88,12 @@ public class Robot extends TimedRobot {
     resetEncoder = cmds.getEntry( "Reset Encoder" );
     fixGyro = cmds.getEntry( "Fix Gyro" );
     gyroVal = cmds.getEntry( "Gyro Value" );
+    //cam = CameraServer.getInstance().startAutomaticCapture();
+    //cam.setResolution(320, 240);
+    //cam.setFPS( 15 );
+    
   }
-  
+
 
   /**
    * This function is called every robot packet, no matter the mode. Use
@@ -139,7 +147,9 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     System.out.println("TeleOpInit");
-    teleOp.start();
+    if( !teleOpStarted ){
+      teleOp.start();
+    }
   }
 
   /**
@@ -148,9 +158,6 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
-    if( xbC.getTriggerAxis(Hand.kLeft) > .5 ){
-      //t.start(); 
-    }
     //System.out.println( teleOp.isRunning() );  
     if( resetEncoder.getBoolean( false ) ){
       drive.leftMain.setSelectedSensorPosition( 0 );

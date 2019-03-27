@@ -30,6 +30,7 @@ class PathInfo
             double aR = Math.toRadians(Math.abs(lineAngle));  // Raw Angle in radians
 
             // Angle needs to be correct for looking down at it
+            // Change To Actual Height?
             double downAngleR = Math.atan(19.0 / distanceToTape);  // in radians
             double adjustedAngleR = Math.atan(Math.tan(aR) / Math.sin(downAngleR)); // Adjusted Angle in radians
 

@@ -42,13 +42,18 @@ public class VisionBackup extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    ang1 = eAngleToPerp.getDouble( 0 );
-    d1 = eDistanceToPerp.getDouble( 0 );
-    ang2 = eAngleToTarget.getDouble( 0 );
-    d2 = eDistanceToTarget.getDouble( 0 );
-    turn.setSetpoint( ang1 );
-    turn.start();
-    drive.setSetpointInches( d1 );
+    if( eTargetPathValid.getBoolean( false ) ){
+      ang1 = eAngleToPerp.getDouble( 0 );
+      d1 = eDistanceToPerp.getDouble( 0 );
+      ang2 = eAngleToTarget.getDouble( 0 );
+      d2 = eDistanceToTarget.getDouble( 0 );
+      turn.setSetpoint( ang1 );
+      turn.start();
+      drive.setSetpointInches( d1 );
+    } else {
+      System.out.println( "Invalid Path" );
+      cancel(); 
+    }
   }
 
   // Called repeatedly when this Command is scheduled to run

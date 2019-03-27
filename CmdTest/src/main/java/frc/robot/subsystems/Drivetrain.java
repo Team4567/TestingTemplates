@@ -35,7 +35,7 @@ public class Drivetrain extends Subsystem {
     public TalonSRX rightMain,leftMain;
     public TalonSRX rightSlave, leftSlave;
     public PigeonIMU gyro;
-    private double privR, privL;
+    private double privY;
     Timer time;
     Compressor c;
     boolean hasLeft=false;
@@ -88,7 +88,12 @@ public class Drivetrain extends Subsystem {
     public double encoderDistanceInCentimenters( TalonSRX t ){
       return t.getSelectedSensorPosition() * ( ( 1 / 4096 ) * ( Constants.wheelCirc ) * 2.54 );
     }
-    public void drive( double y, double x ){
+    public void drive( double yee, double x ){
+      double y = yee;
+      if( Math.abs( y - privY ) > .02 ){
+         y = privY + ( Math.signum( y - privY ) * .02 );
+      }
+      
       double leftMotors,rightMotors;
       if ( y > 0.0 ) {
         if ( x > 0.0 ) {
@@ -113,11 +118,15 @@ public class Drivetrain extends Subsystem {
       leftMain.set( ControlMode.PercentOutput, leftMotors );
       rightSlave.follow( rightMain );
       leftSlave.follow( leftMain );
+      privY = y;
     }
     public void drive( XboxController controller, boolean isInverted ){
       double y = applyDeadband( .75 * controller.getY( Hand.kLeft ), 0.1 );
-      if( isInverted ) y *= -1;
-      double x = applyDeadband( .75 * controller.getX( Hand.kLeft ), 0.1 );
+      if( isInverted ) {y *= -1;
+      
+      };
+      double x = applyDeadband( -.75 * controller.getX( Hand.kLeft ), 0.1 );
+      
       drive( y, x );
     }
 

@@ -21,31 +21,35 @@ public class PlatformClimber extends Subsystem {
     // Left
     //front1 = new DoubleSolenoid( 42, 0, 1 );
     // Left
-    front2 = new DoubleSolenoid( 42, 2, 3 );
+    //new DoubleSolenoid( 10, 2, 3 );
+    //front2 = new DoubleSolenoid( 10, 2, 3 );
     // Right
-    back = new DoubleSolenoid( 10, 0, 1 );
+    
   }
-  public void setFronts( DoubleSolenoid.Value v ){
+/*  public void setFronts( DoubleSolenoid.Value v ){
     //front1.set( v );
     front2.set( v );
-  }
-  public void setBack( DoubleSolenoid.Value v ){
-    back.set( v );
-  }
-  public void dropAllPistons(){
+ }
+ public void lockFront(){
+   front2.set( DoubleSolenoid.Value.kOff );
+ }*/
+ // public void setBack( DoubleSolenoid.Value v ){
+  //  back.set( v );
+  //}
+  /*public void dropAllPistons(){
     boolean done = false;
     for( int i = 0; i <= 20; i++ ){
-      setFronts( DoubleSolenoid.Value.kReverse );
+      //setFronts( DoubleSolenoid.Value.kReverse );
       setBack( DoubleSolenoid.Value.kReverse );
       if( i == 20 ){
         done = true;
       }
     }
     if( done ){
-      setFronts( DoubleSolenoid.Value.kOff );
+      //setFronts( DoubleSolenoid.Value.kOff );
       setBack( DoubleSolenoid.Value.kOff );
     }
-  }
+  }*/
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.

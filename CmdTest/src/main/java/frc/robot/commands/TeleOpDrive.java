@@ -35,13 +35,14 @@ public class TeleOpDrive extends Command {
     requires( Robot.platformer );
     requires( Robot.score );
     xbC = controller;
-    VisionMovement vision = new VisionMovement();
+    VisionBackup vision = new VisionBackup();
   }
 
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
     System.out.println( "Starting TeleOpDrive!" );
+    Robot.teleOpStarted = true;
   }
 
   // Called repeatedly when this Command is scheduled to run
@@ -52,10 +53,10 @@ public class TeleOpDrive extends Command {
     if( xbC.getYButton() ){
       
     } 
-    if( xbC.getAButton() ){
+    if( xbC.getAButtonPressed() ){
       mechOut = !mechOut;
     }
-    if( mechOut ){
+    if( !mechOut ){
       Robot.score.frontP1.set( DoubleSolenoid.Value.kForward );
     } else {
       Robot.score.frontP1.set( DoubleSolenoid.Value.kReverse);
@@ -95,10 +96,10 @@ public class TeleOpDrive extends Command {
     // Drive Inverter     
     if( xbC.getStartButtonPressed() ){
       invert = !invert;
+      System.out.println( invert );
     }
     // Vision Assistance
     if( xbC.getBackButtonPressed() ){
-      vision = new VisionMovement();
       System.out.println("Vision");
       vision.start();
     }
@@ -113,17 +114,17 @@ public class TeleOpDrive extends Command {
       platformBackUp = !platformBackUp;
       prevPOV = 180;
     }   
-    if( !platformFrontUp ){
+    /*if( !platformFrontUp ){
       Robot.platformer.setFronts( DoubleSolenoid.Value.kForward );
     } else {
       
       Robot.platformer.setFronts( DoubleSolenoid.Value.kReverse );
       
-    }
+    }*/
     if( !platformBackUp ){
-      Robot.platformer.setBack( DoubleSolenoid.Value.kForward );
+     // Robot.platformer.setBack( DoubleSolenoid.Value.kForward );
     } else {
-      Robot.platformer.setBack( DoubleSolenoid.Value.kReverse );
+     // Robot.platformer.setBack( DoubleSolenoid.Value.kReverse );
     }
     if( xbC.getPOV() == 90 ){
       
@@ -134,7 +135,8 @@ public class TeleOpDrive extends Command {
     }      
     if( xbC.getPOV() == -1 ){
       prevPOV = -1;
-    }                    
+    }    
+    //Robot.platformer.lockFront();                
   }
 
   // Make this return true when this Command no longer needs to run execute()
